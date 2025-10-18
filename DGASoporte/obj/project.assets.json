@@ -4774,11 +4774,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Sistema-Tesis\\DGASoporte\\DGASoporte\\DGASoporte.csproj",
+      "projectUniqueName": "C:\\Sistema-Tesis\\Web_Soporte\\DGASoporte\\DGASoporte.csproj",
       "projectName": "DGASoporte",
-      "projectPath": "C:\\Sistema-Tesis\\DGASoporte\\DGASoporte\\DGASoporte.csproj",
+      "projectPath": "C:\\Sistema-Tesis\\Web_Soporte\\DGASoporte\\DGASoporte.csproj",
       "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
-      "outputPath": "C:\\Sistema-Tesis\\DGASoporte\\DGASoporte\\obj\\",
+      "outputPath": "C:\\Sistema-Tesis\\Web_Soporte\\DGASoporte\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

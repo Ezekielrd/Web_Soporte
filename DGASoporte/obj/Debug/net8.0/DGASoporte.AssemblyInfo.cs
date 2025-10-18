@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DGASoporte")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c64b5fefd60d460f0ff049a7edd9d8dfc053be25")]
 [assembly: System.Reflection.AssemblyProductAttribute("DGASoporte")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DGASoporte")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

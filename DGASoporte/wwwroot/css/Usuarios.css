@@ -1,0 +1,75 @@
+﻿/* Fondo global solo para esta vista */
+html, body {
+    background: #E2E6FF;
+}
+main, .container, .container-fluid {
+    background: transparent;
+}
+/*encabezado*/
+h3 {
+    color: #0b2748;
+    font-weight: 800;
+    letter-spacing: .2px;
+}
+/* Ancho fijo reutilizable para el buscador */
+.busqueda-compacta {
+    max-width: 260px;
+}
+/* 
+   Tabla*/
+/*estilo genral de la tabla*/
+#example {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 0;
+    width: 100%;
+    background: transparent;
+    border: 1px solid #ddd;
+}
+    /*estilo encabezado*/
+    #example thead th {
+        background: #153FA5;
+        color: #fff;
+        font-weight: 600;
+        vertical-align: middle;
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+        /*estilo para el primer y ultimo elemento del encabezado bordes redondeos*/
+        .table thead th:first-child {
+            border-top-left-radius: .55rem;
+        }
+
+        .table thead th:last-child {
+            border-top-right-radius: .55rem;
+        }
+    /*estilo del cuerpo */
+
+    #example tbody tr {
+        background: #f4eefd !important;
+    }
+    #example tbody td {
+        padding: 0.75rem;
+        border-top: 1px solid #ccacf8;
+        vertical-align: middle;
+    }
+#example tbody tr:hover {
+    filter: brightness(0.985);
+    transition: filter 0.2s ease;
+}
+.btn-sm {
+    padding: .15rem .50rem;
+    border-radius: .4rem;
+    font-weight: 600;
+}
+/* Botón Agregar*/
+.btn-agregar {
+    background: #fff;
+    border: 1px solid #009929;
+    color: #009929;
+}
+
+    .btn-agregar:hover {
+        background: #98ff96;
+    }

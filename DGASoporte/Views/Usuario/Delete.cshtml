@@ -1,0 +1,50 @@
+﻿@model Usuario
+@{
+    ViewData["Title"] = "Eliminar usuario";
+}
+
+<h4 class="mb-3">@ViewData["Title"]</h4>
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    ¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Usuario</dt>
+            <dd class="col-sm-9">@Model.User</dd>
+
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Nombre</dt>
+            <dd class="col-sm-9">@Model.NombreCompleto</dd>
+
+            <dt class="col-sm-3">Rol</dt>
+            <dd class="col-sm-9">@Model.Rol?.Nombre</dd>
+
+            <dt class="col-sm-3">Activo</dt>
+            <dd class="col-sm-9">
+                @if (Model.Activo)
+                {
+                    <span class="badge bg-success">Sí</span>
+                }
+                else
+                {
+
+                    <span class="badge bg-secondary">No</span>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete" method="post" class="d-flex gap-2">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Eliminar
+    </button>
+    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+</form>

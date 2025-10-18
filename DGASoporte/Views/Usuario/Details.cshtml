@@ -1,0 +1,43 @@
+﻿@model UsuarioVM
+@using System
+
+@*<link rel="stylesheet" href="@Url.Content("~/css/usuarioDetails.css")" asp-append-version="true" />*@
+
+<div class="usuario-details-page">
+    <div class="usuario-details-card">
+        <div class="usuario-details-card__bar"></div>
+
+        <div class="usuario-details-card__header">
+            <h3 class="title">Detalle de usuario</h3>
+            <div class="actions">
+                <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-brand btn-sm">Edit</a>
+                <a asp-action="Index" class="btn btn-ghost btn-sm">Volver</a>
+            </div>
+        </div>
+
+        <div class="usuario-details-card__body">
+            <dl class="kv">
+                <div class="kv-row">
+                    <dt>Nombre</dt>
+                    <dd>@Model.User</dd>
+                </div>
+                <div class="kv-row">
+                    <dt>Contraseña</dt>
+                    <dd>@Model.Email</dd>
+                </div>
+                <div class="kv-row">
+                    <dt>Rol</dt>
+                    <dd>@(Model.Rol)</dd>
+                </div>
+                <div class="kv-row">
+                    <dt>Fecha de Creación</dt>
+                    <dd>@Model.FechaCracion.ToString("yyyy-MM-dd")</dd>
+                </div>
+                <div class="kv-row">
+                    <dt>Estado</dt>
+                    <dd>@(Model.Activo)</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>

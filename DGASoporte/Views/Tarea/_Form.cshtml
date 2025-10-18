@@ -1,0 +1,366 @@
+﻿@model TareaFormVM
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Nueva tarea";
+}
+
+<style>
+    .stepper {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .step {
+        position: relative;
+        text-align: center;
+        padding-top: .5rem;
+    }
+
+        .step .bullet {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            background: #e9ecef;
+            color: #6c757d;
+            border: 2px solid #dee2e6;
+            transition: all .2s;
+        }
+
+        .step.active .bullet, .step.done .bullet {
+            background: #0d6efd;
+            color: #fff;
+            border-color: #0d6efd;
+        }
+
+        .step .label {
+            display: block;
+            margin-top: .5rem;
+            font-size: .9rem;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .step.active .label, .step.done .label {
+            color: #0d6efd;
+        }
+
+        .step::after {
+            content: "";
+            position: absolute;
+            top: 18px;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: #dee2e6;
+        }
+
+        .step:last-child::after {
+            display: none;
+        }
+
+        .step.done::after {
+            background: #0d6efd;
+        }
+
+    .wizard-card {
+        border: 1px solid rgba(0,0,0,.06);
+        border-radius: 1rem;
+        box-shadow: 0 10px 24px rgba(0,0,0,.06);
+        background: #fff;
+    }
+
+    .wizard-header {
+        background: linear-gradient(135deg, #0a3a75 0%, #0c55b8 50%, #0a3a75 100%);
+        color: #fff;
+        padding: 1rem 1.25rem;
+        border-radius: 1rem 1rem 0 0;
+    }
+
+    .wizard-body {
+        padding: 1.25rem;
+    }
+
+    .wizard-footer {
+        padding: .75rem 1.25rem;
+        background: #fff;
+        border-top: 1px solid rgba(0,0,0,.06);
+        border-radius: 0 0 1rem 1rem;
+    }
+
+    .wizard-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: .5rem;
+    }
+
+        .wizard-actions .right {
+            display: flex;
+            gap: .5rem;
+        }
+
+    .step-pane {
+        display: none;
+    }
+
+        .step-pane.active {
+            display: block;
+        }
+
+    .summary-box {
+        background: #f8f9fa;
+        border: 1px dashed rgba(0,0,0,.12);
+        border-radius: .75rem;
+        padding: 1rem;
+    }
+</style>
+
+<div class="container-xxl">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="mb-0">@ViewData["Title"]</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    <div class="stepper" id="stepper">
+        <div class="step active" data-step="0">
+            <div class="bullet">1</div>
+            <span class="label">Información</span>
+        </div>
+        <div class="step" data-step="1">
+            <div class="bullet">2</div>
+            <span class="label">Clasificación</span>
+        </div>
+        <div class="step" data-step="2">
+            <div class="bullet">3</div>
+            <span class="label">Fecha y Confirmación</span>
+        </div>
+    </div>
+
+    <div class="wizard-card">
+        <div class="wizard-header">
+            <h5 class="mb-0" id="stepTitle">Paso 1 de 3 — Información básica</h5>
+        </div>
+
+        <form asp-action="Create" method="post" id="wizardForm" novalidate>
+            @Html.AntiForgeryToken()
+            <div class="wizard-body">
+                <!-- PASO 1 -->
+                <div class="step-pane active" data-step-pane="0">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label asp-for="Titulo" class="form-label"></label>
+                            <input asp-for="Titulo" class="form-control" placeholder="Ej.: Reemplazo de switch en laboratorio" />
+                            <span asp-validation-for="Titulo" class="text-danger"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Descripcion" class="form-label"></label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="5" placeholder="Describe el contexto, pasos y criterios de aceptación..."></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 2 -->
+                <div class="step-pane" data-step-pane="1">
+                    <div class="row g-4">
+                        <div class="col-12 col-md-6">
+                            <label asp-for="EstadoId" class="form-label"></label>
+                            <select asp-for="EstadoId" asp-items="Model.Estados" class="form-select">
+                                <option value="">Seleccione un estado...</option>
+                            </select>
+                            <span asp-validation-for="EstadoId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="PrioridadId" class="form-label"></label>
+                            <select asp-for="PrioridadId" asp-items="Model.Prioridades" class="form-select">
+                                <option value="">Seleccione la prioridad...</option>
+                            </select>
+                            <span asp-validation-for="PrioridadId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="CategoriaId" class="form-label"></label>
+                            <select asp-for="CategoriaId" asp-items="Model.Categorias" class="form-select">
+                                <option value="">Opcional</option>
+                            </select>
+                            <span asp-validation-for="CategoriaId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="UnidadId" class="form-label"></label>
+                            <select asp-for="UnidadId" asp-items="Model.Unidades" class="form-select">
+                                <option value="">Seleccione el área...</option>
+                            </select>
+                            <span asp-validation-for="UnidadId" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 3 -->
+                <div class="step-pane" data-step-pane="2">
+                    <div class="row g-4">
+                        <div class="col-12 col-md-6">
+                            <label asp-for="FechaLimite" class="form-label"></label>
+                            <input asp-for="FechaLimite" class="form-control" type="datetime-local"
+                                   min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
+                            <span asp-validation-for="FechaLimite" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="summary-box">
+                                <h6 class="mb-3">Resumen</h6>
+                                <div class="row gy-2">
+                                    <div class="col-12"><strong>Título:</strong> <span id="sumTitulo">—</span></div>
+                                    <div class="col-12"><strong>Descripción:</strong> <span id="sumDescripcion">—</span></div>
+                                    <div class="col-12 col-md-6"><strong>Estado:</strong> <span id="sumEstado">—</span></div>
+                                    <div class="col-12 col-md-6"><strong>Prioridad:</strong> <span id="sumPrioridad">—</span></div>
+                                    <div class="col-12 col-md-6"><strong>Categoría:</strong> <span id="sumCategoria">—</span></div>
+                                    <div class="col-12 col-md-6"><strong>Área:</strong> <span id="sumArea">—</span></div>
+                                    <div class="col-12 col-md-6"><strong>Fecha límite:</strong> <span id="sumFecha">—</span></div>
+                                </div>
+                                <small class="text-muted d-block mt-2">
+                                    Verifica que toda la información sea correcta antes de guardar.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wizard-footer">
+                <div class="wizard-actions">
+                    <div>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                    <div class="right">
+                        <button type="button" class="btn btn-outline-primary" id="btnPrev" disabled>
+                            <i class="bi bi-arrow-left"></i> Anterior
+                        </button>
+                        <button type="button" class="btn btn-primary" id="btnNext">
+                            Siguiente <i class="bi bi-arrow-right"></i>
+                        </button>
+                        <button type="submit" class="btn btn-success d-none" id="btnSubmit">
+                            <i class="bi bi-check2-circle"></i> Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const form = document.getElementById('wizardForm');
+            const panes = Array.from(document.querySelectorAll('[data-step-pane]'));
+            const steps = Array.from(document.querySelectorAll('.stepper .step'));
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const stepTitle = document.getElementById('stepTitle');
+
+            let current = 0;
+
+            function showStep(i) {
+                panes.forEach(p => p.classList.remove('active'));
+                steps.forEach(s => { s.classList.remove('active'); s.classList.toggle('done', Number(s.dataset.step) < i); });
+                panes[i].classList.add('active');
+                steps[i].classList.add('active');
+
+                btnPrev.disabled = i === 0;
+                btnNext.classList.toggle('d-none', i === panes.length - 1);
+                btnSubmit.classList.toggle('d-none', i !== panes.length - 1);
+
+                const titles = [
+                    'Paso 1 de 3 — Información básica',
+                    'Paso 2 de 3 — Clasificación',
+                    'Paso 3 de 3 — Fecha y Confirmación'
+                ];
+                stepTitle.textContent = titles[i];
+
+                updateSummary();
+            }
+
+            function validateStep(i) {
+                // Valida SOLO los campos visibles del paso actual (HTML5)
+                const inputs = panes[i].querySelectorAll('input, textarea, select');
+                for (const el of inputs) {
+                    if (!el.checkValidity()) {
+                        el.reportValidity();
+                        el.focus();
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function updateSummary() {
+                const getText = (sel) => {
+                    const el = document.querySelector(sel);
+                    if (!el) return '—';
+                    if (el.tagName === 'SELECT') {
+                        const opt = el.selectedOptions[0];
+                        return opt ? opt.textContent : '—';
+                    }
+                    if (el.type === 'datetime-local' && el.value) {
+                        const v = el.value.replace('T', ' ');
+                        return v;
+                    }
+                    return el.value?.trim() || '—';
+                };
+
+                document.getElementById('sumTitulo').textContent = getText('[name="Titulo"]');
+                document.getElementById('sumDescripcion').textContent = getText('[name="Descripcion"]');
+                document.getElementById('sumEstado').textContent = getText('[name="EstadoId"]');
+                document.getElementById('sumPrioridad').textContent = getText('[name="PrioridadId"]');
+                document.getElementById('sumCategoria').textContent = getText('[name="CategoriaId"]');
+                document.getElementById('sumArea').textContent = getText('[name="AreaId"]');
+                document.getElementById('sumFecha').textContent = getText('[name="FechaLimite"]');
+            }
+
+            // Botones
+            btnPrev.addEventListener('click', () => {
+                if (current > 0) { current--; showStep(current); }
+            });
+
+            btnNext.addEventListener('click', () => {
+                if (validateStep(current)) {
+                    if (current < panes.length - 1) {
+                        current++; showStep(current);
+                    }
+                }
+            });
+
+            // Si el servidor devolvió errores, cae en el paso con el primer error
+            window.addEventListener('DOMContentLoaded', () => {
+                const firstError = document.querySelector('.field-validation-error, span.text-danger:has(~ input.input-validation-error), input.input-validation-error, select.input-validation-error, textarea.input-validation-error');
+                if (firstError) {
+                    // ubica el pane contenedor
+                    const pane = firstError.closest('[data-step-pane]') || firstError.closest('.step-pane') || panes[0];
+                    current = panes.indexOf(pane);
+                }
+                showStep(current);
+            });
+
+            // Actualiza resumen en cambios
+            form.addEventListener('input', (e) => {
+                // Solo para pasos 2 y 3 tiene sentido actualizar en vivo
+                if (current >= 0) updateSummary();
+            });
+        })();
+    </script>
+
+}

@@ -1,0 +1,75 @@
+﻿@model UsuarioVM
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="usuario-edit-page">
+    <div class="usuario-edit-card">
+        <div class="usuario-edit-card__bar"></div>
+
+        <div class="usuario-edit-card__header">
+            <div>
+                <h3 class="usuario-create-title" id="no-select">Editar usuario</h3>
+                <div class="usuario-create-sub" id="no-select">Actualiza datos y (si deseas) la contraseña.</div>
+            </div>
+            <a asp-action="Index" class="link-back">Volver</a>
+        </div>
+
+        <div class="usuario-edit-card__body">
+            <form asp-action="Editar" method="post" class="needs-validation" id="formCambiarContrasena" data-edit="true" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="EsEdicion" value="true" />
+
+                <div class="form-section grid-2">
+                    <div>
+                        <label asp-for="User" class="form-label"></label>
+                        <input asp-for="User" class="form-control" placeholder="Ej: jdoe" required />
+                        <span asp-validation-for="User" class="field-validation-error"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" placeholder="Ej: jdoe" required />
+                        <span asp-validation-for="Email" class="field-validation-error"></span>
+                    </div>
+                    <div>
+                        <label asp-for="NombreCompleto" class="form-label"></label>
+                        <input asp-for="NombreCompleto" class="form-control" placeholder="Ej: jdoe" required />
+                        <span asp-validation-for="NombreCompleto" class="field-validation-error"></span>
+                    </div>
+                    <div>
+                        <label asp-for="RolId" class="form-label"></label>
+                        <select asp-for="RolId" asp-items="Model.Roles" class="form-select">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                        <span class="input-help" id="no-select">Define los permisos del usuario.</span>
+                        <span asp-validation-for="RolId" class="field-validation-error"></span>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <input asp-for="Activo" class="form-check-input" type="checkbox" role="switch" />
+                            <label asp-for="Activo" class="form-check-label"></label>
+                        </div>
+                        <span asp-validation-for="Activo" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Password" class="form-label"></label>
+                        <div class="input-container">
+                            <input asp-for="Password" class="secure-password form-control" placeholder="Dejar en blanco para mantener" />
+                            <button type="button" class="togglePassword">👁</button>
+                        </div>
+                        <span asp-validation-for="Password" class="field-validation-error"></span>
+                    </div>
+                </div>
+
+                <div class="usuario-edit-card__footer">
+                    <a asp-action="Index" class="btn btn-ghost">Cancelar</a>
+                    <button type="submit" class="btn btn-brand">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="~/js/cuenta/Colorear.js"></script>
+<script src="~/js/cuenta/Ojo.js"></script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

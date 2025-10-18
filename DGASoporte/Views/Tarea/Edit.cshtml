@@ -1,0 +1,112 @@
+﻿@model TareaFormVM
+@{
+    ViewData["Title"] = "Editar Tarea";
+}
+<h2>Editar Tarea</h2>
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <partial name="_Form" model="Model" />
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const form = document.getElementById('wizardForm');
+            const panes = Array.from(document.querySelectorAll('[data-step-pane]'));
+            const steps = Array.from(document.querySelectorAll('.stepper .step'));
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const stepTitle = document.getElementById('stepTitle');
+
+            let current = 0;
+
+            function showStep(i) {
+                panes.forEach(p => p.classList.remove('active'));
+                steps.forEach(s => { s.classList.remove('active'); s.classList.toggle('done', Number(s.dataset.step) < i); });
+                panes[i].classList.add('active');
+                steps[i].classList.add('active');
+
+                btnPrev.disabled = i === 0;
+                btnNext.classList.toggle('d-none', i === panes.length - 1);
+                btnSubmit.classList.toggle('d-none', i !== panes.length - 1);
+
+                const titles = [
+                    'Paso 1 de 3 — Información básica',
+                    'Paso 2 de 3 — Clasificación',
+                    'Paso 3 de 3 — Fecha y Confirmación'
+                ];
+                stepTitle.textContent = titles[i];
+
+                updateSummary();
+            }
+
+            function validateStep(i) {
+                // Valida SOLO los campos visibles del paso actual (HTML5)
+                const inputs = panes[i].querySelectorAll('input, textarea, select');
+                for (const el of inputs) {
+                    if (!el.checkValidity()) {
+                        el.reportValidity();
+                        el.focus();
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function updateSummary() {
+                const getText = (sel) => {
+                    const el = document.querySelector(sel);
+                    if (!el) return '—';
+                    if (el.tagName === 'SELECT') {
+                        const opt = el.selectedOptions[0];
+                        return opt ? opt.textContent : '—';
+                    }
+                    if (el.type === 'datetime-local' && el.value) {
+                        const v = el.value.replace('T', ' ');
+                        return v;
+                    }
+                    return el.value?.trim() || '—';
+                };
+
+                document.getElementById('sumTitulo').textContent = getText('[name="Titulo"]');
+                document.getElementById('sumDescripcion').textContent = getText('[name="Descripcion"]');
+                document.getElementById('sumEstado').textContent = getText('[name="EstadoId"]');
+                document.getElementById('sumPrioridad').textContent = getText('[name="PrioridadId"]');
+                document.getElementById('sumCategoria').textContent = getText('[name="CategoriaId"]');
+                document.getElementById('sumArea').textContent = getText('[name="AreaId"]');
+                document.getElementById('sumFecha').textContent = getText('[name="FechaLimite"]');
+            }
+
+            // Botones
+            btnPrev.addEventListener('click', () => {
+                if (current > 0) { current--; showStep(current); }
+            });
+
+            btnNext.addEventListener('click', () => {
+                if (validateStep(current)) {
+                    if (current < panes.length - 1) {
+                        current++; showStep(current);
+                    }
+                }
+            });
+
+            // Si el servidor devolvió errores, cae en el paso con el primer error
+            window.addEventListener('DOMContentLoaded', () => {
+                const firstError = document.querySelector('.field-validation-error, span.text-danger:has(~ input.input-validation-error), input.input-validation-error, select.input-validation-error, textarea.input-validation-error');
+                if (firstError) {
+                    // ubica el pane contenedor
+                    const pane = firstError.closest('[data-step-pane]') || firstError.closest('.step-pane') || panes[0];
+                    current = panes.indexOf(pane);
+                }
+                showStep(current);
+            });
+
+            // Actualiza resumen en cambios
+            form.addEventListener('input', (e) => {
+                // Solo para pasos 2 y 3 tiene sentido actualizar en vivo
+                if (current >= 0) updateSummary();
+            });
+        })();
+    </script>
+}

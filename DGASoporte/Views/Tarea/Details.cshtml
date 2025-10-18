@@ -1,0 +1,168 @@
+﻿@model TareaFormVM
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Detalle de tarea";
+
+    var now = DateTime.Now;
+
+    var diasRestantes = (Model.FechaLimite.Date - now.Date).TotalDays;
+    var vencimientoClase = diasRestantes < 0 ? "text-danger" : (diasRestantes <= 3 ? "text-warning" : "text-muted");
+    var vencimientoTexto = diasRestantes < 0
+        ? $"Vencida hace {Math.Abs((int)diasRestantes)} día(s)"
+        : (diasRestantes == 0 ? "Vence hoy" : $"Vence en {(int)diasRestantes} día(s)");
+
+    string clsEstado = Model.EstadoNombre?.ToLowerInvariant() switch
+    {
+        "pendiente" => "bg-warning text-dark",
+        "en progreso" => "bg-info text-dark",
+        "progreso" => "bg-info text-dark",
+        "bloqueada" => "bg-secondary",
+        "cerrada" => "bg-success",
+        "completada" => "bg-success",
+        "cancelada" => "bg-dark",
+        _ => "bg-secondary"
+    };
+
+    string clsPrioridad = Model.PrioridadNombre?.ToLowerInvariant() switch
+    {
+        "alta" => "bg-danger",
+        "media" => "bg-warning text-dark",
+        "baja" => "bg-success",
+        _ => "bg-secondary"
+    };
+}
+
+<style>
+    .usuario-details-car {
+        max-width: 960px;
+        margin: 0 auto;
+    }
+
+    .card-modern {
+        border: 1px solid rgba(0,0,0,.06);
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(0,0,0,.06);
+        background: #ffffff;
+    }
+
+        .card-modern .card-header {
+            background: linear-gradient(135deg, #0a3a75 0%, #0c55b8 50%, #0a3a75 100%);
+            color: #fff;
+            padding: 1.25rem 1.25rem;
+        }
+
+    .meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .35rem .6rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: .85rem;
+    }
+
+    .label-muted {
+        font-size: .8rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        font-weight: 600;
+    }
+
+    .value-strong {
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .desc-box {
+        background: #f8f9fa;
+        border: 1px dashed rgba(0,0,0,.1);
+        border-radius: .75rem;
+        padding: 1rem;
+        white-space: pre-wrap;
+    }
+
+    .btn-icon {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+    }
+</style>
+
+<div class="usuario-details-page">
+    <div class="usuario-details-card">
+        <div class="usuario-details-card__bar"></div>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="mb-0">@ViewData["Title"]</h2>
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary btn-icon">
+                    <i class="bi bi-pencil-square"></i> Editar
+                </a>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-icon">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+
+        <div class="card card-modern">
+            <div class="card-header">
+                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2">
+                    <div>
+                        <div class="label-muted mb-1">Título</div>
+                        <h3 class="mb-0">@Model.Titulo</h3>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @if (!string.IsNullOrWhiteSpace(Model.EstadoNombre))
+                        {
+                            <span class="meta-chip badge @clsEstado">
+                                <i class="bi bi-circle-half"></i> @Model.EstadoNombre
+                            </span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.PrioridadNombre))
+                        {
+                            <span class="meta-chip badge @clsPrioridad">
+                                <i class="bi bi-lightning-charge"></i> @Model.PrioridadNombre
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-12 col-md-6">
+                        <div class="label-muted">Fecha de creación</div>
+                        <div class="value-strong">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm", new CultureInfo("es-NI"))</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="label-muted">Fecha límite</div>
+                        <div class="value-strong">
+                            @Model.FechaLimite.ToString("dd/MM/yyyy HH:mm", new CultureInfo("es-NI"))
+                            <span class="@vencimientoClase ms-2 small">(@vencimientoTexto)</span>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="label-muted">Área</div>
+                        <div class="value-strong">@(!string.IsNullOrWhiteSpace(Model.UnidadNombre) ? Model.UnidadNombre : "—")</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="label-muted">Categoría</div>
+                        <div class="value-strong">@(!string.IsNullOrWhiteSpace(Model.CategoriaNombre) ? Model.CategoriaNombre : "—")</div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="label-muted mb-2">Descripción</div>
+                        <div class="desc-box">@(!string.IsNullOrWhiteSpace(Model.Descripcion) ? Model.Descripcion : "Sin descripción")</div>
+                    </div>
+                </div>
+            </div>
+         </div>
+    </div>
+</div>
+

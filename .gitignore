@@ -5,9 +5,9 @@
 *.userosscache
 *.sln.docstates
 
-# Build
-/bin/
-/obj/
+# Build (todas las subcarpetas)
+**/bin/
+**/obj/
 
 # VS Code (si aplica)
 /.vscode/

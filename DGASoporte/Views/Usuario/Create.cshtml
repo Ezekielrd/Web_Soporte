@@ -1,46 +1,46 @@
 ﻿@model DGASoporte.Models.UsuarioVM
 @using Microsoft.AspNetCore.Mvc.Rendering
+<link href="~/css/cardUsaurio.css" rel="stylesheet" />
+<div class="usuario-page">
+    <div class="usuario-card">
+        <div class="usuario-card__bar"></div>
 
-<div class="usuario-create-page">
-    <div class="usuario-create-card">
-        <div class="usuario-create-card__bar"></div>
-
-        <div class="usuario-create-card__header">
+        <div class="usuario-card__header">
             <div>
-                <h3 class="usuario-create-title" id="no-select">Agregar usuario</h3>
-                <div class="usuario-create-sub" id="no-select">Crea una cuenta con rol y contraseña seguras</div>
+                <h3 class="usuario-title" id="no-select">Agregar usuario</h3>
+                <div class="usuario--sub" id="no-select">Crea una cuenta con rol y contraseña seguras</div>
             </div>
             <a asp-action="Index" class="link-back">Volver</a>
         </div>
 
-        <div class="usuario-create-card__body">
+        <div class="usuario-card__body">
             <form asp-action="Create" method="post" id="formCambiarContrasena" novalidate>
                 @Html.AntiForgeryToken()
 
                 <div class="form-section grid-2">
                     <div>
-                        <label asp-for="User" class="form-label"></label>
+                        <label asp-for="User" class="form-label no-select"></label>
                         <input asp-for="User" class="form-control" placeholder="Ej: jdoe" required />
                         <span asp-validation-for="User" class="field-validation-error"></span>
                     </div>
 
                     <div class="form-group">
-                        <label asp-for=" Password" class="form-label"></label>
+                        <label asp-for=" Password" class="form-label no-select"></label>
                         <div class="input-container">
                             <input asp-for=" Password" type="password" class="secure-password form-control" placeholder="Mín. 8 caracteres" required />
-                            <button type="button" class="togglePassword">👁</button>
+                            <button type="button" class="togglePassword btn-eye">👁</button>
                         </div>
                         <span asp-validation-for=" Password" class="field-validation-error"></span>
                     </div>
 
                     <div>
-                        <label asp-for="NombreCompleto" class="form-label"></label>
+                        <label asp-for="NombreCompleto" class="form-label no-select"></label>
                         <input asp-for="NombreCompleto" class="form-control" placeholder="Ej: jdoe" required />
                         <span asp-validation-for="NombreCompleto" class="field-validation-error"></span>
                     </div>
 
                     <div>
-                        <label asp-for="RolId" class="form-label">Rol</label>
+                        <label asp-for="RolId" class="form-label no-select">Rol</label>
                         <select asp-for="RolId"
                                 asp-items="@(ViewBag.Roles as IEnumerable<SelectListItem>)"
                                 class="form-select">
@@ -52,15 +52,15 @@
                 </div>
                 <div class="col-12">
                     <div class="form-check form-switch">
-                        <input asp-for="Activo" class="form-check-input" type="checkbox" role="switch" />
-                        <label asp-for="Activo" class="form-check-label"></label>
+                        <input asp-for="Activo" class="form-check-input" type="checkbox" role="switch" id="switchActivo" />
+                        <label for="switchActivo" class="form-check-label no-select labelEstado"></label>
                     </div>
                     <span asp-validation-for="Activo" class="text-danger"></span>
                 </div>
 
-                <div class="usuario-create-card__footer">
-                    <a asp-action="Index" class="btn btn-ghost">Cancelar</a>
-                    <button type="submit" class="btn btn-brand">Guardar</button>
+                <div class="usuario-card__footer">
+                    <a asp-action="Index" class="btn btn-cl">Cancelar</a>
+                    <button type="submit" class="btn btn-gd">Guardar</button>
                 </div>
             </form>
         </div>
@@ -70,4 +70,47 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Se ejecuta cuando el documento está completamente cargado
+        $(document).ready(function () {
+            var $switch = $('#switchActivo');
+            var $label = $('.labelEstado');
+            // Función para actualizar el texto del label
+            function actualizarEstado() {
+                if ($switch.prop('checked')) {
+                    // Si el checkbox está marcado
+                    $label.text('Activo');
+                } else {
+                    // Si el checkbox NO está marcado
+                    $label.text('Desactivo');
+                }
+            }
+            // 1. Establecer el estado inicial del label al cargar la página
+            actualizarEstado();
+            // 2. Escuchar el evento 'change' del switch para actualizar el label dinámicamente
+            $switch.on('change', function () {
+                actualizarEstado();
+            });
+
+        });
+    </script>
+    <script>
+        // Cambia el comportamiento global de jQuery Validate para poner/quitar clases
+        $.validator.setDefaults({
+          highlight: function (element) {
+            $(element).addClass('input-validation-error').removeClass('valid');
+          },
+          unhighlight: function (element) {
+            $(element).removeClass('input-validation-error').addClass('valid');
+          }
+        });
+
+        // Forzamos refresco al tipear para que se vea el borde verde en vivo
+        $(function () {
+          const $pwd = $('#Password'); // ajusta al id/nombre real de tu campo
+          $pwd.on('input blur', function () { $(this).valid(); });
+        });
+    </script>
+
+    <script src="~/js/cuenta/Ojo.js"></script>
 }

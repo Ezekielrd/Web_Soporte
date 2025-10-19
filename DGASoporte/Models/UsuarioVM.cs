@@ -44,7 +44,6 @@ namespace DGASoporte.Models
 
         public bool Activo { get; set; } = true;
         public bool Bloqueado { get; set; }
-
-        public IEnumerable<SelectListItem> Roles { get; set; } = Enumerable.Empty<SelectListItem>();
+        public IEnumerable<SelectListItem> Roles { get; set; } = [];
     }
 }

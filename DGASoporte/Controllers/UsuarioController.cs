@@ -52,8 +52,10 @@ namespace DGASoporte.Controllers
         public async Task<IActionResult> Create()
         {
             ViewBag.Roles = await _context.Roles
-             .OrderBy(r => r.Nombre)
-             .ToListAsync();
+                .AsNoTracking()
+                .OrderBy(r => r.Nombre)
+                .Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Nombre })
+                .ToListAsync();
             return View(new UsuarioVM());
         }
         // POST: Usuarios/Create

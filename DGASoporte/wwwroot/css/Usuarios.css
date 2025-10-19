@@ -1,13 +1,13 @@
 ﻿/* Fondo global solo para esta vista */
 html, body {
-    background: #E2E6FF;
+    background: #f1f1f1;
 }
 main, .container, .container-fluid {
     background: transparent;
 }
 /*encabezado*/
 h3 {
-    color: #0b2748;
+    color: #01337a;
     font-weight: 800;
     letter-spacing: .2px;
 }
@@ -28,7 +28,7 @@ h3 {
 }
     /*estilo encabezado*/
     #example thead th {
-        background: #153FA5;
+        background: #0360d8;
         color: #fff;
         font-weight: 600;
         vertical-align: middle;
@@ -47,7 +47,7 @@ h3 {
     /*estilo del cuerpo */
 
     #example tbody tr {
-        background: #f4eefd !important;
+        background: #edf0ff !important;
     }
     #example tbody td {
         padding: 0.75rem;

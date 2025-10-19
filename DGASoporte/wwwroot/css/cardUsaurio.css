@@ -1,0 +1,201 @@
+﻿
+/* 1) Fondo global de la página */
+html, body {
+    background: #f1f1f1 !important; /* pinta toda la ventana */
+    min-height: 100vh;
+}
+
+/* 2) Evita que el layout vuelva a poner fondo blanco */
+main, .container, .container-fluid, .content, .page, #app, .layout-content {
+    background: transparent !important;
+}
+
+.usuario-page {
+    background: transparent;
+    min-height: 100vh;
+    padding: 32px 16px;
+    display: grid;
+    place-items: start center;
+}
+
+.usuario-card {
+    width: min(820px, 100%);
+    background: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.06);
+    border: 1px solid #eef2f7;
+    overflow: hidden;
+}
+
+/* Barra superior*/
+.usuario-card__bar {
+    height: 6px;
+    background: linear-gradient(90deg,#4946fb, #261dfa);
+}
+
+/* Header del formulario */
+.usuario-card__header {
+    padding: 20px 22px 0 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.usuario-title {
+    margin: 0;
+    color: #01337a;
+    font-weight: 700;
+    letter-spacing: .2px;
+}
+
+.usuario-sub {
+    margin-top: 4px;
+    color: #dadafe;
+    font-size: .92rem;
+}
+
+/* Contenido */
+.usuario-card__body {
+    padding: 18px 22px 22px 22px;
+}
+
+/* ========= Campos ========= */
+.form-section {
+    display: grid;
+    gap: 14px;
+}
+
+@media (min-width: 768px) {
+    .form-section.grid-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.form-label {
+    font-size: .9rem;
+    color: #212121;
+    font-weight: 600;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #d9e1ec;
+    padding: .55rem .8rem;
+    box-shadow: none;
+}
+
+    .form-control::placeholder {
+        color: #a3afbf;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #FFC107;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+.input-help {
+    font-size: .82rem;
+    color: #838383;
+}
+
+/* Estado de validación */
+.field-validation-error {
+    color: #dc2626;
+    font-size: .85rem;
+}
+
+.input-validation-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 .15rem rgba(220,38,38,.08) !important;
+}
+
+/* ========= Footer / acciones ========= */
+.usuario-card__footer {
+    padding: 18px 20px 18px 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+    border-top: 1px solid #9292ff;
+    background: #ffffff;
+}
+
+/* Botones marca */
+.btn {
+    border: 1px solid #d8d8ef;
+    color: #171794;
+    padding: .55rem 1.05rem;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+    .btn-cl:hover {
+        background: #f73852;
+        border-color:#d2203d;
+        color:#fff;
+    }
+.btn-gd:hover {
+    background: #4ec83d;
+    border-color: #46b536;
+    color: #fff;
+}
+.form-switch{
+    padding: 10px 50px;
+}
+
+/* Botón ojo dentro de inputs password*/
+.input-container .btn-eye {
+    border-radius: 10px;
+    border: 2px solid #d9e1ec;
+    background:#fff;
+}
+
+    .input-container .btn-eye:hover {
+        background: #f8fafc;
+    }
+
+/* Links utilitarios */
+.link-back {
+    color: #4272aa;
+    font-weight: 600;
+}
+
+    .link-back:hover {
+        text-decoration: underline;
+    }
+
+input[type="password"]::-ms-reveal {
+    display: none;
+}
+
+.form-group .input-container {
+    position: relative;
+    display: flex;
+}
+
+.togglePassword {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-left: 10px;
+    user-select: none;
+    cursor: default;
+}
+
+.no-select {
+    user-select: none;
+    cursor: default;
+}
+/* rojo */
+input.input-validation-error {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 0 .2rem rgba(220,53,69,.15);
+}
+
+/* verde cuando sea válido */
+input.valid {
+    border: 2px solid #198754 !important;
+    box-shadow: 0 0 0 .2rem rgba(25,135,84,.15);
+}
+

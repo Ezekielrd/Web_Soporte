@@ -274,7 +274,7 @@ namespace DGASoporte.Controllers
 
             if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
             {
-                TempData["Err"] = "La nueva contraseña es requerida y debe tener al menos 6 caracteres.";
+                TempData["Err"] = "La nueva contraseña es requerida y debe tener al menos 8 caracteres.";
                 return RedirectToAction(nameof(Index));
             }
 

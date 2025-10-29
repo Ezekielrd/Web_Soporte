@@ -113,9 +113,18 @@ namespace DGASoporte.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario is null) return NotFound();
+            var usuario = await _context.Usuarios
+             .AsNoTracking()
+             .Include(x => x.Rol)
+             .FirstOrDefaultAsync(x => x.Id == id);
 
+            if (usuario == null) return NotFound();
+
+            var roles = await _context.Roles
+                .AsNoTracking()
+                .OrderBy(r => r.Nombre)
+                .Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Nombre })
+                .ToListAsync();
             var vm = new UsuarioVM
             {
                 Id = usuario.Id,
@@ -123,6 +132,8 @@ namespace DGASoporte.Controllers
                 Email = usuario.Email,
                 NombreCompleto = usuario.NombreCompleto,
                 RolId = usuario.RolId,
+                Codigo = usuario.Codigo,
+                Roles = roles,
                 Activo = usuario.Activo
             };
 
@@ -153,6 +164,8 @@ namespace DGASoporte.Controllers
                 ModelState.AddModelError(nameof(vm.Email), "El correo ya está registrado por otro usuario.");
             if (await _context.Usuarios.AnyAsync(u => u.User == vm.User && u.Id != vm.Id))
                 ModelState.AddModelError(nameof(vm.User), "El usuario ya existe en otra cuenta.");
+            if (await _context.Usuarios.AnyAsync(u => u.Codigo == vm.Codigo))
+                ModelState.AddModelError(nameof(vm.User), "El codigo ya existe.");
 
             if (!ModelState.IsValid)
             {
@@ -163,7 +176,8 @@ namespace DGASoporte.Controllers
             // Actualizar datos básicos
             usuario.User = vm.User.Trim();
             usuario.Email = vm.Email.Trim();
-            usuario.NombreCompleto = vm.NombreCompleto?.Trim();
+            usuario.NombreCompleto = vm.NombreCompleto.Trim();
+            usuario.Codigo= vm.Codigo.Trim();
             usuario.RolId = vm.RolId;
             usuario.Activo = vm.Activo;
 

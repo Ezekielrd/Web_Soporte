@@ -11,7 +11,7 @@ namespace DGASoporte.Models
         [Display(Name = "Nombre Usuario")]
         [Required(ErrorMessage = "El Nombre es Obligatorio")]
         public string User { get; set; } = null!;
-
+        [EmailAddress]
         [StringLength(150)]
         [Display(Name = "Correo Usuario")]
         [Required(ErrorMessage = "El Correo es Obligatorio")]
@@ -41,7 +41,8 @@ namespace DGASoporte.Models
         [Compare(nameof(Password), ErrorMessage = "Las contraseñas no coinciden.")]
         public string? ConfirmPassword { get; set; }
 
-        [Required(ErrorMessage = "La Rol es Obligatorio")]
+        [Required(ErrorMessage = "Seleccione un rol")]
+        [Range(1, int.MaxValue, ErrorMessage = "Seleccione un rol válido")]
         [Display(Name = "Rol")]
         public int RolId { get; set; }
         public string? Rol { get; init; }

@@ -74,6 +74,9 @@ namespace DGASoporte.Controllers
                 ModelState.AddModelError(nameof(vm.Email), "El correo ya está registrado.");
             if (await _context.Usuarios.AnyAsync(u => u.User == vm.User))
                 ModelState.AddModelError(nameof(vm.User), "El usuario ya existe.");
+            if (await _context.Usuarios.AnyAsync(u => u.Codigo == vm.Codigo))
+                ModelState.AddModelError(nameof(vm.User), "El codigo ya existe.");
+
 
             if (!ModelState.IsValid)
             {
@@ -88,7 +91,8 @@ namespace DGASoporte.Controllers
             {
                 User = vm.User.Trim(),
                 Email = vm.Email.Trim(),
-                NombreCompleto = vm.NombreCompleto?.Trim(),
+                NombreCompleto = vm.NombreCompleto.Trim(),
+                Codigo = vm.Codigo.Trim(),
                 RolId = vm.RolId,
                 Activo = vm.Activo,
                 PasswordHash = hash,

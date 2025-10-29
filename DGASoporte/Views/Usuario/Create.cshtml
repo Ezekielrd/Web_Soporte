@@ -32,7 +32,16 @@
                         </div>
                         <span asp-validation-for=" Password" class="field-validation-error"></span>
                     </div>
-
+                    <div>
+                        <label asp-for="Email" class="form-label no-select"></label>
+                        <input asp-for="Email" class="form-control" placeholder="Ej: jdoe@demo.com" required />
+                        <span asp-validation-for="Email" class="field-validation-error"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Codigo" class="form-label no-select"></label>
+                        <input asp-for="Codigo" class="form-control" placeholder="Ej: dga-jdoe" required />
+                        <span asp-validation-for="Codigo" class="field-validation-error"></span>
+                    </div>
                     <div>
                         <label asp-for="NombreCompleto" class="form-label no-select"></label>
                         <input asp-for="NombreCompleto" class="form-control" placeholder="Ej: jdoe" required />

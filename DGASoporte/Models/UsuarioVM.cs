@@ -20,7 +20,11 @@ namespace DGASoporte.Models
         [StringLength(150)]
         [Display(Name = "Nombre Completo")]
         [Required(ErrorMessage = "El NombreCompleto es Obligatorio")]
-        public string? NombreCompleto { get; set; }
+        public string NombreCompleto { get; set; } = string.Empty!;
+        [StringLength(50)]
+        [Display(Name = "Codigo")]
+        [Required(ErrorMessage = "El Codigo es Obligatorio")]
+        public string Codigo { get; set; } = string.Empty!;
 
         public DateTime FechaCracion { get; set; }
 

@@ -1,20 +1,20 @@
 ﻿@model UsuarioVM
 @using Microsoft.AspNetCore.Mvc.Rendering
+<link href="~/css/cardUsaurio.css" rel="stylesheet" />
+<div class="usuario-page">
+    <div class="usuario-card">
+        <div class="usuario-card__bar"></div>
 
-<div class="usuario-edit-page">
-    <div class="usuario-edit-card">
-        <div class="usuario-edit-card__bar"></div>
-
-        <div class="usuario-edit-card__header">
+        <div class="usuario-card__header">
             <div>
-                <h3 class="usuario-create-title" id="no-select">Editar usuario</h3>
-                <div class="usuario-create-sub" id="no-select">Actualiza datos y (si deseas) la contraseña.</div>
+                <h3 class="usuario-title" id="no-select">Editar usuario</h3>
+                <div class="usuario-sub" id="no-select">Actualiza datos y (si deseas) la contraseña.</div>
             </div>
             <a asp-action="Index" class="link-back">Volver</a>
         </div>
 
-        <div class="usuario-edit-card__body">
-            <form asp-action="Editar" method="post" class="needs-validation" id="formCambiarContrasena" data-edit="true" novalidate>
+        <div class="usuario-card__body">
+            <form asp-action="Edit" method="post" class="needs-validation" id="formCambiarContrasena" data-edit="true" novalidate>
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="EsEdicion" value="true" />
 
@@ -59,7 +59,7 @@
                     </div>
                 </div>
 
-                <div class="usuario-edit-card__footer">
+                <div class="usuario-card__footer">
                     <a asp-action="Index" class="btn btn-ghost">Cancelar</a>
                     <button type="submit" class="btn btn-brand">Guardar</button>
                 </div>
@@ -67,9 +67,10 @@
         </div>
     </div>
 </div>
-<script src="~/js/cuenta/Colorear.js"></script>
-<script src="~/js/cuenta/Ojo.js"></script>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/cuenta/Colorear.js"></script>
+    <script src="~/js/cuenta/Ojo.js"></script>
+    <script src="~/js/cuenta/CambioActividad.js"></script>
 }

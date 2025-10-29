@@ -67,50 +67,9 @@
     </div>
 </div>
 
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        // Se ejecuta cuando el documento está completamente cargado
-        $(document).ready(function () {
-            var $switch = $('#switchActivo');
-            var $label = $('.labelEstado');
-            // Función para actualizar el texto del label
-            function actualizarEstado() {
-                if ($switch.prop('checked')) {
-                    // Si el checkbox está marcado
-                    $label.text('Activo');
-                } else {
-                    // Si el checkbox NO está marcado
-                    $label.text('Desactivo');
-                }
-            }
-            // 1. Establecer el estado inicial del label al cargar la página
-            actualizarEstado();
-            // 2. Escuchar el evento 'change' del switch para actualizar el label dinámicamente
-            $switch.on('change', function () {
-                actualizarEstado();
-            });
-
-        });
-    </script>
-    <script>
-        // Cambia el comportamiento global de jQuery Validate para poner/quitar clases
-        $.validator.setDefaults({
-          highlight: function (element) {
-            $(element).addClass('input-validation-error').removeClass('valid');
-          },
-          unhighlight: function (element) {
-            $(element).removeClass('input-validation-error').addClass('valid');
-          }
-        });
-
-        // Forzamos refresco al tipear para que se vea el borde verde en vivo
-        $(function () {
-          const $pwd = $('#Password'); // ajusta al id/nombre real de tu campo
-          $pwd.on('input blur', function () { $(this).valid(); });
-        });
-    </script>
-
+    <script src="~/js/cuenta/Colorear.js"></script>
+    <script src="~/js/cuenta/CambioActividad.js"></script>
     <script src="~/js/cuenta/Ojo.js"></script>
 }

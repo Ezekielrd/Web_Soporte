@@ -65,7 +65,7 @@
                                 </a>
 
                                 <form asp-action="ToggleBloqueo" asp-route-id="@u.Id" method="post" class="d-inline">
-                                    <button class="btn btn-sm btn-outline-warning" type="submit">
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit">
                                         <i class="bi @(bloqueado ? "bi-unlock" : "bi-lock")"></i> @(bloqueado ? "Desbloquear" : "Bloquear")
                                     </button>
                                     @Html.AntiForgeryToken()

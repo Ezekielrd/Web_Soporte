@@ -4,16 +4,15 @@
 }
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <title>Lista de Usuario</title>
-    <meta charset="UTF-8">
-    <meta name="title" content="Lista de Usuarios">
-    <meta name="description" content="todos los usuarios">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css" rel="stylesheet" />
-    <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
-    <link href="~/css/Usuarios.css" rel="stylesheet" asp-append-version="true" />
+    <head>
+        <title>Lista de Usuario</title>
+        <meta charset="UTF-8">
+        <meta name="title" content="Lista de Usuarios">
+        <meta name="description" content="todos los usuarios">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css" rel="stylesheet" />
+        <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
 
-</head>
+    </head>
 <body>
     <section>
         <!-- Encabezado + botón agregar -->
@@ -38,7 +37,7 @@
                         <th>Rol</th>
                         <th>Activo</th>
                         <th>Bloqueado</th>
-                        <th>Acciones</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,7 +64,7 @@
                                 </a>
 
                                 <form asp-action="ToggleBloqueo" asp-route-id="@u.Id" method="post" class="d-inline">
-                                    <button class="btn btn-sm btn-outline-secondary" type="submit">
+                                    <button class="btn btn-sm btn-outline-warning" type="submit">
                                         <i class="bi @(bloqueado ? "bi-unlock" : "bi-lock")"></i> @(bloqueado ? "Desbloquear" : "Bloquear")
                                     </button>
                                     @Html.AntiForgeryToken()
@@ -117,7 +116,7 @@
         <!-- DataTables v2 (vanilla) + integración Bootstrap 4 -->
         <script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
         <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap4.min.js"></script>
-
+        <!--script para inicializar datatable-->
         <script>
             $(function () {
               if (!$.fn.dataTable.isDataTable('#example')) {
@@ -128,53 +127,7 @@
               }
             });
         </script>
-
-        <script>
-            let currentForm = null; // guardará el form de la fila que abrió el modal
-
-            function openResetModal(btn) {
-              currentForm = btn.closest('form'); // form de la fila
-              // limpiar el modal cada vez que se abre
-              document.getElementById('pwdInput').value = '';
-              document.getElementById('pwdError').classList.add('d-none');
-            }
-
-            function submitPasswordReset() {
-              if (!currentForm) return;
-
-              const passwordInput = document.getElementById('pwdInput');
-              const errorDisplay = document.getElementById('pwdError');
-              const pwd = passwordInput.value.trim();
-
-              if (pwd.length < 8) {
-                errorDisplay.classList.remove('d-none');
-                passwordInput.focus();
-                return;
-              }
-              errorDisplay.classList.add('d-none');
-
-              // Asignar al hidden de ESTE form (sin usar id duplicados)
-              const hidden = currentForm.querySelector('input[name="newPassword"]');
-              hidden.value = pwd;
-
-              // Cerrar modal y enviar
-              const modalEl = document.getElementById('passwordResetModal');
-              const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-              modal.hide();
-
-              currentForm.submit();
-              currentForm = null; // limpiar referencia
-            }
-
-            // DataTable (ok)
-            document.addEventListener('DOMContentLoaded', () => {
-              new DataTable('#example', {
-                searching: false,
-                language: { url: 'https://cdn.datatables.net/plug-ins/2.1.4/i18n/es-ES.json' }
-              });
-            });
-        </script>
-    }
+        <script src="~/js/cuenta/Reseteo.js"></script>
+        }
 </body>
 </html>
-

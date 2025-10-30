@@ -15,7 +15,7 @@
         </div>
 
         <div class="usuario-card__body">
-            <form asp-action="Edit" method="post" class="needs-validation" id="formCambiarContrasena" data-edit="true" novalidate>
+            <form asp-action="Edit" method="post" class="form-edicion" id="formCambiarContrasena" data-edit="true" novalidate>
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="EsEdicion" value="true" />
 

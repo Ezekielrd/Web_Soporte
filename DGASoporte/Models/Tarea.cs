@@ -22,27 +22,23 @@ namespace DGASoporte.Models
         [Display(Name = "Creada")]
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
-        [ForeignKey("Estado")]
         [Column("EstadoId")]
         [Display(Name = "Estado")]
         [Required]
         public int EstadoId { get; set; }
         public Estado Estado { get; set; } = default!;
 
-        [ForeignKey("Prioridad")]
         [Column("PrioridadId")]
         [Display(Name = "Prioridad")]
         [Required]
         public int PrioridadId { get; set; }
         public Prioridad Prioridad { get; set; } = default!;
 
-        [ForeignKey("Categoria")]
         [Column("CategoriaId")]
         [Display(Name = "Categoría")]
         public int? CategoriaId { get; set; }
         public Categoria Categoria { get; set; } = default!;
 
-        [ForeignKey("Unidad")]
         [Column("UnidadId")]
         [Display(Name = "Unidad")]
         [Required]
@@ -50,7 +46,6 @@ namespace DGASoporte.Models
 
         public Unidad Unidad { get; set; } = default!;
 
-        [ForeignKey("Tecnico")]
         [Column("TecnicoId")]
         [Display(Name = "Tecnico")]
         [Required]

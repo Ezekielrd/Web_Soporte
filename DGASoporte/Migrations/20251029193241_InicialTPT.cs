@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DGASoporte.Migrations
 {
     /// <inheritdoc />
-    public partial class Init_TPT_Singular : Migration
+    public partial class InicialTPT : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -101,7 +101,8 @@ namespace DGASoporte.Migrations
                 name: "Usuario",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     User = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
                     NombreCompleto = table.Column<string>(type: "nvarchar(160)", maxLength: 160, nullable: false),
@@ -140,7 +141,7 @@ namespace DGASoporte.Migrations
                 {
                     table.PrimaryKey("PK_Tecnico", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Tecnico_Usuario",
+                        name: "FK_Tecnico_Usuario_Id",
                         column: x => x.Id,
                         principalTable: "Usuario",
                         principalColumn: "Id",
@@ -164,30 +165,11 @@ namespace DGASoporte.Migrations
                     FechaLimite = table.Column<DateTime>(type: "datetime", nullable: false),
                     Archivada = table.Column<bool>(type: "bit", nullable: false),
                     FechaActualizacion = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
-                    CategoriaId1 = table.Column<int>(type: "int", nullable: true),
-                    EstadoId1 = table.Column<int>(type: "int", nullable: true),
-                    PrioridadId1 = table.Column<int>(type: "int", nullable: true),
-                    UnidadId1 = table.Column<int>(type: "int", nullable: true)
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tarea", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Tarea_Categoria_CategoriaId1",
-                        column: x => x.CategoriaId1,
-                        principalTable: "Categoria",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Tarea_Estado_EstadoId1",
-                        column: x => x.EstadoId1,
-                        principalTable: "Estado",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Tarea_Prioridad_PrioridadId1",
-                        column: x => x.PrioridadId1,
-                        principalTable: "Prioridad",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Tarea_TecnicoAsignado",
                         column: x => x.TecnicoId,
@@ -200,11 +182,6 @@ namespace DGASoporte.Migrations
                         principalTable: "Unidad",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Tarea_Unidad_UnidadId1",
-                        column: x => x.UnidadId1,
-                        principalTable: "Unidad",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Tareas_Categoria",
                         column: x => x.CategoriaId,
@@ -237,29 +214,14 @@ namespace DGASoporte.Migrations
                 column: "CategoriaId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tarea_CategoriaId1",
-                table: "Tarea",
-                column: "CategoriaId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Tarea_EstadoId",
                 table: "Tarea",
                 column: "EstadoId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tarea_EstadoId1",
-                table: "Tarea",
-                column: "EstadoId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Tarea_PrioridadId",
                 table: "Tarea",
                 column: "PrioridadId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tarea_PrioridadId1",
-                table: "Tarea",
-                column: "PrioridadId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tarea_TecnicoId",
@@ -270,11 +232,6 @@ namespace DGASoporte.Migrations
                 name: "IX_Tarea_UnidadId",
                 table: "Tarea",
                 column: "UnidadId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tarea_UnidadId1",
-                table: "Tarea",
-                column: "UnidadId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Unidad_DivisionId",
@@ -300,6 +257,12 @@ namespace DGASoporte.Migrations
                 name: "Tarea");
 
             migrationBuilder.DropTable(
+                name: "Tecnico");
+
+            migrationBuilder.DropTable(
+                name: "Unidad");
+
+            migrationBuilder.DropTable(
                 name: "Categoria");
 
             migrationBuilder.DropTable(
@@ -307,12 +270,6 @@ namespace DGASoporte.Migrations
 
             migrationBuilder.DropTable(
                 name: "Prioridad");
-
-            migrationBuilder.DropTable(
-                name: "Tecnico");
-
-            migrationBuilder.DropTable(
-                name: "Unidad");
 
             migrationBuilder.DropTable(
                 name: "Usuario");

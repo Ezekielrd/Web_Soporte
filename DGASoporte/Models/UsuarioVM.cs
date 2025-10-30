@@ -28,7 +28,6 @@ namespace DGASoporte.Models
 
         public DateTime FechaCracion { get; set; }
 
-        // Solo requerido en Create o cuando se cambie
         [DataType(DataType.Password)]
         [StringLength(100, MinimumLength = 8)]
         [Display(Name = "Contraseña Usuario")]
@@ -45,7 +44,7 @@ namespace DGASoporte.Models
         [Range(1, int.MaxValue, ErrorMessage = "Seleccione un rol válido")]
         [Display(Name = "Rol")]
         public int RolId { get; set; }
-        public string? Rol { get; init; }
+        public Rol? Rol { get; init; }
 
         public bool Activo { get; set; } = true;
         public bool Bloqueado { get; set; }

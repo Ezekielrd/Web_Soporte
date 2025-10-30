@@ -138,9 +138,6 @@ namespace DGASoporte.Migrations
                         .HasColumnType("int")
                         .HasColumnName("CategoriaId");
 
-                    b.Property<int?>("CategoriaId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Descripcion")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)")
@@ -149,9 +146,6 @@ namespace DGASoporte.Migrations
                     b.Property<int>("EstadoId")
                         .HasColumnType("int")
                         .HasColumnName("EstadoId");
-
-                    b.Property<int?>("EstadoId1")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("FechaActualizacion")
                         .HasColumnType("datetime2");
@@ -167,9 +161,6 @@ namespace DGASoporte.Migrations
                     b.Property<int>("PrioridadId")
                         .HasColumnType("int")
                         .HasColumnName("PrioridadId");
-
-                    b.Property<int?>("PrioridadId1")
-                        .HasColumnType("int");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -190,28 +181,17 @@ namespace DGASoporte.Migrations
                         .HasColumnType("int")
                         .HasColumnName("UnidadId");
 
-                    b.Property<int?>("UnidadId1")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CategoriaId");
 
-                    b.HasIndex("CategoriaId1");
-
                     b.HasIndex("EstadoId");
 
-                    b.HasIndex("EstadoId1");
-
                     b.HasIndex("PrioridadId");
-
-                    b.HasIndex("PrioridadId1");
 
                     b.HasIndex("TecnicoId");
 
                     b.HasIndex("UnidadId");
-
-                    b.HasIndex("UnidadId1");
 
                     b.ToTable("Tarea", (string)null);
                 });
@@ -244,8 +224,11 @@ namespace DGASoporte.Migrations
             modelBuilder.Entity("DGASoporte.Models.Usuario", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AccesoFallado")
                         .HasColumnType("int");
@@ -330,36 +313,24 @@ namespace DGASoporte.Migrations
             modelBuilder.Entity("DGASoporte.Models.Tarea", b =>
                 {
                     b.HasOne("DGASoporte.Models.Categoria", "Categoria")
-                        .WithMany()
+                        .WithMany("Tareas")
                         .HasForeignKey("CategoriaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_Tareas_Categoria");
 
-                    b.HasOne("DGASoporte.Models.Categoria", null)
-                        .WithMany("Tareas")
-                        .HasForeignKey("CategoriaId1");
-
                     b.HasOne("DGASoporte.Models.Estado", "Estado")
-                        .WithMany()
+                        .WithMany("Tareas")
                         .HasForeignKey("EstadoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_Tareas_Estado");
 
-                    b.HasOne("DGASoporte.Models.Estado", null)
-                        .WithMany("Tareas")
-                        .HasForeignKey("EstadoId1");
-
                     b.HasOne("DGASoporte.Models.Prioridad", "Prioridad")
-                        .WithMany()
+                        .WithMany("Tareas")
                         .HasForeignKey("PrioridadId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_Tareas_Prioridad");
-
-                    b.HasOne("DGASoporte.Models.Prioridad", null)
-                        .WithMany("Tareas")
-                        .HasForeignKey("PrioridadId1");
 
                     b.HasOne("DGASoporte.Models.Tecnico", "Tecnico")
                         .WithMany("Tareas")
@@ -369,15 +340,11 @@ namespace DGASoporte.Migrations
                         .HasConstraintName("FK_Tarea_TecnicoAsignado");
 
                     b.HasOne("DGASoporte.Models.Unidad", "Unidad")
-                        .WithMany()
+                        .WithMany("Tareas")
                         .HasForeignKey("UnidadId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_Tarea_Unidad");
-
-                    b.HasOne("DGASoporte.Models.Unidad", null)
-                        .WithMany("Tareas")
-                        .HasForeignKey("UnidadId1");
 
                     b.Navigation("Categoria");
 
@@ -392,11 +359,13 @@ namespace DGASoporte.Migrations
 
             modelBuilder.Entity("DGASoporte.Models.Unidad", b =>
                 {
-                    b.HasOne("DGASoporte.Models.Division", null)
+                    b.HasOne("DGASoporte.Models.Division", "Division")
                         .WithMany("Tareas")
                         .HasForeignKey("DivisionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Division");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Usuario", b =>
@@ -416,8 +385,7 @@ namespace DGASoporte.Migrations
                         .WithOne()
                         .HasForeignKey("DGASoporte.Models.Tecnico", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Tecnico_Usuario");
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Categoria", b =>

@@ -31,18 +31,21 @@ namespace DGASoporte.Controllers
         // GET: /Users/Details/{id}
         public async Task<IActionResult> Details(int id)
         {
-            var user = await _context.Usuarios.AsNoTracking()
-                .FirstOrDefaultAsync(u=>u.Id == id);
-            if (user is null) return NotFound();
-
+            var user = await _context.Usuarios
+                .AsNoTracking()
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null) return NotFound();
             var vm = new UsuarioVM
             {
                 Id = user.Id,
                 User = user.User ?? "",
                 Email = user.Email,
+                Codigo= user.Codigo,
+                NombreCompleto = user.NombreCompleto,
                 Activo = user.Activo,
                 FechaCracion = user.CreadoEn,
-                Rol = user.Rol?.Nombre
+                Rol = user.Rol
             };
 
             return View(vm);

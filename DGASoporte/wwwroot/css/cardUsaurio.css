@@ -123,11 +123,11 @@ main, .container, .container-fluid, .content, .page, #app, .layout-content {
         border-color:#d2203d;
         color:#fff;
     }
-.btn-gd:hover {
-    background: #4ec83d;
-    border-color: #46b536;
-    color: #fff;
-}
+    .btn-gd:hover {
+        background: #4ec83d;
+        border-color: #46b536;
+        color: #fff;
+    }
 .form-switch{
     padding: 10px 50px;
 }

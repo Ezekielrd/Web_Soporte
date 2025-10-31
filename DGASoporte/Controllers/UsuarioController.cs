@@ -1,7 +1,6 @@
 ﻿using DGASoporte.Data;
 using DGASoporte.Models;
 using DGASoporte.Seguridad;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,11 +10,18 @@ namespace DGASoporte.Controllers
     public class UsuarioController : Controller
     {
         private readonly DGADbContext _context;
-        public UsuarioController(DGADbContext context) => _context = context;
+
+        private const int tecnicoid = 2;
+
+        public UsuarioController(DGADbContext context)
+        {
+            _context = context;
+        }
 
         [HttpGet]
         public async Task<IActionResult> Index(string? q)
         {
+           
             var buscar = _context.Usuarios
                 .AsNoTracking()
                 .Where(u => string.IsNullOrWhiteSpace(q) || EF.Functions.Like(u.User, $"%{q}%"));
@@ -28,92 +34,133 @@ namespace DGASoporte.Controllers
 
             return View(usuarios);
         }
-        // GET: /Users/Details/{id}
+        // GET: Usuarios/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var user = await _context.Usuarios
+            var usuario = await _context.Usuarios
                 .AsNoTracking()
                 .Include(u => u.Rol)
                 .FirstOrDefaultAsync(u => u.Id == id);
-            if (user == null) return NotFound();
+            var tec = await _context.Tecnicos
+                .AsNoTracking()
+                .Include(t => t.Nivel)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (usuario == null) return NotFound();
+
+
             var vm = new UsuarioVM
             {
-                Id = user.Id,
-                User = user.User ?? "",
-                Email = user.Email,
-                Codigo= user.Codigo,
-                NombreCompleto = user.NombreCompleto,
-                Activo = user.Activo,
-                FechaCracion = user.CreadoEn,
-                Rol = user.Rol
+                User = usuario.User,
+                Email = usuario.Email,
+                NombreCompleto = usuario.NombreCompleto,
+                Codigo = usuario.Codigo,
+                RolId = usuario.RolId,
+                Rol = usuario.Rol,   
+                Activo = usuario.Activo,
+                FechaCracion = usuario.CreadoEn,
+                Nivel = tec?.Nivel
             };
 
             return View(vm);
         }
 
-        // GET: UsuarioController/Create
+        // GET: Usuarios/Create
         public async Task<IActionResult> Create()
         {
-            ViewBag.Roles = await _context.Roles
-                .AsNoTracking()
-                .OrderBy(r => r.Nombre)
-                .Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Nombre })
-                .ToListAsync();
-            return View(new UsuarioVM());
+            await CargarCombosAsync();
+            return View(new UsuarioVM { Activo = true });
         }
         // POST: Usuarios/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UsuarioVM vm)
         {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Roles = await _context.Roles.OrderBy(r => r.Nombre).ToListAsync();
-                return View(vm);
-            }
-
-            // Validaciones de datos existentes
+            //Validaciones de duplicados
             if (await _context.Usuarios.AnyAsync(u => u.Email == vm.Email))
                 ModelState.AddModelError(nameof(vm.Email), "El correo ya está registrado.");
+
             if (await _context.Usuarios.AnyAsync(u => u.User == vm.User))
                 ModelState.AddModelError(nameof(vm.User), "El usuario ya existe.");
-            if (await _context.Usuarios.AnyAsync(u => u.Codigo == vm.Codigo))
-                ModelState.AddModelError(nameof(vm.User), "El codigo ya existe.");
 
+            if (await _context.Usuarios.AnyAsync(u => u.Codigo == vm.Codigo))
+                ModelState.AddModelError(nameof(vm.Codigo), "El código ya existe.");
+
+            // Validación si es técnico
+            if (vm.RolId == tecnicoid)
+            {
+                if (vm.NivelId == null)
+                    ModelState.AddModelError(nameof(vm.NivelId), "El Nivel es Obligatorio");
+            }
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Roles = await _context.Roles.OrderBy(r => r.Nombre).ToListAsync();
+                await CargarCombosAsync(); // repoblar selects como SelectListItem
                 return View(vm);
             }
 
-            // Hash + salt
+            //Hash + salt
             var (hash, salt) = PasswordHasher.Hash(vm.Password);
 
-            var usuario = new Usuario
+            //Construcción de entidad según rol
+            if (vm.RolId == tecnicoid)
             {
-                User = vm.User.Trim(),
-                Email = vm.Email.Trim(),
-                NombreCompleto = vm.NombreCompleto.Trim(),
-                Codigo = vm.Codigo.Trim(),
-                RolId = vm.RolId,
-                Activo = vm.Activo,
-                PasswordHash = hash,
-                PasswordSalt = salt,
-                CreadoEn = DateTime.UtcNow,
-                AccesoFallado = 0,
-                Bloqueado = false
-            };
+                var tecnico = new Tecnico
+                {
+                    User = vm.User.Trim(),
+                    Email = vm.Email.Trim(),
+                    NombreCompleto = vm.NombreCompleto.Trim(),
+                    Codigo = vm.Codigo.Trim(),
+                    RolId = vm.RolId,
+                    Activo = vm.Activo,
+                    PasswordHash = hash,
+                    PasswordSalt = salt,
+                    CreadoEn = DateTime.UtcNow,
+                    AccesoFallado = 0,
+                    Bloqueado = false,
+                    Disponible = false,
+                    NivelId = vm.NivelId!.Value 
+                };
 
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
+                _context.Usuarios.Add(tecnico); // TPT: ok agregar derivada en DbSet base
+            }
+            else
+            {
+                var usuario = new Usuario
+                {
+                    User = vm.User.Trim(),
+                    Email = vm.Email.Trim(),
+                    NombreCompleto = vm.NombreCompleto.Trim(),
+                    Codigo = vm.Codigo.Trim(),
+                    RolId = vm.RolId,
+                    Activo = vm.Activo,
+                    PasswordHash = hash,
+                    PasswordSalt = salt,
+                    CreadoEn = DateTime.UtcNow,
+                    AccesoFallado = 0,
+                    Bloqueado = false
+                };
 
-            TempData["Ok"] = "Usuario creado correctamente.";
-            return RedirectToAction(nameof(Index));
+                _context.Usuarios.Add(usuario);
+            }
+
+            //Guardar con manejo de errores
+            try
+            {
+                await _context.SaveChangesAsync();
+                TempData["Ok"] = "Usuario creado correctamente.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException ex)
+            {
+                // Si hay FK/UNIQUE errores, mostrarlos
+                ModelState.AddModelError(string.Empty, $"No se pudo guardar: {ex.GetBaseException().Message}");
+                await CargarCombosAsync();
+                return View(vm);
+            }
         }
-
-        // GET: Usuarios/Edit/5
-        [HttpGet]
+            // GET: Usuarios/Edit/5
+            [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var usuario = await _context.Usuarios
@@ -122,6 +169,19 @@ namespace DGASoporte.Controllers
              .FirstOrDefaultAsync(x => x.Id == id);
 
             if (usuario == null) return NotFound();
+
+            if (usuario.RolId == tecnicoid)
+            {
+                var nivles = await _context.Nivles
+                .AsNoTracking()
+                .OrderBy(n => n.Nombre)
+                .Select(n => new SelectListItem { Value = n.Id.ToString(), Text = n.Nombre })
+                .ToListAsync();
+            }
+                var tecnico = await _context.Tecnicos
+               .AsNoTracking()
+               .Include(x => x.Nivel)
+               .FirstOrDefaultAsync(x => x.Id == id);
 
             var roles = await _context.Roles
                 .AsNoTracking()
@@ -137,7 +197,8 @@ namespace DGASoporte.Controllers
                 RolId = usuario.RolId,
                 Codigo = usuario.Codigo,
                 Roles = roles,
-                Activo = usuario.Activo
+                Activo = usuario.Activo,
+                NivelId = tecnico?.NivelId               
             };
 
             ViewBag.Roles = await _context.Roles.OrderBy(r => r.Nombre).ToListAsync();
@@ -155,6 +216,8 @@ namespace DGASoporte.Controllers
             }
             if (!ModelState.IsValid)
             {
+                if (vm.RolId == tecnicoid)
+                    ViewBag.Nivles = await _context.Nivles.OrderBy(n => n.Nombre).ToListAsync();
                 ViewBag.Roles = await _context.Roles.OrderBy(r => r.Nombre).ToListAsync();
                 return View(vm);
             }
@@ -175,6 +238,8 @@ namespace DGASoporte.Controllers
                 ViewBag.Roles = await _context.Roles.OrderBy(r => r.Nombre).ToListAsync();
                 return View(vm);
             }
+
+            using var tx = await _context.Database.BeginTransactionAsync();
 
             // Actualizar datos básicos
             usuario.User = vm.User.Trim();
@@ -298,6 +363,19 @@ namespace DGASoporte.Controllers
             TempData["Msg"] = $"Contraseña de {usuario.User} restablecida correctamente.";
             return RedirectToAction(nameof(Index));
         }
+        private async Task CargarCombosAsync()
+        {
+            ViewBag.Roles = await _context.Roles
+                .AsNoTracking()
+                .OrderBy(r => r.Nombre)
+                .Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Nombre })
+                .ToListAsync();
 
+            ViewBag.Niveles = await _context.Nivles
+                .AsNoTracking()
+                .OrderBy(n => n.Nombre)
+                .Select(n => new SelectListItem { Value = n.Id.ToString(), Text = n.Nombre })
+                .ToListAsync();
+        }
     }
 }

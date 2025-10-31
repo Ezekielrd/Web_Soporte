@@ -15,7 +15,7 @@ namespace DGASoporte.Infraestructura
             await ctx.Database.MigrateAsync();
 
             // 1) Roles
-            string[] roles = ["Admin", "Soporte", "Cliente"];
+            string[] roles = ["Admin", "Tecnico", "Cliente"];
             foreach (var r in roles)
                 if (!await ctx.Roles.AnyAsync(x => x.Nombre == r))
                     ctx.Roles.Add(new Rol { Nombre = r });

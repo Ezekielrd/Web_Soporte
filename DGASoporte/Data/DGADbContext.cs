@@ -17,6 +17,7 @@ namespace DGASoporte.Data
         public DbSet<Rol> Roles { get; set; } = default!;
         public DbSet<Usuario> Usuarios { get; set; } = default!;
         public DbSet<Tecnico> Tecnicos { get; set; } = default!;
+        public DbSet<Nivel> Nivles { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,6 +33,7 @@ namespace DGASoporte.Data
             modelBuilder.Entity<Categoria>().ToTable("Categoria");
             modelBuilder.Entity<Division>().ToTable("Division");
             modelBuilder.Entity<Rol>().ToTable("Rol");
+            modelBuilder.Entity<Nivel>().ToTable("Nivel");
 
             // Usuario base
             modelBuilder.Entity<Usuario>(e =>
@@ -62,7 +64,6 @@ namespace DGASoporte.Data
                 e.HasKey(r => r.Id);
                 e.HasIndex(r => r.Nombre).IsUnique();
             });
-
             // Tarea + inversas explícitas (opción A)
             modelBuilder.Entity<Tarea>(e =>
             {

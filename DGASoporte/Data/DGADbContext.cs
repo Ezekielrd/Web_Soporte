@@ -17,7 +17,7 @@ namespace DGASoporte.Data
         public DbSet<Rol> Roles { get; set; } = default!;
         public DbSet<Usuario> Usuarios { get; set; } = default!;
         public DbSet<Tecnico> Tecnicos { get; set; } = default!;
-        public DbSet<Nivel> Nivles { get; set; } = default!;
+        public DbSet<Nivel> Niveles { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,24 +38,54 @@ namespace DGASoporte.Data
             // Usuario base
             modelBuilder.Entity<Usuario>(e =>
             {
+                e.ToTable("Usuario");
                 e.HasKey(u => u.Id);
                 e.Property(u => u.Id)
                  .HasColumnName("Id")
                  .ValueGeneratedOnAdd();
+                e.Property(u => u.Usher)
+                 .HasMaxLength(50)
+                 .IsRequired();
+                e.Property(u => u.Email)
+                 .HasMaxLength(150)
+                 .IsRequired();
+                e.Property(u => u.NombreCompleto)
+                 .HasMaxLength(150)
+                 .IsRequired();
+                e.Property(u => u.Codigo)
+                 .HasMaxLength(30)
+                 .IsRequired();
+                e.Property(u => u.PasswordHash)
+                 .HasMaxLength(256);
+                e.Property(u => u.PasswordSalt)
+                 .HasMaxLength(128);
+                // Índices únicos
+                e.HasIndex(u => u.Email).IsUnique();                   
+                e.HasIndex(u => u.Usher).IsUnique();                    
+                e.HasIndex(u => u.Codigo).IsUnique();                  
 
-                e.HasIndex(u => u.Email).IsUnique();
-
+                // Relación con Rol
                 e.HasOne(u => u.Rol)
                  .WithMany(r => r.Usuarios)
                  .HasForeignKey(u => u.RolId)
-                 .OnDelete(DeleteBehavior.Restrict);
+                 .OnDelete(DeleteBehavior.Restrict); 
+
+                e.Property(u => u.RowVersion).IsRowVersion();
             });
 
-            // Tecnico: herencia TPT de Usuario
-            modelBuilder.Entity<Tecnico>(e =>
+            // Mapeo de Tecnico (1–1 por clave compartida)
+            modelBuilder.Entity<Tecnico>(b =>
             {
-                e.HasBaseType<Usuario>();     // <- importante para TPT
-                // No configures HasOne/WithOne ni ValueGeneratedNever aquí.
+                b.ToTable("Tecnico");
+
+                b.HasKey(t => t.Id);
+
+                b.Property(t => t.NivelId).IsRequired();
+
+                b.HasOne(t => t.Usuario)
+                 .WithOne(u => u.Tecnico)
+                 .HasForeignKey<Tecnico>(t => t.Id)
+                 .OnDelete(DeleteBehavior.Restrict); 
             });
 
             // Rol

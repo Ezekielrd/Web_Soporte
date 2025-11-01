@@ -73,3 +73,17 @@ h3 {
     .btn-agregar:hover {
         background: #98ff96;
     }
+.toast-success {
+    position: fixed;
+    top: 20px; /* separa del borde superior */
+    left: 20px; /* ahora a la izquierda */
+    background: #28a745;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0,0,0,.2);
+    font-weight: 600;
+    max-width: 460px;
+    z-index: 1500; /* por encima del contenido */
+    animation: fadeInOut 4s forwards; /* mismo tiempo que usabas */
+}

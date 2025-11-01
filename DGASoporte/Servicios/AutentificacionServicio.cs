@@ -30,7 +30,7 @@ namespace DGASoporte.Servicios
             var user = new Usuario
             {
                 Email = email,
-                User = userName,
+                Usher = userName,
                 PasswordHash = hash,
                 PasswordSalt = salt,
                 RolId = rol.Id,

@@ -35,7 +35,7 @@ namespace DGASoporte.Infraestructura
                 var admin = new Usuario
                 {
                     // Requeridos / NOT NULL en tu BD:
-                    User = email,
+                    Usher = email,
                     Email = email,
                     PasswordHash = hash,
                     PasswordSalt = salt,
@@ -45,7 +45,7 @@ namespace DGASoporte.Infraestructura
                     RolId = adminRoleId,
                     CreadoEn = DateTime.UtcNow,
                     NombreCompleto = "Administrador del sistema",
-                    Codigo = "ADM-0001"    
+                    Codigo = "ADM-001"    
                 };
 
                 ctx.Usuarios.Add(admin);

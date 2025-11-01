@@ -93,7 +93,7 @@ namespace DGASoporte.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Nivel");
+                    b.ToTable("Nivel", (string)null);
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Prioridad", b =>
@@ -213,6 +213,25 @@ namespace DGASoporte.Migrations
                     b.ToTable("Tarea", (string)null);
                 });
 
+            modelBuilder.Entity("DGASoporte.Models.Tecnico", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Disponible")
+                        .HasColumnType("bit")
+                        .HasColumnName("Disponible");
+
+                    b.Property<int>("NivelId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NivelId");
+
+                    b.ToTable("Tecnico", (string)null);
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Unidad", b =>
                 {
                     b.Property<int>("Id")
@@ -261,8 +280,8 @@ namespace DGASoporte.Migrations
 
                     b.Property<string>("Codigo")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime>("CreadoEn")
                         .HasColumnType("datetime2");
@@ -274,58 +293,52 @@ namespace DGASoporte.Migrations
 
                     b.Property<string>("NombreCompleto")
                         .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("nvarchar(160)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("PasswordSalt")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<int>("RolId")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("UltimoIngreso")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("User")
+                    b.Property<string>("Usher")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime?>("finBloqueo")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Codigo")
+                        .IsUnique();
+
                     b.HasIndex("Email")
                         .IsUnique();
 
                     b.HasIndex("RolId");
 
+                    b.HasIndex("Usher")
+                        .IsUnique();
+
                     b.ToTable("Usuario", (string)null);
-
-                    b.UseTptMappingStrategy();
-                });
-
-            modelBuilder.Entity("DGASoporte.Models.Tecnico", b =>
-                {
-                    b.HasBaseType("DGASoporte.Models.Usuario");
-
-                    b.Property<bool>("Disponible")
-                        .HasColumnType("bit")
-                        .HasColumnName("Disponible");
-
-                    b.Property<int>("NivelId")
-                        .HasColumnType("int");
-
-                    b.HasIndex("NivelId");
-
-                    b.ToTable("Tecnico", (string)null);
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Tarea", b =>
@@ -375,6 +388,25 @@ namespace DGASoporte.Migrations
                     b.Navigation("Unidad");
                 });
 
+            modelBuilder.Entity("DGASoporte.Models.Tecnico", b =>
+                {
+                    b.HasOne("DGASoporte.Models.Usuario", "Usuario")
+                        .WithOne("Tecnico")
+                        .HasForeignKey("DGASoporte.Models.Tecnico", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DGASoporte.Models.Nivel", "Nivel")
+                        .WithMany("Tecnicos")
+                        .HasForeignKey("NivelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Nivel");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Unidad", b =>
                 {
                     b.HasOne("DGASoporte.Models.Division", "Division")
@@ -395,23 +427,6 @@ namespace DGASoporte.Migrations
                         .IsRequired();
 
                     b.Navigation("Rol");
-                });
-
-            modelBuilder.Entity("DGASoporte.Models.Tecnico", b =>
-                {
-                    b.HasOne("DGASoporte.Models.Usuario", null)
-                        .WithOne()
-                        .HasForeignKey("DGASoporte.Models.Tecnico", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DGASoporte.Models.Nivel", "Nivel")
-                        .WithMany("Tecnicos")
-                        .HasForeignKey("NivelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Nivel");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Categoria", b =>
@@ -444,14 +459,19 @@ namespace DGASoporte.Migrations
                     b.Navigation("Usuarios");
                 });
 
+            modelBuilder.Entity("DGASoporte.Models.Tecnico", b =>
+                {
+                    b.Navigation("Tareas");
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Unidad", b =>
                 {
                     b.Navigation("Tareas");
                 });
 
-            modelBuilder.Entity("DGASoporte.Models.Tecnico", b =>
+            modelBuilder.Entity("DGASoporte.Models.Usuario", b =>
                 {
-                    b.Navigation("Tareas");
+                    b.Navigation("Tecnico");
                 });
 #pragma warning restore 612, 618
         }

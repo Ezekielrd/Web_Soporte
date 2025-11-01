@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DGASoporte.Migrations
 {
     /// <inheritdoc />
-    public partial class InicialTPT : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,6 +48,19 @@ namespace DGASoporte.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Estado", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Nivel",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Nivel", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -103,17 +116,18 @@ namespace DGASoporte.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    User = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Usher = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    NombreCompleto = table.Column<string>(type: "nvarchar(160)", maxLength: 160, nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
-                    PasswordSalt = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NombreCompleto = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Codigo = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    PasswordSalt = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Activo = table.Column<bool>(type: "bit", nullable: false),
                     Bloqueado = table.Column<bool>(type: "bit", nullable: false),
                     AccesoFallado = table.Column<int>(type: "int", nullable: false),
                     finBloqueo = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RolId = table.Column<int>(type: "int", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     CreadoEn = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ActualizadoEn = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UltimoIngreso = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -135,17 +149,23 @@ namespace DGASoporte.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false),
                     Disponible = table.Column<bool>(type: "bit", nullable: false),
-                    Nivel = table.Column<int>(type: "int", nullable: false)
+                    NivelId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Tecnico", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Tecnico_Nivel_NivelId",
+                        column: x => x.NivelId,
+                        principalTable: "Nivel",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_Tecnico_Usuario_Id",
                         column: x => x.Id,
                         principalTable: "Usuario",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -234,9 +254,20 @@ namespace DGASoporte.Migrations
                 column: "UnidadId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Tecnico_NivelId",
+                table: "Tecnico",
+                column: "NivelId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Unidad_DivisionId",
                 table: "Unidad",
                 column: "DivisionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Usuario_Codigo",
+                table: "Usuario",
+                column: "Codigo",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Usuario_Email",
@@ -248,6 +279,12 @@ namespace DGASoporte.Migrations
                 name: "IX_Usuario_RolId",
                 table: "Usuario",
                 column: "RolId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Usuario_Usher",
+                table: "Usuario",
+                column: "Usher",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -270,6 +307,9 @@ namespace DGASoporte.Migrations
 
             migrationBuilder.DropTable(
                 name: "Prioridad");
+
+            migrationBuilder.DropTable(
+                name: "Nivel");
 
             migrationBuilder.DropTable(
                 name: "Usuario");

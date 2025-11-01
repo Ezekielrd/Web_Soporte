@@ -15,6 +15,31 @@
     </head>
 <body>
     <section>
+        @* Revisa estos mensajes al principio de tu Index.cshtml *@
+
+        @if (TempData["Ok"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Ok"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error:</strong> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["Alert"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Alerta:</strong> @TempData["Alert"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
         <!-- Encabezado + botón agregar -->
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="mb-0">Usuarios</h3>
@@ -32,7 +57,8 @@
             <table class="table table-striped" id="example">
                 <thead>
                     <tr>
-                        <th>Nombre</th>
+                        <th>Usuario</th>
+                        <th>Codigo</th>
                         <th>Email</th>
                         <th>Rol</th>
                         <th>Activo</th>
@@ -46,7 +72,8 @@
                         var bloqueado = u.finBloqueo.HasValue && u.finBloqueo > DateTimeOffset.UtcNow;
 
                         <tr>
-                            <td>@u.User</td>
+                            <td>@u.Usher</td>
+                            <td>@u.Codigo</td>
                             <td>@u.Email</td>
                             <td>@u.Rol?.Nombre</td>
                             <td class="text-center">

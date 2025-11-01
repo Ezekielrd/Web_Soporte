@@ -1,5 +1,6 @@
 ﻿@model UsuarioVM
 <link href="~/css/cardUsaurio.css" rel="stylesheet" />
+<div asp-validation-summary="All" class="text-danger"></div>
 <div class="usuario-page">
     <div class="usuario-card">
         <div class="usuario-card__bar"></div>
@@ -15,7 +16,7 @@
                 <div class="card-body">
                     <dl class="row mb-0">
                         <dt class="col-sm-3">Usuario</dt>
-                        <dd class="col-sm-9">@Model.User</dd>
+                        <dd class="col-sm-9">@Model.Usher</dd>
 
                         <dt class="col-sm-3">Email</dt>
                         <dd class="col-sm-9">@Model.Email</dd>

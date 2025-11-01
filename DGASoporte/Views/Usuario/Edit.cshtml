@@ -1,7 +1,7 @@
 ﻿@model UsuarioVM
 @using Microsoft.AspNetCore.Mvc.Rendering
 <link href="~/css/cardUsaurio.css" rel="stylesheet" />
-
+<div asp-validation-summary="All" class="text-danger"></div>
 <div class="usuario-page">
     <div class="usuario-card">
         <div class="usuario-card__bar"></div>
@@ -21,9 +21,9 @@
 
                 <div class="form-section grid-2">
                     <div>
-                        <label asp-for="User" class="form-label"></label>
-                        <input asp-for="User" class="form-control" placeholder="Ej: jdoe" required />
-                        <span asp-validation-for="User" class="text-danger"></span>
+                        <label asp-for="Usher" class="form-label"></label>
+                        <input asp-for="Usher" class="form-control" placeholder="Ej: jdoe" required />
+                        <span asp-validation-for="Usher" class="text-danger"></span>
                     </div>
                     <div>
                         <label asp-for="Email" class="form-label"></label>

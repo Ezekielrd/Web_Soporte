@@ -5,12 +5,12 @@ namespace DGASoporte.Models
 {
     public class UsuarioVM
     {
-        public int? Id { get; set; }
+        public int Id { get; set; }
 
         [StringLength(100)]
         [Display(Name = "Nombre Usuario")]
         [Required(ErrorMessage = "El Nombre es Obligatorio")]
-        public string User { get; set; } = null!;
+        public string Usher { get; set; } = null!;
 
         [EmailAddress(ErrorMessage = "Por favor, introduce una dirección de correo válida.")]
         [StringLength(150)]

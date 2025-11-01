@@ -8,9 +8,9 @@ namespace DGASoporte.Models
     {
         [Key]
         public int Id { get; set; }
-
+        
         [Required, StringLength(100)]
-        public string User { get; set; } = null!;
+        public string Usher { get; set; } = null!;
 
         [Required, EmailAddress, StringLength(150)]
         public string Email { get; set; } = null!;
@@ -21,7 +21,6 @@ namespace DGASoporte.Models
         [Required, StringLength(50)]
         public string Codigo { get; set; } = null!;
 
-        // Hashear la contraseña, no guardar texto plano
         [Required, StringLength(250)]
         public string PasswordHash { get; set; } = null!;
         [Required]
@@ -38,6 +37,12 @@ namespace DGASoporte.Models
 
         // Relacion
         public Rol? Rol { get; set; }
+
+        // Navegación
+        public Tecnico? Tecnico { get; set; }
+
+        [Timestamp]
+        public byte[]? RowVersion { get; set; }
 
         public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
         public DateTime? ActualizadoEn { get; set; }

@@ -23,30 +23,30 @@
                     <div>
                         <label asp-for="User" class="form-label"></label>
                         <input asp-for="User" class="form-control" placeholder="Ej: jdoe" required />
-                        <span asp-validation-for="User" class="field-validation-error"></span>
+                        <span asp-validation-for="User" class="text-danger"></span>
                     </div>
                     <div>
                         <label asp-for="Email" class="form-label"></label>
                         <input asp-for="Email" class="form-control" placeholder="Ej: jdoe" required />
-                        <span asp-validation-for="Email" class="field-validation-error"></span>
+                        <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
                     <div>
                         <label asp-for="Codigo" class="form-label"></label>
                         <input asp-for="Codigo" class="form-control" placeholder="Ej: jdoe" required />
-                        <span asp-validation-for="Codigo" class="field-validation-error"></span>
+                        <span asp-validation-for="Codigo" class="text-danger"></span>
                     </div>
                     <div>
                         <label asp-for="NombreCompleto" class="form-label"></label>
                         <input asp-for="NombreCompleto" class="form-control" placeholder="Ej: jdoe" required />
-                        <span asp-validation-for="NombreCompleto" class="field-validation-error"></span>
+                        <span asp-validation-for="NombreCompleto" class="text-danger"></span>
                     </div>
                     <div>
                         <label asp-for="RolId" class="form-label"></label>
-                        <select asp-for="RolId" asp-items="Model.Roles" class="form-select">
+                        <select asp-for="RolId" asp-items="Model.Roles" class="form-select" id="IdRol">
                             <option value="">-- Seleccione --</option>
                         </select>
                         <span class="input-help" id="no-select">Define los permisos del usuario.</span>
-                        <span asp-validation-for="RolId" class="field-validation-error"></span>
+                        <span asp-validation-for="RolId" class="text-danger"></span>
                     </div>
 
                     <div class="form-group">
@@ -55,8 +55,18 @@
                             <input asp-for="Password" class="secure-password form-control" placeholder="Dejar en blanco para mantener" />
                             <button type="button" class="togglePassword">👁</button>
                         </div>
-                        <span asp-validation-for="Password" class="field-validation-error"></span>
+                        <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
+                    <!--campos propios del técnico-->
+                    <div id="panelTecnico" style="display:none;">
+                        <label asp-for="NivelId" class="form-label"></label>
+                        <select asp-for="NivelId" asp-items="Model.Niveles" class="form-select">
+                                <option value="">-- Seleccione --</option>
+                         </select>
+                            <span class="input-help" id="no-select">Define el niivel del tecnico.</span>
+                        <span asp-validation-for="NivelId" class="text-danger"></span>
+                    </div>
+                    
                 </div>
                 <div class="col-12">
                     <div class="form-check form-switch">
@@ -80,4 +90,5 @@
     <script src="~/js/cuenta/CambioActividad.js"></script>
     <script src="~/js/cuenta/Colorear.js"></script>
     <script src="~/js/cuenta/Ojo.js"></script>
+    <script src="~/js/cuenta/RolT.js"></script>
 }

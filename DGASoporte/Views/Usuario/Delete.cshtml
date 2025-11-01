@@ -1,4 +1,4 @@
-﻿@model Usuario
+﻿@model UsuarioVM
 <link href="~/css/cardUsaurio.css" rel="stylesheet" />
 <div class="usuario-page">
     <div class="usuario-card">
@@ -23,6 +23,9 @@
                         <dt class="col-sm-3">Nombre</dt>
                         <dd class="col-sm-9">@Model.NombreCompleto</dd>
 
+                        <dt class="col-sm-3">Codigo</dt>
+                        <dd class="col-sm-9">@Model.Codigo</dd>
+
                         <dt class="col-sm-3">Rol</dt>
                         <dd class="col-sm-9">@Model.Rol?.Nombre</dd>
 
@@ -38,6 +41,11 @@
                                 <span class="badge bg-secondary">No</span>
                             }
                         </dd>
+                        @if (Model.RolId==2)
+                          {
+                            <dt class="col-sm-3">Nivel</dt>
+                            <dd class="col-sm-9">@Model.Nivel?.Nombre</dd>
+                          }
                     </dl>
                 </div>
             </div>

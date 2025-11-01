@@ -37,6 +37,11 @@ namespace DGASoporte.Controllers
         // GET: Usuarios/Details/5
         public async Task<IActionResult> Details(int id)
         {
+            if (id <= 0)
+            {
+                TempData["Alert"] = "El Identificador no es Válido";
+                return RedirectToAction(nameof(Index));
+            }
             var usuario = await _context.Usuarios
                 .AsNoTracking()
                 .Include(u => u.Rol)
@@ -160,9 +165,14 @@ namespace DGASoporte.Controllers
             }
         }
             // GET: Usuarios/Edit/5
-            [HttpGet]
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            if (id <= 0)
+            {
+                TempData["Alert"] = "El Identificador no es Válido";
+                return RedirectToAction(nameof(Index));
+            }
             var usuario = await _context.Usuarios
              .AsNoTracking()
              .Include(x => x.Rol)
@@ -170,24 +180,20 @@ namespace DGASoporte.Controllers
 
             if (usuario == null) return NotFound();
 
-            if (usuario.RolId == tecnicoid)
-            {
-                var nivles = await _context.Nivles
-                .AsNoTracking()
-                .OrderBy(n => n.Nombre)
-                .Select(n => new SelectListItem { Value = n.Id.ToString(), Text = n.Nombre })
-                .ToListAsync();
-            }
-                var tecnico = await _context.Tecnicos
-               .AsNoTracking()
-               .Include(x => x.Nivel)
-               .FirstOrDefaultAsync(x => x.Id == id);
-
             var roles = await _context.Roles
                 .AsNoTracking()
                 .OrderBy(r => r.Nombre)
                 .Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Nombre })
                 .ToListAsync();
+            var nivles = await _context.Nivles
+                .AsNoTracking()
+                .OrderBy(n => n.Nombre)
+                .Select(n => new SelectListItem { Value = n.Id.ToString(), Text = n.Nombre })
+                .ToListAsync();
+            var tecnico = await _context.Tecnicos
+                  .AsNoTracking()
+                  .Include(x => x.Nivel)
+                  .FirstOrDefaultAsync(x => x.Id == id);
             var vm = new UsuarioVM
             {
                 Id = usuario.Id,
@@ -198,18 +204,25 @@ namespace DGASoporte.Controllers
                 Codigo = usuario.Codigo,
                 Roles = roles,
                 Activo = usuario.Activo,
-                NivelId = tecnico?.NivelId               
+                NivelId = tecnico?.NivelId,
+                Niveles =nivles
             };
-
             ViewBag.Roles = await _context.Roles.OrderBy(r => r.Nombre).ToListAsync();
+            ViewBag.Nivels = await _context.Nivles.OrderBy(n => n.Nombre).ToListAsync();
+
             return View(vm);
         }
 
         // POST: Usuarios/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(UsuarioVM vm)
+        public async Task<IActionResult> Edit(int id,UsuarioVM vm)
         {
+            if (id != vm.Id)
+            {
+                TempData["Alert"] = "El Identificador no es Válido";
+                return RedirectToAction(nameof(Index));
+            }
             if (string.IsNullOrWhiteSpace(vm.Password))
             {
                 ModelState.Remove(nameof(UsuarioVM.Password));
@@ -222,51 +235,105 @@ namespace DGASoporte.Controllers
                 return View(vm);
             }
 
-            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == vm.Id);
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
             if (usuario is null) return NotFound();
 
             // Validaciones de datso exixtentes
-            if (await _context.Usuarios.AnyAsync(u => u.Email == vm.Email && u.Id != vm.Id))
+
+            if (!(usuario.Email!=vm.Email)||await _context.Usuarios.AnyAsync(u => u.Email == vm.Email && u.Id != vm.Id))
                 ModelState.AddModelError(nameof(vm.Email), "El correo ya está registrado por otro usuario.");
-            if (await _context.Usuarios.AnyAsync(u => u.User == vm.User && u.Id != vm.Id))
+            if (!(usuario.User != vm.User)||await _context.Usuarios.AnyAsync(u => u.User == vm.User && u.Id != vm.Id))
                 ModelState.AddModelError(nameof(vm.User), "El usuario ya existe en otra cuenta.");
-            if (await _context.Usuarios.AnyAsync(u => u.Codigo == vm.Codigo))
+            if (!(usuario.Codigo != vm.Codigo)||await _context.Usuarios.AnyAsync(u => u.Codigo == vm.Codigo))
                 ModelState.AddModelError(nameof(vm.User), "El codigo ya existe.");
 
             if (!ModelState.IsValid)
             {
+                 if (vm.RolId == tecnicoid)
+                    ViewBag.Nivles = await _context.Nivles.OrderBy(n => n.Nombre).ToListAsync();
                 ViewBag.Roles = await _context.Roles.OrderBy(r => r.Nombre).ToListAsync();
                 return View(vm);
             }
 
             using var tx = await _context.Database.BeginTransactionAsync();
 
-            // Actualizar datos básicos
-            usuario.User = vm.User.Trim();
-            usuario.Email = vm.Email.Trim();
-            usuario.NombreCompleto = vm.NombreCompleto.Trim();
-            usuario.Codigo= vm.Codigo.Trim();
-            usuario.RolId = vm.RolId;
-            usuario.Activo = vm.Activo;
+            try
+            {
+                // Actualizar datos base
+                usuario.User = vm.User.Trim();
+                usuario.Email = vm.Email.Trim();
+                usuario.NombreCompleto = vm.NombreCompleto.Trim();
+                usuario.Codigo = vm.Codigo.Trim();
+                usuario.RolId = vm.RolId;
+                usuario.Activo = vm.Activo;
 
-            // Cambiar contraseña SOLO si Password viene con valor
-            if (!string.IsNullOrWhiteSpace(vm.Password))
-            {
-                var (hash, salt) = PasswordHasher.Hash(vm.Password);
-                usuario.PasswordHash = hash;
-                usuario.PasswordSalt = salt;
-                usuario.ActualizadoEn = DateTime.UtcNow;
-            }
-            try 
-            {
+                // Cambio/actualización de contraseña
+                if (!string.IsNullOrWhiteSpace(vm.Password))
+                {
+                    var (hash, salt) = PasswordHasher.Hash(vm.Password);
+                    usuario.PasswordHash = hash;
+                    usuario.PasswordSalt = salt;
+                }
+
+                // Determinar estado técnico actual y futuro
+                var tecnicoExistente = await _context.Usuarios.OfType<Tecnico>().FirstOrDefaultAsync(t => t.Id == vm.Id);
+                bool seraTecnico = vm.RolId == tecnicoid;
+                bool esTecnicoHoy = tecnicoExistente != null;
+
+                // Validación de campos de técnico si corresponde
+                if (seraTecnico && vm.NivelId == null)
+                {
+                    ModelState.AddModelError(nameof(vm.NivelId), "El Nivel es obligatorio para técnicos.");
+                    await CargarCombosAsync();
+                    return View(vm);
+                }
+
+                //Cambia a Técnico
+                if (seraTecnico && !esTecnicoHoy)
+                {
+                    var nuevoTec = new Tecnico
+                    {
+                        Id = usuario.Id, // FK compartida en TPT
+                        NivelId = vm.NivelId!.Value
+                    };
+                    _context.Add(nuevoTec);
+                }
+                //Deja de ser Técnico
+                else if (!seraTecnico && esTecnicoHoy)
+                {
+                    _context.Remove(tecnicoExistente!);
+                }
+                //Sigue siendo Técnico
+                else if (seraTecnico && esTecnicoHoy)
+                {
+                    tecnicoExistente!.NivelId = vm.NivelId!.Value;
+                }
                 await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
                 TempData["Ok"] = "Usuario actualizado correctamente.";
                 return RedirectToAction(nameof(Index));
-            } 
+            }
             catch (DbUpdateConcurrencyException)
             {
-              if (!await _context.Usuarios.AnyAsync(e => e.Id == vm.Id)) return NotFound();
-               throw;
+                await tx.RollbackAsync();
+                ModelState.AddModelError("", "El registro fue modificado por otro usuario. Recarga e inténtalo de nuevo.");
+                await CargarCombosAsync();
+                return View(vm);
+            }
+            catch (DbUpdateException ex)
+            {
+                await tx.RollbackAsync();
+                ModelState.AddModelError("", $"No se pudieron guardar los cambios: {ex.GetBaseException().Message}");
+                await CargarCombosAsync();
+                return View(vm);
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                ModelState.AddModelError("", $"Error inesperado: {ex.GetBaseException().Message}");
+                await CargarCombosAsync();
+                return View(vm);
             }
         }
         // GET: /Usuarios/Delete/5
@@ -279,10 +346,6 @@ namespace DGASoporte.Controllers
 
             if (user is null) return NotFound();
 
-            // Si lo llamas por AJAX para modal, devuelve parcial
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                return PartialView("_Delete", user); // modal
-
             return View(user); // vista completa
         }
 
@@ -291,20 +354,37 @@ namespace DGASoporte.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = await _context.Usuarios.FindAsync(id);
-            if (user is null) return NotFound();
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
+                if (usuario == null) return NotFound();
 
-            //DELETE:
-            _context.Usuarios.Remove(user);
+                var tecnico = await _context.Usuarios.OfType<Tecnico>().FirstOrDefaultAsync(t => t.Id == id);
+                if (tecnico != null)
+                {
+                    _context.Remove(tecnico);
+                }
 
-            await _context.SaveChangesAsync();
+                _context.Usuarios.Remove(usuario);
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
 
-            // Si vino de un modal por AJAX, puedes devolver 204 o JSON
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                return NoContent();
-
-            TempData["Ok"] = "Usuario eliminado correctamente.";
-            return RedirectToAction(nameof(Index));
+                TempData["Ok"] = "Usuario eliminado correctamente.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException ex)
+            {
+                await tx.RollbackAsync();
+                TempData["Error"] = $"No se pudo eliminar: {ex.GetBaseException().Message}";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                TempData["Error"] = $"Error inesperado: {ex.GetBaseException().Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpPost]

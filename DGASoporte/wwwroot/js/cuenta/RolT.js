@@ -10,14 +10,8 @@ $(function () {
 
         if (esTecnico) {
             $panel.slideDown(200);
-            // Activar reglas de validación solo si es técnico
-            $("[name='CodigoEmpleado']").rules("add", { required: true, maxlength: 50 });
-            $("[name='Especialidad']").rules("add", { required: true, maxlength: 100 });
         } else {
             $panel.slideUp(200);
-            // Remover validación si ya no es técnico
-            $("[name='CodigoEmpleado']").rules("remove");
-            $("[name='Especialidad']").rules("remove");
         }
     }
 

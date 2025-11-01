@@ -176,11 +176,6 @@ input[type="password"]::-ms-reveal {
     user-select: none;
     cursor: default;
 }
-/* Mensajes de error y válidos generados por asp-validation-for */
-.field-validation-error {
-    color: #dc2626;
-    font-size: .85rem;
-}
 
 .field-validation-valid {
     min-height: 1rem; 

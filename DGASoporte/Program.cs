@@ -1,7 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using DGASoporte.Data;
-using DGASoporte.Servicios;
 using DGASoporte.Infraestructura;
+using DGASoporte.Servicios;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,14 +15,16 @@ builder.Services.AddDbContext<DGADbContext>(options =>
 builder.Services.AddScoped<IAutentificacionServicio, AutentificacionServicio>();
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddAuthentication("Cookies")
-    .AddCookie("Cookies", o =>
+//el mecanismo principal para manejar sesiones de usuarios será la autenticación basada en cookies.
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(opt =>
     {
-        o.LoginPath = "/Auth/Login";
-        o.LogoutPath = "/Auth/Logout";
-        o.AccessDeniedPath = "/Auth/Denied";
-        o.SlidingExpiration = true;
-        o.ExpireTimeSpan = TimeSpan.FromHours(8);
+        opt.LoginPath = "/Cuenta/Login";              // ruta de login
+        opt.LogoutPath = "/Cuenta/Logout";      // ruta de logout
+        opt.AccessDeniedPath = "/Cuenta/Denied";
+        opt.SlidingExpiration = true;
+        opt.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
 builder.Services.AddAuthorization();
 

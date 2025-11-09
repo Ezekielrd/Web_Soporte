@@ -1,46 +1,186 @@
-﻿using DGASoporte.Data;
-using DGASoporte.Models;
-using DGASoporte.Seguridad;
+﻿
+using DGASoporte.Data;         
+using DGASoporte.Models;        
+using DGASoporte.Seguridad;    
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-
-
 namespace DGASoporte.Controllers
 {
     public class CuentaController : Controller
     {
-        public readonly DGADbContext _context;
+        private readonly DGADbContext _context;
+        private readonly ILogger<CuentaController> _logger;
 
-        public CuentaController(DGADbContext context)
+        public CuentaController(DGADbContext context, ILogger<CuentaController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        public IActionResult Login()
+        // GET: /Cuenta/Login
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Login(string? returnUrl = null)
         {
-           return View();
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginVM vm)
-        {
-           
-                return Redirect(vm.ReturnUrl);
+            return View(new LoginVM { ReturnUrl = returnUrl });
         }
 
+        // POST: /Cuenta/Login
         [HttpPost]
+        [AllowAnonymous]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginVM vm, string? returnUrl = null)
+        {
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            var entrada = (vm.UserNameOrEmail ?? "").Trim().ToLowerInvariant();
+            var pwd = (vm.Password ?? "").Trim();
+
+            if (string.IsNullOrWhiteSpace(entrada) || string.IsNullOrWhiteSpace(pwd))
+            {
+                ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
+                return View(vm);
+            }
+
+            bool esEmail = entrada.Contains('@');
+
+            var usuario = await _context.Usuarios
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u =>
+                    esEmail ? u.Email.ToLower() == entrada : u.Usher.ToLower() == entrada);
+
+            if (usuario is null || !usuario.Activo || (usuario.Bloqueado))
+            {
+                ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
+                return View(vm);
+            }
+
+            // ✅ Usa orden estándar (password, hash, salt)
+            var ok = PasswordHasher.Verificar(pwd, usuario.PasswordHash, usuario.PasswordSalt);
+            if (!ok)
+            {
+                ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
+                return View(vm);
+            }
+
+            // Crear claims
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+                new Claim(ClaimTypes.Name, usuario.Usher),
+                new Claim(ClaimTypes.Email, usuario.Email ?? string.Empty),
+                new Claim(ClaimTypes.Role, usuario.Rol?.Nombre ?? string.Empty)
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            var props = new AuthenticationProperties
+            {
+                IsPersistent = vm.RememberMe,
+                AllowRefresh = true
+            };
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, props);
+
+            // Redirección segura
+            var destino = returnUrl ?? vm.ReturnUrl;
+            if (!string.IsNullOrWhiteSpace(destino) && Url.IsLocalUrl(destino))
+                return Redirect(destino);
+
+            // Redirige según el rol
+            return RedirectByRole(usuario.Rol?.Nombre);
+        }
+
+        // GET: /Cuenta/Logout
+        [HttpGet]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync("Cookies");
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(Login));
         }
 
+        // GET: /Cuenta/Denied
         [HttpGet]
-        public IActionResult Denied() => View();
+        [AllowAnonymous]
+        public IActionResult Denied()
+        {
+            return View(); // Crea vista simple con mensaje “Acceso denegado”
+        }
+
+        private IActionResult RedirectByRole(string? roleName)
+        {
+            var rol = (roleName ?? string.Empty).Trim().ToLowerInvariant();
+
+            return rol switch
+            {
+                "admin" => RedirectToAction("Index", "Home"),
+                "tecnico" => RedirectToAction("Index", "Tecnico"),
+                "cliente" => RedirectToAction("Create", "Solicitud"),
+                _ => RedirectToAction("Index", "Home")
+            };
+        }
+
+        // ========= Método semilla para Admin =========
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> SeedAdmin()
+        {
+            var rolAdmin = await _context.Roles.FirstOrDefaultAsync(r => r.Nombre == "Admin");
+            if (rolAdmin == null)
+            {
+                rolAdmin = new Rol { Nombre = "Admin"};
+                _context.Roles.Add(rolAdmin);
+                await _context.SaveChangesAsync();
+            }
+
+            var usher = "admi";
+            var email = "admin@demo.com";
+
+            var usuario = await _context.Usuarios
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u =>
+                    u.Usher.ToLower() == usher.ToLower() || u.Email.ToLower() == email.ToLower());
+
+            var passPlano = "Admin123*";
+            var (hash, salt) = PasswordHasher.Hash(passPlano);
+
+            if (usuario == null)
+            {
+                usuario = new Usuario
+                {
+                    Usher = usher,
+                    Email = email,
+                    NombreCompleto = "Administrador del sistema",
+                    Codigo = "ADM-001",
+                    Activo = true,
+                    PasswordHash = hash,
+                    PasswordSalt = salt,
+                    RolId = rolAdmin.Id,
+                    Bloqueado = false
+                };
+                _context.Usuarios.Add(usuario);
+            }
+            else
+            {
+                usuario.PasswordHash = hash;
+                usuario.PasswordSalt = salt;
+                usuario.Activo = true;
+                usuario.RolId = rolAdmin.Id;
+                usuario.Bloqueado = false;
+            }
+
+            await _context.SaveChangesAsync();
+
+            // ✅ verificación directa en memoria
+            var okMem = PasswordHasher.Verificar(passPlano, hash, salt);
+            return Content($"Admin listo (Usher={usuario.Usher}). Verificación hasher: {okMem}");
+        }
     }
 }

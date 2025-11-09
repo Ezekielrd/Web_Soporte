@@ -13,7 +13,6 @@ namespace DGASoporte.Data
         public DbSet<Unidad> Unidades { get; set; } = default!;
         public DbSet<Prioridad> Prioridades { get; set; } = default!;
         public DbSet<Categoria> Categorias { get; set; } = default!;
-        public DbSet<Division> Divisiones { get; set; } = default!;
         public DbSet<Rol> Roles { get; set; } = default!;
         public DbSet<Usuario> Usuarios { get; set; } = default!;
         public DbSet<Tecnico> Tecnicos { get; set; } = default!;
@@ -36,7 +35,6 @@ namespace DGASoporte.Data
             modelBuilder.Entity<Unidad>().ToTable("Unidad");
             modelBuilder.Entity<Prioridad>().ToTable("Prioridad");
             modelBuilder.Entity<Categoria>().ToTable("Categoria");
-            modelBuilder.Entity<Division>().ToTable("Division");
             modelBuilder.Entity<Rol>().ToTable("Rol");
             modelBuilder.Entity<Nivel>().ToTable("Nivel");
             modelBuilder.Entity<Comentario>().ToTable("Comentario");
@@ -110,7 +108,7 @@ namespace DGASoporte.Data
                 e.Property(t => t.FechaLimite).HasColumnType("datetime");
 
                 e.HasOne(t => t.Tecnico)
-                 .WithMany(te => te.Tareas) // inversa en Tecnico
+                 .WithMany(te => te.TareasAsignadas) // inversa en Tecnico
                  .HasForeignKey(t => t.TecnicoId)
                  .OnDelete(DeleteBehavior.Restrict)
                  .HasConstraintName("FK_Tarea_TecnicoAsignado");

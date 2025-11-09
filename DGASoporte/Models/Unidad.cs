@@ -13,9 +13,7 @@ namespace DGASoporte.Models
 
         [Column("Nombre")]
         public string Nombre { get; set; } = string.Empty;
-        [Column("DivisionId")]
-        public int DivisionId { get; set; }
-        public Division Division { get; set; } = default!;
+       
         public ICollection<Tarea> Tareas { get; set; } = new List<Tarea>();
     }
 }

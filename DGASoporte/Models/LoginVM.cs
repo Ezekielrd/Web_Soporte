@@ -4,13 +4,18 @@ namespace DGASoporte.Models
 {
     public class LoginVM
     {
-        [Required, Display(Name = "Usuario")]
         [StringLength(50, MinimumLength = 3)]
-        public string UserName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Ingrese su Usuario.")]
+        [Display(Name = " Tu Usuario o correo")]
+        public string UserNameOrEmail { get; set; } = string.Empty;
 
-        [Required, Display(Name = "Contraseña")]
+        [Display(Name = "Tu Contraseña")]
         [DataType(DataType.Password)]
-        [StringLength(100)]
+        [StringLength(50)]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.,;#\-_=+]).{8,}$",
+            ErrorMessage = "Mínimo 8 caracteres e incluir: mayúscula, minúscula, número y carácter especial.")]
+        [Required(ErrorMessage = "Ingrese su Contraeña")]
+
         public string Password { get; set; } = string.Empty;
 
         [Display(Name = "Recordarme")]

@@ -17,6 +17,6 @@ namespace DGASoporte.Models
         public Usuario Usuario { get; set; } = null!;
 
         // Navegación 1..N (Tecnico -> Tareas)
-        public ICollection<Tarea> Tareas { get; set; } = new List<Tarea>();
+        public ICollection<Tarea> TareasAsignadas { get; set; } = new List<Tarea>();
     }
 }

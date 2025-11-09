@@ -41,9 +41,9 @@ public class TareaController : Controller
             .ToListAsync();
 
         ViewBag.Unidades = await _context.Unidades
-            .OrderBy(u => u.Nombre)
-            .Select(u => new SelectListItem(u.Nombre, u.Id.ToString()))
-            .ToListAsync();
+                .OrderBy(u => u.Nombre)
+                .Select(u => new SelectListItem { Value = u.Id.ToString(), Text = u.Nombre })
+                .ToListAsync();
 
         ViewBag.Unidades = await _context.Categorias
             .OrderBy(u => u.Nombre)

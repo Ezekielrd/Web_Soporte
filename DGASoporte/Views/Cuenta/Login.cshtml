@@ -1,4 +1,4 @@
-﻿@model DGASoporte.Models.UsuarioVM
+﻿@model DGASoporte.Models.LoginVM
 @{
     Layout = null;
     ViewData["Title"] = "Iniciar sesión";
@@ -10,7 +10,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>@ViewData["Title"] - Sistema Soporte</title>
-    <link href="~/css/Login.css" rel="stylesheet" />
+    <link href="~/css/Login.css" rel="stylesheet" asp-append-version="true" />
 </head>
 <body>
     <div class="login-contenedor">
@@ -34,19 +34,21 @@
                 </div>
 
                 <form method="post" id="loginForm">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+                    <input type="hidden" asp-for="ReturnUrl" />
 
                     <div class="fld">
-                        <label asp-for="Usher" class="no-select">Tu Usuario</label>
+                        <label asp-for="UserNameOrEmail" class="no-select"></label>
                         <div class="inp">
                             <!-- icono correo -->
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M2 6.5A2.5 2.5 0 0 1 4.5 4h15A2.5 2.5 0 0 1 22 6.5v11A2.5 2.5 0 0 1 19.5 20h-15A2.5 2.5 0 0 1 2 17.5v-11Zm2.5-.5a.5.5 0 0 0-.5.5v.38l8 4.8l8-4.8V6.5a.5.5 0 0 0-.5-.5h-15Zm15.5 3.62l-8 4.8l-8-4.8V17.5a.5.5 0 0 0 .5.5h15a.5.5 0 0 0 .5-.5V9.62Z" /></svg>
-                            <input asp-for="Usher" autocomplete="username" placeholder="Ingrese su Usuario" id="usuario" required />
+                            <input asp-for="UserNameOrEmail" autocomplete="username" placeholder="Ingrese su Usuario" id="usuario" required />
                         </div>
-                        <span asp-validation-for="Usher" class="text-danger"></span>
+                        <span asp-validation-for="UserNameOrEmail" class="text-danger"></span>
                     </div>
 
                     <div class="fld">
-                        <label asp-for="Password" class="no-select">Tu Contraseña</label>
+                        <label asp-for="Password" class="no-select"></label>
                         <div class="input-container password-row">
                             <div class="inp">
                                 <!-- candado -->
@@ -60,14 +62,10 @@
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
 
-
-                    @*<div class="row-foot">
-                        <label class="remember">
-                            <input asp-for="Input.RememberMe" />
-                            <span>Recordarme</span>
-                        </label>
-                        <a asp-page="./ForgotPassword">¿Olvidaste tu contraseña?</a>
-                    </div>*@
+                    <div class="form-check mb-3">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label"></label>
+                    </div>
 
                     <div style="margin-top:14px"></div>
                     <button class="btn" id="loginBtn" type="submit">Iniciar sesión</button>
@@ -77,6 +75,7 @@
             </div>
         </div>
     </div>
+    <partial name="_ValidationScriptsPartial" />
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
@@ -85,7 +84,7 @@
 
     <!-- Unobtrusive Validation (adapter de ASP.NET) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
-    <script src="~/js/cuenta/Error.js"></script>
+   <script src="~/js/cuenta/Error.js"></script>
     <script src="~/js/cuenta/Icono.js"></script>
     <script src="~/js/cuenta/Sacudida.js"></script>
 </body>

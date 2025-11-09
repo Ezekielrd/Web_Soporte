@@ -16,7 +16,7 @@ namespace DGASoporte.Servicios
             _ctx.Usuarios.Include(u => u.Rol).FirstOrDefaultAsync(u => u.Email == email);
 
         public Task<bool> VerifyPasswordAsync(Usuario user, string password) =>
-            Task.FromResult(PasswordHasher.Verificar(password, user.PasswordSalt, user.PasswordHash));
+            Task.FromResult(PasswordHasher.Verificar(password, user.PasswordHash, user.PasswordSalt));
 
         public async Task<Usuario> CreateUserAsync(string email, string userName, string nombreCompleto, string password, string rolNombre)
         {

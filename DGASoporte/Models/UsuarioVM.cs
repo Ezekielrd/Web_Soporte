@@ -44,7 +44,7 @@ namespace DGASoporte.Models
         [Range(1, int.MaxValue, ErrorMessage = "Seleccione un rol válido")]
         [Display(Name = "Rol")]
         public int RolId { get; set; }
-        public Rol? Rol { get; init; }
+        public string? RolNombre { get; init; }
 
         public bool Activo { get; set; } = true;
         public bool Bloqueado { get; set; }
@@ -55,7 +55,7 @@ namespace DGASoporte.Models
         public bool? Disponible { get; set; } = false;
         [Display(Name = "Nivel Tecnico")]
         public int? NivelId { get; set; }
-        public Nivel? Nivel { get; init; }
+        public string? NivelNombre { get; init; }
         public IEnumerable<SelectListItem> Niveles { get; set; } = [];
 
     }

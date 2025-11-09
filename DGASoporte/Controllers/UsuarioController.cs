@@ -36,52 +36,46 @@ namespace DGASoporte.Controllers
             return View(usuarios);
         }
         // GET: Usuarios/Details/5
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int id, CancellationToken ct)
         {
             if (id <= 0)
             {
                 TempData["Alert"] = "El Identificador no es Válido";
                 return RedirectToAction(nameof(Index));
             }
-            var usuario = await _context.Usuarios
-                .AsNoTracking()
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.Id == id);
-            var tec = await _context.Tecnicos
-                .AsNoTracking()
-                .Include(t => t.Nivel)
-                .FirstOrDefaultAsync(u => u.Id == id);
+            var vm = await _context.Usuarios
+           .AsNoTracking()
+           .Where(u => u.Id == id)
+           .Select(u => new UsuarioVM
+           {
+               Id= u.Id,
+               Usher = u.Usher,
+               Email = u.Email,
+               NombreCompleto = u.NombreCompleto,
+               Codigo = u.Codigo,
+               RolId = u.RolId,
+               RolNombre = u.Rol != null ? u.Rol.Nombre : null,
+               Activo = u.Activo,
+               FechaCracion = u.CreadoEn.ToLocalTime(),
+           })
+            .FirstOrDefaultAsync(ct);
 
-            if (usuario == null) return NotFound();
-
-
-            var vm = new UsuarioVM
-            {
-                Usher = usuario.Usher,
-                Email = usuario.Email,
-                NombreCompleto = usuario.NombreCompleto,
-                Codigo = usuario.Codigo,
-                RolId = usuario.RolId,
-                Rol = usuario.Rol,   
-                Activo = usuario.Activo,
-                FechaCracion = usuario.CreadoEn,
-                Nivel = tec?.Nivel
-            };
+            if (vm is null) return NotFound();
 
             return View(vm);
         }
 
         // GET: Usuarios/Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(CancellationToken ct)
         {
             var vm = new UsuarioVM { Activo = true };
-            await CargarCombosAsync(vm);
+            await CargarCombosAsync(vm,ct);
             return View(vm);
         }
         // POST: Usuarios/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(UsuarioVM vm)
+        public async Task<IActionResult> Create(UsuarioVM vm, CancellationToken ct)
         {
             //Validaciones de duplicados
             if (await _context.Usuarios.AnyAsync(u => u.Email == vm.Email))
@@ -100,7 +94,7 @@ namespace DGASoporte.Controllers
 
             if (!ModelState.IsValid)
             {
-                await CargarCombosAsync(vm);
+                await CargarCombosAsync(vm, ct);
                 return View(vm);
             }
 
@@ -144,13 +138,13 @@ namespace DGASoporte.Controllers
             {
                 await tx.RollbackAsync();
                 ModelState.AddModelError("", $"Error inesperado: {ex.GetBaseException().Message}");
-                await CargarCombosAsync(vm);
+                await CargarCombosAsync(vm, ct);
                 return View(vm);
             }
         }
             // GET: Usuarios/Edit/5
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int id, CancellationToken ct)
         {
             if (id <= 0)
             {
@@ -181,14 +175,14 @@ namespace DGASoporte.Controllers
                 NivelId = tecnico?.NivelId
             };
 
-            await CargarCombosAsync(vm);
+            await CargarCombosAsync(vm, ct);
             return View(vm);
         }
 
         // POST: Usuarios/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, UsuarioVM vm)
+        public async Task<IActionResult> Edit(int id, UsuarioVM vm, CancellationToken ct)
         {
             if (id != vm.Id)
             {
@@ -227,7 +221,7 @@ namespace DGASoporte.Controllers
 
             if (!ModelState.IsValid)
             {
-                await CargarCombosAsync(vm);
+                await CargarCombosAsync(vm, ct);
                 return View(vm);
             }
 
@@ -297,13 +291,13 @@ namespace DGASoporte.Controllers
                 ModelState.AddModelError("", $"Error inesperado: {ex.GetBaseException().Message}");
             }
 
-            await CargarCombosAsync(vm);
+            await CargarCombosAsync(vm, ct);
             return View(vm);
         }
 
         // GET: /Usuarios/Delete/5
         [HttpGet]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
             if (id <= 0)
             {
@@ -312,36 +306,37 @@ namespace DGASoporte.Controllers
                     return RedirectToAction(nameof(Index));
                 }
             }
-            var usuario= await _context.Usuarios
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u => u.Id == id);
-
             var tec = await _context.Tecnicos
                 .Include(u => u.Nivel)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
-            if (usuario is null) return NotFound();
+            var vm = await _context.Usuarios
+              .AsNoTracking()
+              .Where(u => u.Id == id)
+              .Select(u => new UsuarioVM
+              {
+                  Id = u.Id,
+                  Usher = u.Usher,
+                  Email = u.Email,
+                  NombreCompleto = u.NombreCompleto,
+                  Codigo = u.Codigo,
+                  RolId = u.RolId,
+                  RolNombre = u.Rol != null ? u.Rol.Nombre : null,
+                  Activo = u.Activo,
+                  FechaCracion = u.CreadoEn.ToLocalTime(),
+                  NivelNombre = tec != null && tec.Nivel != null ? tec.Nivel.Nombre : null
+              })
+               .FirstOrDefaultAsync(ct);
 
-            var vm = new UsuarioVM
-            {
-                Id= usuario.Id,
-                Usher = usuario.Usher,
-                Email = usuario.Email,
-                NombreCompleto = usuario.NombreCompleto,
-                Codigo = usuario.Codigo,
-                RolId = usuario.RolId,
-                Rol = usuario.Rol,
-                Activo = usuario.Activo,
-                FechaCracion = usuario.CreadoEn,
-                Nivel = tec?.Nivel
-            };
+            if (vm is null) return NotFound();
+
             return View(vm);
         }
 
         // POST: /Usuarios/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken ct)
         {
             //Validar el ID
             if (id <= 0)
@@ -353,7 +348,7 @@ namespace DGASoporte.Controllers
             try
             {
                 //Buscar el usuario. 
-                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id);
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id,ct);
 
                 if (usuario == null)
                     return NotFound();
@@ -396,10 +391,10 @@ namespace DGASoporte.Controllers
             {
                 // Estaba desbloqueado -> Bloquear (temporal o indefinido)
                 usuario.Bloqueado = true;
-                usuario.finBloqueo = hasta ?? DateTime.UtcNow.AddYears(100);
+                usuario.finBloqueo = hasta ?? DateTime.Now.ToLocalTime().AddYears(100);
             }
 
-            usuario.ActualizadoEn = DateTime.UtcNow;
+            usuario.ActualizadoEn = DateTime.Now.ToLocalTime();
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
@@ -428,26 +423,26 @@ namespace DGASoporte.Controllers
             usuario.AccesoFallado = 0;
             usuario.finBloqueo = null;
             usuario.Bloqueado = false;
-            usuario.ActualizadoEn = DateTime.UtcNow;
+            usuario.ActualizadoEn = DateTime.Now.ToLocalTime();
 
             await _context.SaveChangesAsync();
             TempData["Msg"] = $"Contraseña de {usuario.Usher} restablecida correctamente.";
             return RedirectToAction(nameof(Index));
             
         }
-        private async Task CargarCombosAsync(UsuarioVM vm)
+        private async Task CargarCombosAsync(UsuarioVM vm, CancellationToken ct)
         {
             vm.Roles = await _context.Roles
                 .AsNoTracking()
                 .OrderBy(r => r.Nombre)
                 .Select(r => new SelectListItem { Value = r.Id.ToString(), Text = r.Nombre })
-                .ToListAsync();
+                .ToListAsync(ct);
 
             vm.Niveles = await _context.Niveles
                 .AsNoTracking()
                 .OrderBy(n => n.Nombre)
                 .Select(n => new SelectListItem { Value = n.Id.ToString(), Text = n.Nombre })
-                .ToListAsync();
+                .ToListAsync(ct);
         }
     }
 }

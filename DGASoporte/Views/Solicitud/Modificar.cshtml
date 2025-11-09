@@ -1,0 +1,9 @@
+﻿@model DGASoporte.Models.SolicitudVM
+@using DGASoporte.Models.Enumeradores;
+
+@{
+    ViewData["Title"] = "Modificar Solicitud de Incidencia";
+}
+
+<!-- Vista de Modificación - Reutiliza el formulario de Create -->
+@Html.Partial("Create", Model)

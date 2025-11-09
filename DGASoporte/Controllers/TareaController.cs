@@ -65,7 +65,11 @@ public class TareaController : Controller
     [HttpGet]
     public async Task<IActionResult> Details(int id, CancellationToken ct)
     {
-        if (id <= 0) return BadRequest("Id inválido.");
+        if (id <= 0)
+        {
+            TempData["Alert"] = "El Identificador no es Válido";
+            return RedirectToAction(nameof(Index));
+        }
 
         var vm = await _context.Tareas
             .AsNoTracking()
@@ -76,7 +80,7 @@ public class TareaController : Controller
                 Titulo = t.Titulo,
                 Descripcion = t.Descripcion,
                 FechaCreacion = t.FechaCreacion,
-                FechaLimite = t.FechaLimite,
+                FechaLimite = t.FechaLimite.ToLocalTime(),
 
                 EstadoId = t.EstadoId,
                 EstadoNombre = t.Estado != null ? t.Estado.Nombre : null,
@@ -103,8 +107,7 @@ public class TareaController : Controller
     {
         var vm = new TareaFormVM
         {
-            // valores por defecto útiles
-            FechaLimite = DateTime.Today.AddDays(1)
+            FechaLimite = DateTime.Today.AddDays(1).ToLocalTime()
         };
         await CargarSelects(vm, ct);
         return View(vm);
@@ -133,10 +136,9 @@ public class TareaController : Controller
         //mapeo
         var entidad = new Tarea
         {
-            Id=vm.Id,
             Titulo = vm.Titulo.Trim(),
             Descripcion = string.IsNullOrWhiteSpace(vm.Descripcion) ? null : vm.Descripcion.Trim(),
-            FechaCreacion = DateTime.Now,
+            FechaCreacion =  DateTime.Now.ToLocalTime(),
             EstadoId = vm.EstadoId,
             PrioridadId = vm.PrioridadId,
             CategoriaId = vm.CategoriaId,
@@ -159,12 +161,22 @@ public class TareaController : Controller
             await CargarSelects(vm, ct);
             return View(vm);
         }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("", $"Error inesperado: {ex.GetBaseException().Message}");
+            return View(vm);
+        }
     }
 
     // GET: /Tareas/Edit/5
     [HttpGet]
     public async Task<IActionResult> Edit(int id, CancellationToken ct)
     {
+        if (id <= 0)
+        {
+            TempData["Alert"] = "El Identificador no es Válido";
+            return RedirectToAction(nameof(Index));
+        }
         var t = await _context.Tareas.FindAsync(id);
         if (t == null) return NotFound();
 
@@ -180,7 +192,7 @@ public class TareaController : Controller
                     PrioridadId = t.PrioridadId,
                     CategoriaId = t.CategoriaId,
                     UnidadId = t.UnidadId,
-                    FechaLimite = t.FechaLimite
+                    FechaLimite = t.FechaLimite.ToLocalTime()
                 })
                 .FirstOrDefaultAsync(ct);
 
@@ -239,9 +251,9 @@ public class TareaController : Controller
         t.PrioridadId = vm.PrioridadId;
         t.CategoriaId = vm.CategoriaId;
         t.UnidadId = vm.UnidadId;
-        t.FechaLimite = vm.FechaLimite;
+        t.FechaLimite =  vm.FechaLimite.ToLocalTime();
         t.Archivada = vm.Archivada;
-        t.FechaActualizacion = DateTime.Now;
+        t.FechaActualizacion = DateTime.Now.ToLocalTime();
 
         try
         {
@@ -302,6 +314,28 @@ public class TareaController : Controller
             return RedirectToAction(nameof(Details));
         }
     }
+    [HttpGet]
+    public async Task<IActionResult> Assign()
+    {
+        ViewBag.Estados = await _context.Estados
+            .OrderBy(e => e.Id)
+            .Select(e => new SelectListItem(e.Nombre, e.Id.ToString()))
+            .ToListAsync();
+        var disponibles = await _context.Tecnicos.Select(t=>t.Disponible==false).ToListAsync();
+        return View(disponibles);
+    }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Assign(int id, int TecnicoId)
+    {
+        var ticket = await _context.Tareas.FindAsync(id);
+        if (ticket == null) return NotFound();
+
+        ticket.TecnicoId = TecnicoId;
+        ticket.FechaAsignacion = DateTime.Now.ToLocalTime();
+        await _context.SaveChangesAsync();
+        return RedirectToAction("Details", new { id });
+    }
 
     private async Task CargarSelects(TareaFormVM vm, CancellationToken ct)
     {
@@ -341,7 +375,7 @@ public class TareaController : Controller
         if (t == null) return NotFound();
 
         t.Archivada = true;
-        t.FechaActualizacion = DateTime.Now;
+        t.FechaActualizacion = DateTime.Now.ToLocalTime();
         await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Index));

@@ -11,7 +11,7 @@ namespace DGASoporte.Models
         [Column("Disponible")]
         public bool Disponible { get; set; }
         public int NivelId { get; set; }
-        public Nivel Nivel { get; set; } = default!;
+        public Nivel? Nivel { get; set; } = default!;
 
         [ForeignKey(nameof(Id))]
         public Usuario Usuario { get; set; } = null!;

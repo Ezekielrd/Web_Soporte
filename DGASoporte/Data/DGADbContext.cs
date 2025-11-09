@@ -18,6 +18,11 @@ namespace DGASoporte.Data
         public DbSet<Usuario> Usuarios { get; set; } = default!;
         public DbSet<Tecnico> Tecnicos { get; set; } = default!;
         public DbSet<Nivel> Niveles { get; set; } = default!;
+        public DbSet<Comentario> Comentarios { get; set; } = default!;
+        public DbSet<ImagenC> Imagenes { get; set; } = default!;
+        public DbSet<Solicitud> Solicitudes { get; set; } = default!;
+        public DbSet<ArchivoAdjunto> ArchivosAdjuntos { get; set; } = default!;
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,6 +39,8 @@ namespace DGASoporte.Data
             modelBuilder.Entity<Division>().ToTable("Division");
             modelBuilder.Entity<Rol>().ToTable("Rol");
             modelBuilder.Entity<Nivel>().ToTable("Nivel");
+            modelBuilder.Entity<Comentario>().ToTable("Comentario");
+
 
             // Usuario base
             modelBuilder.Entity<Usuario>(e =>

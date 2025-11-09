@@ -12,6 +12,6 @@ namespace DGASoporte.Models
 
         [Column("Nombre")]
         public string Nombre { get; set; } = string.Empty;
-        public ICollection<Unidad> Tareas { get; set; } = new List<Unidad>();
+        public ICollection<Unidad> Unidades { get; set; } = new List<Unidad>();
     }
 }

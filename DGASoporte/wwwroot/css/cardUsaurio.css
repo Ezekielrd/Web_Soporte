@@ -177,27 +177,11 @@ input[type="password"]::-ms-reveal {
     cursor: default;
 }
 
-.field-validation-valid {
-    min-height: 1rem; 
-}
-
 /* Borde ROJO cuando el control es inválido (aplica a input y select) */
 .input-validation-error {
     border-color: #dc2626 !important;
     box-shadow: 0 0 0 .15rem rgba(220,38,38,.08) !important;
 }
 
-/*
-   Unificamos para input y select: */
-input.valid,
-select.valid,
-.form-select.valid {
-    border: 2px solid #198754 !important;
-    box-shadow: 0 0 0 .2rem rgba(25,135,84,.15) !important;
-}
-
-/* el mensaje se “muestre/oculte” como Bootstrap*/
-   .input-validation-error ~ .field-validation-error { display:block; }
-   .valid ~ .field-validation-error { display:none; } 
 
 

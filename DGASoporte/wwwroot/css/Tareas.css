@@ -1,22 +1,32 @@
-﻿/* Fondo global solo para esta vista */
-body {
-    margin: 0;
-    padding: 0;
+﻿body {
+    margin: 0px;
+    padding: 0px;
     overflow-x: hidden;
     background-color: #F8F9FA;
 }
+
 main, .container, .container-fluid {
     background: transparent;
 }
 /*encabezado*/
 h3 {
-    color: #01337a;
+    color: #2a922c;
     font-weight: 800;
     letter-spacing: .2px;
+}
+.filtros:focus {
+    border: 2px solid #2b7535 !important;
+    box-shadow: 0 0 0 3px rgba(40,167,69,.15);
+}
+.filtros:hover {
+    border-color: #2b7535;
 }
 /* Ancho fijo reutilizable para el buscador */
 .busqueda-compacta {
     max-width: 260px;
+}
+.btn-primary {
+    border: 2px solid #6b5bdf !important; 
 }
 .table-responsive {
     width: 100%;
@@ -43,33 +53,46 @@ h3 {
         text-align: left;
         border-bottom: 1px solid #ddd;
     }
-        /*estilo para el primer y ultimo elemento del encabezado bordes redondeos*/
-        .table thead th:first-child {
-            border-top-left-radius: .55rem;
-        }
+/*estilo para el primer y ultimo elemento del encabezado bordes redondeos*/
+.table thead th:first-child {
+    border-top-left-radius: .55rem;
+}
 
-        .table thead th:last-child {
-            border-top-right-radius: .55rem;
-        }
-    /*estilo del cuerpo */
+.table thead th:last-child {
+    border-top-right-radius: .55rem;
+}
+/*estilo del cuerpo */
 
-    #example tbody tr {
-        background: #edf0ff !important;
-    }
-    #example tbody td {
-        padding: 0.75rem;
-        border-top: 1px solid #ccacf8;
-        vertical-align: middle;
-    }
+#example tbody tr {
+    background: #edf0ff !important;
+}
+
+#example tbody td {
+    padding: 0.75rem;
+    border-top: 1px solid #ccacf8;
+    vertical-align: middle;
+}
+
 #example tbody tr:hover {
     filter: brightness(0.985);
     transition: filter 0.2s ease;
 }
+
 .btn-sm {
     padding: .15rem .50rem;
     border-radius: .4rem;
     font-weight: 600;
 }
+/* Botón Agregar*/
+.btn-agregar {
+    background: #fff;
+    border: 1px solid #009929;
+    color: #009929;
+}
+
+    .btn-agregar:hover {
+        background: #98ff96;
+    }
 
 .toast-success {
     position: fixed;

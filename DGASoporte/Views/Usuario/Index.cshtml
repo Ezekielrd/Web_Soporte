@@ -14,8 +14,7 @@
         <link href="~/css/Usuarios.css" rel="stylesheet" />
     </head>
 <body>
-    <section>
-        @* Revisa estos mensajes al principio de tu Index.cshtml *@
+    <section class="container-fluid">
 
         @if (TempData["Ok"] != null)
         {
@@ -42,8 +41,12 @@
         }
         <!-- Encabezado + botón agregar -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="mb-0">Usuarios</h3>
-            <a asp-action="Create" class="btn btn-sm btn-agregar">+ Agregar</a>
+            <h3 class="mb-0 no-select">Usuarios</h3>
+            <p>
+                <a class="btn btn-outline-success" asp-action="Create">
+                    <i class="bi bi-person-plus"></i> Nueva Usuario
+                </a>
+            </p>
         </div>
         <form method="get" class="d-flex align-items-center gap-2 mb-3">
             <div class="input-group input-group-sm busqueda-compacta">
@@ -149,6 +152,7 @@
               if (!$.fn.dataTable.isDataTable('#example')) {
                 $('#example').DataTable({
                   searching: false,
+                  "autoWidth": false,
                   language: { url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json' }
                 });
               }

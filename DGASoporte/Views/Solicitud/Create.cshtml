@@ -1,0 +1,250 @@
+﻿@model DGASoporte.Models.SolicitudVM
+@using DGASoporte.Models.Enumeradores;
+
+@{
+    ViewData["Title"] = "Crear Solicitud de Incidencia";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Reporte de Incidencias - Dirección General de Aduanas</title>
+    <link rel="stylesheet" href="~/css/solicitud-incidencia.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="..." crossorigin="anonymous" />
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-plus-circle"></i>
+                            Nueva Solicitud de Incidencia
+                        </h4>
+                        <span class="badge">Sistema de Tareas</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="solicitudForm" asp-action="Create" method="post">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            @Html.AntiForgeryToken()
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="Titulo" class="form-label">
+                                            <i class="fas fa-heading text-primary"></i>
+                                            @Html.DisplayNameFor(model => model.Titulo)
+                                        </label>
+                                        <input asp-for="Titulo" class="form-control" placeholder="Ej: Problema con impresora en oficina" maxlength="100" />
+                                        <span asp-validation-for="Titulo" class="text-danger"></span>
+                                        <div class="form-text">
+                                            <span id="titulo-count">0</span>/100 caracteres
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="Tipo" class="form-label">
+                                            <i class="fas fa-tag text-warning"></i>
+                                            @Html.DisplayNameFor(model => model.Tipo)
+                                        </label>
+                                        <select asp-for="Tipo" class="form-control" asp-items="Html.GetEnumSelectList<TipoIncidencia>()">
+                                            <option value="">-- Seleccione tipo --</option>
+                                        </select>
+                                        <span asp-validation-for="Tipo" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label asp-for="Descripcion" class="form-label">
+                                    <i class="fas fa-align-left text-info"></i>
+                                    @Html.DisplayNameFor(model => model.Descripcion)
+                                </label>
+                                <textarea asp-for="Descripcion" class="form-control" rows="6" placeholder="Describa detalladamente el problema."></textarea>
+                                <span asp-validation-for="Descripcion" class="text-danger"></span>
+                                <div class="form-text">
+                                    <span id="descripcion-count">0</span> caracteres
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="UnidadId" class="form-label">
+                                            <i class="fas fa-building text-success"></i>
+                                            @Html.DisplayNameFor(model => model.UnidadId)
+                                        </label>
+                                        <select asp-for="UnidadId" class="form-control" asp-items="Model.Unidades">
+                                            <option value="">-- Seleccione una unidad --</option>
+                                        </select>
+                                        <span asp-validation-for="UnidadId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <div>
+                                    <button type="submit" class="btn btn-primary btn-lg" id="btnEnviar">
+                                        <i class="fas fa-paper-plane"></i>
+                                        Enviar Solicitud
+                                    </button>
+                                </div>
+                                <div>
+                                    <a asp-action="Index" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times"></i>
+                                        Cancelar
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-labelledby="modalConfirmacionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalConfirmacionLabel">Confirmar Datos de la Solicitud</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6 class="text-primary mb-3">Por favor verifique los datos antes de guardar:</h6>
+
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Título:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <span id="modalTitulo" class="text-dark"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Descripción:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <span id="modalDescripcion" class="text-dark"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Unidad:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <span id="modalUnidad" class="text-dark"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Tipo:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <span id="modalTipo" class="text-dark"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btnModificar" data-bs-dismiss="modal">
+                        <i class="bi bi-pencil"></i> Modificar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnGuardar">
+                        <i class="bi bi-check-circle"></i> Guardar Solicitud
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @section Scripts {
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+        <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+        <script>
+            (function () {
+                const form = document.getElementById('solicitudForm');
+                const btnGuardar = document.getElementById('btnGuardar');
+                const btnModificar = document.getElementById('btnModificar');
+
+                const modalEl = document.getElementById('modalConfirmacion');
+                const modal = new bootstrap.Modal(modalEl);
+
+                let confirmado = false; // bandera para permitir el submit real
+
+                // Contadores
+                const tituloInput = document.getElementById('Titulo');
+                const descripcionInput = document.getElementById('Descripcion');
+                const tituloCount = document.getElementById('titulo-count');
+                const descripcionCount = document.getElementById('descripcion-count');
+
+                function actualizarContadores() {
+                    if (tituloInput && tituloCount) tituloCount.textContent = tituloInput.value.length;
+                    if (descripcionInput && descripcionCount) descripcionCount.textContent = descripcionInput.value.length;
+                }
+                if (tituloInput) tituloInput.addEventListener('input', actualizarContadores);
+                if (descripcionInput) descripcionInput.addEventListener('input', actualizarContadores);
+                actualizarContadores();
+
+                // Interceptar submit para abrir modal de confirmación
+                form.addEventListener('submit', function (e) {
+                    if (confirmado) return; // si ya confirmaron, dejamos que el form envíe normal
+
+                    e.preventDefault();
+
+                    // Validación cliente (jQuery validate)
+                    const valido = $(form).valid();
+                    if (!valido) return;
+
+                    // Llenar los campos del modal
+                    const titulo = tituloInput?.value ?? '';
+                    const descripcion = descripcionInput?.value ?? '';
+
+                    const unidadSelect = document.getElementById('UnidadId');
+                    const unidadTexto = unidadSelect?.options[unidadSelect.selectedIndex]?.text || '';
+
+                    const tipoSelect = document.getElementById('Tipo');
+                    const tipoTexto = tipoSelect?.options[tipoSelect.selectedIndex]?.text || '';
+
+                    document.getElementById('modalTitulo').textContent = titulo;
+                    document.getElementById('modalDescripcion').textContent = descripcion;
+                    document.getElementById('modalUnidad').textContent = unidadTexto;
+                    document.getElementById('modalTipo').textContent = tipoTexto;
+
+                    // Mostrar modal
+                    modal.show();
+                });
+
+                // Modificar: solo cierra el modal, el usuario edita
+                btnModificar.addEventListener('click', function () {
+                    modal.hide();
+                });
+
+                // Guardar: activa bandera y envía realmente el formulario
+                btnGuardar.addEventListener('click', function () {
+                    confirmado = true;
+                    form.submit();
+                });
+            })();
+        </script>
+    }
+
+</body>
+</html>

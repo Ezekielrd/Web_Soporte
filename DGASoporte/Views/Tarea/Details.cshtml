@@ -141,7 +141,7 @@
                     <div class="col-12 col-md-6">
                         <div class="label-muted">Fecha límite</div>
                         <div class="value-strong">
-                            @Model.FechaLimite.ToString("dd/MM/yyyy HH:mm", new CultureInfo("es-NI"))
+                            @Model.FechaLimite.ToLocalTime().ToString("dd/MM/yyyy HH:mm", new CultureInfo("es-NI"))
                             <span class="@vencimientoClase ms-2 small">(@vencimientoTexto)</span>
                         </div>
                     </div>

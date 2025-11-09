@@ -59,6 +59,8 @@ namespace DGASoporte.Models
 
         [Display(Name = "Archivada")]
         public bool Archivada { get; set; } = false;
+        public DateTime? FechaAsignacion { get; set; }
+
 
         [Display(Name = "Última actualización")]
         public DateTime? FechaActualizacion { get; set; }

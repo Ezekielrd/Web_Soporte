@@ -4,6 +4,7 @@ using DGASoporte.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DGASoporte.Migrations
 {
     [DbContext(typeof(DGADbContext))]
-    partial class DGADbContextModelSnapshot : ModelSnapshot
+    [Migration("20251111145341_eliminarArchivosAdjuntos")]
+    partial class eliminarArchivosAdjuntos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -88,6 +91,38 @@ namespace DGASoporte.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Estado", (string)null);
+                });
+
+            modelBuilder.Entity("DGASoporte.Models.ImagenC", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ComentarioId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("DatosBinarios")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComentarioId");
+
+                    b.ToTable("Imagenes");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Nivel", b =>
@@ -425,6 +460,17 @@ namespace DGASoporte.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("DGASoporte.Models.ImagenC", b =>
+                {
+                    b.HasOne("DGASoporte.Models.Comentario", "Comentario")
+                        .WithMany("Imagenes")
+                        .HasForeignKey("ComentarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Comentario");
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Solicitud", b =>
                 {
                     b.HasOne("DGASoporte.Models.TipoIncidencia", "TipoIncidencia")
@@ -532,6 +578,11 @@ namespace DGASoporte.Migrations
             modelBuilder.Entity("DGASoporte.Models.Categoria", b =>
                 {
                     b.Navigation("Tareas");
+                });
+
+            modelBuilder.Entity("DGASoporte.Models.Comentario", b =>
+                {
+                    b.Navigation("Imagenes");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Estado", b =>

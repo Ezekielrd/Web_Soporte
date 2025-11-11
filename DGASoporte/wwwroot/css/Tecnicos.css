@@ -1,0 +1,336 @@
+﻿:root {
+    --primary-color: #4361ee;
+    --success-color: #06d6a0;
+    --warning-color: #ffd60a;
+    --danger-color: #ef476f;
+    --info-color: #118ab2;
+    --dark-color: #073b4c;
+}
+
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.main-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.header-section {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+    .header-section h1 {
+        color: var(--dark-color);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .header-section p {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+
+.filters-section {
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.search-box {
+    position: relative;
+}
+
+    .search-box input {
+        padding-left: 2.5rem;
+        border-radius: 50px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+    }
+
+        .search-box input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+
+    .search-box i {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+.filter-btn {
+    border-radius: 50px;
+    padding: 0.5rem 1.5rem;
+    border: 2px solid #e9ecef;
+    background: white;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+    .filter-btn:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .filter-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s;
+}
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-card h3 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-card p {
+        color: #6c757d;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+
+.tasks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.task-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+    border-left: 4px solid #e9ecef;
+    position: relative;
+    overflow: hidden;
+}
+
+    .task-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    }
+
+    .task-card.priority-alta {
+        border-left-color: var(--danger-color);
+    }
+
+    .task-card.priority-media {
+        border-left-color: var(--warning-color);
+    }
+
+    .task-card.priority-baja {
+        border-left-color: var(--info-color);
+    }
+
+    .task-card.vencida {
+        background: linear-gradient(to right, #fff5f5 0%, white 100%);
+    }
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.task-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.5rem;
+    flex: 1;
+}
+
+.task-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.badge {
+    border-radius: 50px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-priority-alta {
+    background: var(--danger-color);
+    color: white;
+}
+
+.badge-priority-media {
+    background: var(--warning-color);
+    color: #333;
+}
+
+.badge-priority-baja {
+    background: var(--info-color);
+    color: white;
+}
+
+.badge-estado-pendiente {
+    background: #ffc107;
+    color: #333;
+}
+
+.badge-estado-proceso {
+    background: #0dcaf0;
+    color: white;
+}
+
+.badge-estado-completado {
+    background: #198754;
+    color: white;
+}
+
+.badge-vencida {
+    background: var(--danger-color);
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.task-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.task-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.task-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+    .task-meta-item i {
+        width: 20px;
+        text-align: center;
+    }
+
+.task-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-action {
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    border: none;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.btn-view {
+    background: var(--primary-color);
+    color: white;
+}
+
+    .btn-view:hover {
+        background: #3651d4;
+        transform: scale(1.05);
+    }
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #adb5bd;
+    }
+
+.sort-dropdown {
+    border-radius: 50px;
+    border: 2px solid #e9ecef;
+    padding: 0.5rem 1rem;
+}
+
+@media (max-width: 768px) {
+    .tasks-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
+}

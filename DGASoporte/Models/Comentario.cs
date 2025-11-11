@@ -24,6 +24,5 @@ namespace DGASoporte.Models
         public int TareaId { get; set; }
         public virtual Tarea Tarea { get; set; }
 
-        public ICollection<ImagenC> Imagenes { get; set; } = new List<ImagenC>();
     }
 }

@@ -1,0 +1,367 @@
+﻿@model IEnumerable<Tarea>
+
+@{
+    ViewData["Title"] = "Mis Tareas Asignadas";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="~/css/Tecnicos.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="bi bi-list-check"></i> Mis Tareas Asignadas</h1>
+                    <p>Gestiona y organiza tus tareas de soporte técnico</p>
+                </div>
+                <div>
+                    <span class="badge bg-primary" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                        <i class="bi bi-calendar-event"></i> @DateTime.Now.ToString("dd/MM/yyyy")
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <h3 style="color: var(--primary-color);" id="totalTareas">0</h3>
+                <p><i class="bi bi-list-ul"></i> Total de Tareas</p>
+            </div>
+            <div class="stat-card">
+                <h3 style="color: var(--danger-color);" id="tareasVencidas">0</h3>
+                <p><i class="bi bi-exclamation-triangle"></i> Tareas Vencidas</p>
+            </div>
+            <div class="stat-card">
+                <h3 style="color: var(--warning-color);" id="tareasPendientes">0</h3>
+                <p><i class="bi bi-clock-history"></i> Pendientes</p>
+            </div>
+            <div class="stat-card">
+                <h3 style="color: var(--success-color);" id="tareasCompletadas">0</h3>
+                <p><i class="bi bi-check-circle"></i> Completadas</p>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar tareas...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="filterEstado" class="form-select sort-dropdown">
+                        <option value="">Todos los estados</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="proceso">En Proceso</option>
+                        <option value="completado">Completado</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="filterPrioridad" class="form-select sort-dropdown">
+                        <option value="">Todas las prioridades</option>
+                        <option value="alta">Alta</option>
+                        <option value="media">Media</option>
+                        <option value="baja">Baja</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select id="sortBy" class="form-select sort-dropdown">
+                        <option value="fecha">Fecha Límite</option>
+                        <option value="prioridad">Prioridad</option>
+                        <option value="titulo">Título</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button class="filter-btn active" data-filter="all">
+                    <i class="bi bi-grid-3x3"></i> Todas
+                </button>
+                <button class="filter-btn" data-filter="vencidas">
+                    <i class="bi bi-exclamation-circle"></i> Vencidas
+                </button>
+                <button class="filter-btn" data-filter="hoy">
+                    <i class="bi bi-calendar-check"></i> Vencen Hoy
+                </button>
+                <button class="filter-btn" data-filter="semana">
+                    <i class="bi bi-calendar-week"></i> Esta Semana
+                </button>
+            </div>
+        </div>
+
+        <!-- Tasks Grid -->
+        <div class="tasks-grid" id="tasksContainer">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var tarea in Model)
+                {
+                    var prioridadClass = tarea.Prioridad?.Nombre?.ToLower() ?? "baja";
+                    var estadoClass = tarea.Estado?.Nombre?.ToLower() ?? "pendiente";
+                    var vencidaClass = tarea.Vencida ? "vencida" : "";
+
+                    <div class="task-card priority-@prioridadClass @vencidaClass"
+                         data-estado="@estadoClass"
+                         data-prioridad="@prioridadClass"
+                         data-fecha="@tarea.FechaLimite.ToString("yyyy-MM-dd")"
+                         data-titulo="@tarea.Titulo.ToLower()">
+
+                        <div class="task-header">
+                            <div class="task-title">
+                                @tarea.Titulo
+                            </div>
+                        </div>
+
+                        <div class="task-badges">
+                            <span class="badge badge-priority-@prioridadClass">
+                                <i class="bi bi-flag-fill"></i> @tarea.Prioridad?.Nombre
+                            </span>
+                            <span class="badge badge-estado-@estadoClass">
+                                <i class="bi bi-circle-fill"></i> @tarea.Estado?.Nombre
+                            </span>
+                            @if (tarea.Vencida)
+                            {
+                                <span class="badge badge-vencida">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> VENCIDA
+                                </span>
+                            }
+                        </div>
+
+                        <div class="task-description">
+                            @tarea.Resumen
+                        </div>
+
+                        <div class="task-meta">
+                            @if (tarea.Categoria != null)
+                            {
+                                <div class="task-meta-item">
+                                    <i class="bi bi-tag"></i>
+                                    <span>@tarea.Categoria.Nombre</span>
+                                </div>
+                            }
+                            @if (tarea.Unidad != null)
+                            {
+                                <div class="task-meta-item">
+                                    <i class="bi bi-building"></i>
+                                    <span>@tarea.Unidad.Nombre</span>
+                                </div>
+                            }
+                            <div class="task-meta-item">
+                                <i class="bi bi-calendar-event"></i>
+                                <span>Creada: @tarea.FechaCreacion.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="task-meta-item">
+                                <i class="bi bi-alarm"></i>
+                                <span>Límite: @tarea.FechaLimite.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </div>
+
+                        <div class="task-footer">
+                            <div>
+                                @{
+                                    var diasRestantes = (tarea.FechaLimite.Date - DateTime.Now.Date).Days;
+                                    var textoTiempo = "";
+                                    var colorTiempo = "";
+
+                                    if (tarea.Vencida)
+                                    {
+                                        textoTiempo = $"Vencida hace {Math.Abs(diasRestantes)} día{(Math.Abs(diasRestantes) != 1 ? "s" : "")}";
+                                        colorTiempo = "text-danger";
+                                    }
+                                    else if (diasRestantes == 0)
+                                    {
+                                        textoTiempo = "Vence hoy";
+                                        colorTiempo = "text-warning";
+                                    }
+                                    else if (diasRestantes == 1)
+                                    {
+                                        textoTiempo = "Vence mañana";
+                                        colorTiempo = "text-warning";
+                                    }
+                                    else
+                                    {
+                                        textoTiempo = $"Faltan {diasRestantes} días";
+                                        colorTiempo = diasRestantes <= 3 ? "text-warning" : "text-success";
+                                    }
+                                }
+                                <small class="@colorTiempo fw-bold">
+                                    <i class="bi bi-hourglass-split"></i> @textoTiempo
+                                </small>
+                            </div>
+                            <div class="task-actions">
+                                <button class="btn-action btn-view" onclick="verDetalle(@tarea.Id)">
+                                    <i class="bi bi-eye"></i> Ver Detalle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state" style="grid-column: 1/-1;">
+                    <i class="bi bi-inbox"></i>
+                    <h3>No hay tareas asignadas</h3>
+                    <p>Actualmente no tienes tareas asignadas</p>
+                </div>
+            }
+        </div>
+
+        <!-- Empty state for filtered results -->
+        <div class="empty-state" id="emptyFilterState" style="display: none;">
+            <i class="bi bi-filter-circle"></i>
+            <h3>No se encontraron tareas</h3>
+            <p>Intenta ajustar los filtros de búsqueda</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Elementos del DOM
+        const searchInput = document.getElementById('searchInput');
+        const filterEstado = document.getElementById('filterEstado');
+        const filterPrioridad = document.getElementById('filterPrioridad');
+        const sortBy = document.getElementById('sortBy');
+        const tasksContainer = document.getElementById('tasksContainer');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const emptyFilterState = document.getElementById('emptyFilterState');
+
+        let currentQuickFilter = 'all';
+
+        // Calcular estadísticas
+        function calcularEstadisticas() {
+            const tarjetas = document.querySelectorAll('.task-card');
+            let total = 0;
+            let vencidas = 0;
+            let pendientes = 0;
+            let completadas = 0;
+
+            tarjetas.forEach(card => {
+                if (card.style.display !== 'none') {
+                    total++;
+                    if (card.classList.contains('vencida')) vencidas++;
+                    if (card.dataset.estado === 'pendiente') pendientes++;
+                    if (card.dataset.estado === 'completado') completadas++;
+                }
+            });
+
+            document.getElementById('totalTareas').textContent = total;
+            document.getElementById('tareasVencidas').textContent = vencidas;
+            document.getElementById('tareasPendientes').textContent = pendientes;
+            document.getElementById('tareasCompletadas').textContent = completadas;
+        }
+
+        // Filtrar tareas
+        function filtrarTareas() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const estadoFilter = filterEstado.value.toLowerCase();
+            const prioridadFilter = filterPrioridad.value.toLowerCase();
+            const tarjetas = document.querySelectorAll('.task-card');
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            const finSemana = new Date(hoy);
+            finSemana.setDate(hoy.getDate() + 7);
+
+            let visibleCount = 0;
+
+            tarjetas.forEach(card => {
+                const titulo = card.dataset.titulo;
+                const estado = card.dataset.estado;
+                const prioridad = card.dataset.prioridad;
+                const fechaLimite = new Date(card.dataset.fecha);
+                const esVencida = card.classList.contains('vencida');
+
+                let mostrar = true;
+
+                // Filtro de búsqueda
+                if (searchTerm && !titulo.includes(searchTerm)) {
+                    mostrar = false;
+                }
+
+                // Filtro de estado
+                if (estadoFilter && estado !== estadoFilter) {
+                    mostrar = false;
+                }
+
+                // Filtro de prioridad
+                if (prioridadFilter && prioridad !== prioridadFilter) {
+                    mostrar = false;
+                }
+
+                // Filtro rápido
+                if (currentQuickFilter === 'vencidas' && !esVencida) {
+                    mostrar = false;
+                } else if (currentQuickFilter === 'hoy' && fechaLimite.getTime() !== hoy.getTime()) {
+                    mostrar = false;
+                } else if (currentQuickFilter === 'semana' && (fechaLimite < hoy || fechaLimite > finSemana)) {
+                    mostrar = false;
+                }
+
+                card.style.display = mostrar ? 'block' : 'none';
+                if (mostrar) visibleCount++;
+            });
+
+            // Mostrar mensaje si no hay resultados
+            emptyFilterState.style.display = visibleCount === 0 ? 'block' : 'none';
+            tasksContainer.style.display = visibleCount === 0 ? 'none' : 'grid';
+
+            calcularEstadisticas();
+        }
+
+        // Ordenar tareas
+        function ordenarTareas() {
+            const tarjetas = Array.from(document.querySelectorAll('.task-card'));
+            const criterio = sortBy.value;
+
+            tarjetas.sort((a, b) => {
+                if (criterio === 'fecha') {
+                    return new Date(a.dataset.fecha) - new Date(b.dataset.fecha);
+                } else if (criterio === 'prioridad') {
+                    const prioridades = { 'alta': 1, 'media': 2, 'baja': 3 };
+                    return prioridades[a.dataset.prioridad] - prioridades[b.dataset.prioridad];
+                } else if (criterio === 'titulo') {
+                    return a.dataset.titulo.localeCompare(b.dataset.titulo);
+                }
+            });
+
+            tarjetas.forEach(card => tasksContainer.appendChild(card));
+        }
+
+        // Event listeners
+        searchInput.addEventListener('input', filtrarTareas);
+        filterEstado.addEventListener('change', filtrarTareas);
+        filterPrioridad.addEventListener('change', filtrarTareas);
+        sortBy.addEventListener('change', ordenarTareas);
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentQuickFilter = this.dataset.filter;
+                filtrarTareas();
+            });
+        });
+
+        // Función para ver detalle
+        function verDetalle(id) {
+            // Aquí puedes implementar la navegación al detalle
+            window.location.href = `/Tareas/Details/${id}`;
+        }
+
+        // Inicializar estadísticas al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            calcularEstadisticas();
+        });
+    </script>
+</body>
+</html>

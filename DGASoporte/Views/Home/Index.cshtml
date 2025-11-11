@@ -1,8 +1,494 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@model dynamic
+@{
+    Layout = null;
+    ViewData["Title"] = "Administración de Tareas";
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+    var tareas = Model.Tareas as IEnumerable<Tarea> ?? Enumerable.Empty<Tarea>();
+    var tecnicos = Model.Tecnicos as IEnumerable<Tecnico> ?? Enumerable.Empty<Tecnico>();
+    var estados = Model.Estados as IEnumerable<Estado> ?? Enumerable.Empty<Estado>();
+    var prioridades = Model.Prioridades as IEnumerable<Prioridad> ?? Enumerable.Empty<Prioridad>();
+    var categorias = Model.Categorias as IEnumerable<Categoria> ?? Enumerable.Empty<Categoria>();
+    var unidades = Model.Unidades as IEnumerable<Unidad> ?? Enumerable.Empty<Unidad>();
+    var niveles = Model.Niveles as IEnumerable<Nivel> ?? Enumerable.Empty<Nivel>();
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="~/css/Admin.css" rel="stylesheet" />
+</head>
+<body>
+
+    <!-- Header fijo 
+    <header class="app-header">
+        <div class="header-inner">
+            <button class="btn-burger d-lg-none" type="button" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="brand">
+                <i class="bi bi-kanban"></i> <span>TaskAdmin</span>
+            </div>
+            <div class="header-actions">
+                <span class="badge text-bg-light"><i class="bi bi-calendar-event"></i> @DateTime.Now:dd/MM/yyyy</span>
+                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-bell"></i></button>
+                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-person"></i></button>
+            </div>
+        </div>
+    </header>-->
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="bi bi-kanban"></i> TaskAdmin</h2>
+            <p>Panel de Administración</p>
+        </div>
+        <nav class="sidebar-menu">
+            <a href="#" class="menu-item active" data-view="dashboard">
+                <i class="bi-list-task"></i><span>Tareas</span>
+            </a>
+            <a href="#" class="menu-item" data-view="tasks">
+                <i class="i bi-grid-fill"></i><span>Dashboard</span>
+            </a>
+            <a href="#" class="menu-item" data-view="technicians">
+                <i class="bi bi-people-fill"></i><span>Usuarios</span>
+            </a>
+            <a href="#" class="menu-item" data-view="reports">
+                <i class="bi bi-bar-chart-fill"></i><span>Reportes</span>
+            </a>
+            <a href="#" class="menu-item" data-view="settings">
+                <i class="bi-envelope-fill"></i><span>Solicitudes</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Contenido -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <h1><i class="bi bi-speedometer2"></i> Panel de Administración</h1>
+            <div class="top-bar-actions">
+                <button class="btn-new-task" onclick="openNewTaskModal()">
+                    <i class="bi bi-plus-circle"></i> Nueva Tarea
+                </button>
+            </div>
+        </div>
+        <header class="app-header">
+            <div class="header-inner">
+                <button class="btn-burger d-lg-none" type="button" onclick="toggleSidebar()">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="brand">
+                    <i class="bi bi-kanban"></i> <span>TaskAdmin</span>
+                </div>
+                <div class="header-actions">
+                    <span class="badge text-bg-light"><i class="bi bi-calendar-event"></i> @DateTime.Now</span>
+                    <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-bell"></i></button>
+                    <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-person"></i></button>
+                </div>
+            </div>
+        </header>
+        <!-- Stats -->
+        <div class="dashboard-stats">
+            <div class="stat-box primary">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        <h3 id="totalTasks">@tareas.Count()</h3>
+                        <p>Total de Tareas</p>
+                    </div>
+                    <i class="bi bi-list-check stat-icon"></i>
+                </div>
+            </div>
+            <div class="stat-box danger">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        <h3 id="overdueTasks">@tareas.Count(t => t.Vencida)</h3>
+                        <p>Tareas Vencidas</p>
+                    </div>
+                    <i class="bi bi-exclamation-triangle stat-icon"></i>
+                </div>
+            </div>
+            <div class="stat-box warning">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        <h3 id="pendingTasks">@tareas.Count(t => t.Estado?.Nombre?.ToLower() == "pendiente")</h3>
+                        <p>Pendientes</p>
+                    </div>
+                    <i class="bi bi-clock-history stat-icon"></i>
+                </div>
+            </div>
+            <div class="stat-box success">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        <h3 id="completedTasks">@tareas.Count(t => t.Estado?.Nombre?.ToLower() == "completado")</h3>
+                        <p>Completadas</p>
+                    </div>
+                    <i class="bi bi-check-circle stat-icon"></i>
+                </div>
+            </div>
+            <div class="stat-box info">
+                <div class="stat-content">
+                    <div class="stat-info">
+                        <h3 id="activeTechs">@tecnicos.Count()</h3>
+                        <p>Técnicos Activos</p>
+                    </div>
+                    <i class="bi bi-person-badge stat-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Técnicos -->
+        <div class="technicians-panel">
+            <div class="panel-header">
+                <h2><i class="bi bi-people"></i> Técnicos Disponibles</h2>
+                <button class="btn-new-task" style="font-size:.85rem;padding:.5rem 1rem">
+                    <i class="bi bi-person-plus"></i> Agregar Técnico
+                </button>
+            </div>
+            <div class="technicians-grid">
+                @foreach (var tecnico in tecnicos)
+                {
+                    var tareasAsignadas = tareas.Count(t => t.TecnicoId == tecnico.Id && !t.Archivada);
+                    var tareasCompletadas = tareas.Count(t => t.TecnicoId == tecnico.Id && t.Estado?.Nombre?.ToLower() == "completado");
+                    var tareasPendientes = tareas.Count(t => t.TecnicoId == tecnico.Id && t.Estado?.Nombre?.ToLower() != "completado" && !t.Archivada);
+                    var statusClass = tareasAsignadas == 0 ? "available" : (tareasAsignadas > 5 ? "overloaded" : "busy");
+                    <div class="tech-card @statusClass" data-tech-id="@tecnico.Id">
+                        <div class="tech-header">
+                            <div class="tech-avatar">@(tecnico.Usuario.NombreCompleto?.Substring(0, 1) ?? "T")</div>
+                            <div class="tech-info">
+                                <h4>@tecnico.Usuario.NombreCompleto</h4>
+                                <p>@tecnico.Usuario.Email</p>
+                                <p style="font-size:.7rem;opacity:.9;margin-top:.2rem">
+                                    <i class="bi bi-award"></i> @tecnico.Nivel?.Nombre
+                                </p>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge @(tecnico.Disponible ? "bg-success" : "bg-warning")" style="font-size:.6rem">
+                                        @(tecnico.Disponible ? "Disponible" : "No disponible")
+                                    </span>
+                                    <span class="badge bg-primary" style="font-size:.6rem">
+                                        @tecnico.TareasAsignadas.Count(t => !t.Archivada) tareas
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tech-stats">
+                            <div class="tech-stat"><div class="tech-stat-value">@tareasAsignadas</div><div class="tech-stat-label">Asignadas</div></div>
+                            <div class="tech-stat"><div class="tech-stat-value">@tareasPendientes</div><div class="tech-stat-label">Pendientes</div></div>
+                            <div class="tech-stat"><div class="tech-stat-value">@tareasCompletadas</div><div class="tech-stat-label">Completadas</div></div>
+                        </div>
+                    </div>
+                }
+                @if (!tecnicos.Any())
+                {
+                    <div class="empty-state" style="grid-column:1/-1">
+                        <i class="bi bi-person-x"></i>
+                        <p>No hay técnicos registrados</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-panel">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label><i class="bi bi-search"></i> Buscar</label>
+                    <input type="text" id="searchTask" class="filter-input" placeholder="Buscar por título...">
+                </div>
+                <div class="filter-group">
+                    <label><i class="bi bi-person"></i> Técnico</label>
+                    <select id="filterTecnico" class="filter-input">
+                        <option value="">Todos los técnicos</option>
+                        @foreach (var t in tecnicos)
+                        {
+                            <option value="@t.Id">@t.Usuario.NombreCompleto (@t.Nivel?.Nombre)</option>
+                        }
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="bi bi-circle-fill"></i> Estado</label>
+                    <select id="filterEstado" class="filter-input">
+                        <option value="">Todos los estados</option>
+                        @foreach (var e in estados)
+                        {
+                            <option value="@e.Nombre.ToLower()">@e.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="bi bi-flag"></i> Prioridad</label>
+                    <select id="filterPrioridad" class="filter-input">
+                        <option value="">Todas las prioridades</option>
+                        @foreach (var p in prioridades)
+                        {
+                            <option value="@p.Nombre.ToLower()">@p.Nombre</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="quick-filters">
+                <button class="quick-filter-btn active" data-filter="all">Todas</button>
+                <button class="quick-filter-btn" data-filter="vencidas">Vencidas</button>
+                <button class="quick-filter-btn" data-filter="alta-prioridad">Alta Prioridad</button>
+                <button class="quick-filter-btn" data-filter="sin-asignar">Sin Asignar</button>
+                <button class="quick-filter-btn" data-filter="hoy">Vencen Hoy</button>
+            </div>
+        </div>
+
+        <!-- Tabla -->
+        <div class="tasks-panel">
+            <div class="panel-header">
+                <h2><i class="bi bi-table"></i> Gestión de Tareas</h2>
+                <div>
+                    <select id="sortTasks" class="filter-input" style="width:auto;display:inline-block">
+                        <option value="fecha">Ordenar por Fecha</option>
+                        <option value="prioridad">Ordenar por Prioridad</option>
+                        <option value="estado">Ordenar por Estado</option>
+                        <option value="tecnico">Ordenar por Técnico</option>
+                    </select>
+                </div>
+            </div>
+            <div style="overflow-x:auto">
+                <table class="tasks-table" id="tasksTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Técnico</th>
+                            <th>Unidad</th>
+                            <th>Fecha Límite</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var tarea in tareas.OrderByDescending(t => t.FechaCreacion))
+                        {
+                            var prioridadClass = tarea.Prioridad?.Nombre?.ToLower() ?? "baja";
+                            var estadoClass = tarea.Estado?.Nombre?.ToLower() ?? "pendiente";
+                            <tr class="task-row"
+                                data-task-id="@tarea.Id"
+                                data-prioridad="@prioridadClass"
+                                data-estado="@estadoClass"
+                                data-tecnico="@tarea.TecnicoId"
+                                data-fecha="@tarea.FechaLimite.ToString("yyyy-MM-dd")"
+                                data-titulo="@tarea.Titulo.ToLower()"
+                                data-vencida="@tarea.Vencida.ToString().ToLower()">
+                                <td><strong>#@tarea.Id</strong></td>
+                                <td>
+                                    <div class="task-title-cell">@tarea.Titulo</div>
+                                    @if (tarea.Vencida)
+                                    {
+                                        <span class="task-overdue"><i class="bi bi-exclamation-circle"></i> VENCIDA</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="task-priority priority-@prioridadClass">
+                                        <i class="bi bi-flag-fill"></i> @tarea.Prioridad?.Nombre
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="task-status status-@estadoClass">
+                                        <i class="bi bi-circle-fill"></i> @tarea.Estado?.Nombre
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (tarea.Tecnico != null)
+                                    {
+                                        <div class="tech-badge">
+                                            <div class="tech-avatar-small">
+                                                @tarea.Tecnico.Usuario.NombreCompleto.Substring(0, 1).ToUpper()
+                                            </div>
+                                            @tarea.Tecnico.Usuario.NombreCompleto
+                                        </div>
+                                    }
+                                    else
+                                    {
+
+                                        <span class="text-muted">Sin asignar</span>
+                                    }
+                                </td>
+                                <td>@tarea.Unidad?.Nombre</td>
+                                <td>
+                                    <div>@tarea.FechaLimite:dd/MM/yyyy</div>
+                                    <small class="text-muted">@tarea.FechaLimite:HH:mm</small>
+                                </td>
+                                <td>
+                                    <div class="action-btns">
+                                        <button class="btn-action edit" title="Editar" onclick="editTask(@tarea.Id)"><i class="bi bi-pencil"></i></button>
+                                        <button class="btn-action assign" title="Asignar" onclick="assignTask(@tarea.Id)"><i class="bi bi-person-plus"></i></button>
+                                        <button class="btn-action delete" title="Eliminar" onclick="deleteTask(@tarea.Id)"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (!tareas.Any())
+                {
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <h3>No hay tareas registradas</h3>
+                        <p>Crea una nueva tarea para comenzar</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer fijo -->
+    <footer class="app-footer">
+        <div class="footer-inner">
+            <span>© @DateTime.Now.Year TaskAdmin</span>
+            <span class="text-muted">v1.0.0</span>
+        </div>
+    </footer>
+
+    <!-- Modales -->
+    <div class="modal-overlay" id="modalNewTask">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="bi bi-plus-circle"></i> Nueva Tarea</h3>
+                <button class="btn-close-modal" onclick="closeModal('modalNewTask')">&times;</button>
+            </div>
+            <form id="formNewTask" action="/Tareas/Create" method="post">
+                <div class="form-group"><label for="titulo">Título *</label><input type="text" id="titulo" name="Titulo" required maxlength="200"></div>
+                <div class="form-group"><label for="descripcion">Descripción</label><textarea id="descripcion" name="Descripcion" rows="4" maxlength="4000"></textarea></div>
+                <div class="form-group"><label for="prioridadId">Prioridad *</label><select id="prioridadId" name="PrioridadId" required><option value="">Seleccione</option>@foreach (var x in prioridades){
+                <option value="@x.Id">@x.Nombre</option>
+                                }
+</select></div>
+                <div class="form-group"><label for="estadoId">Estado *</label><select id="estadoId" name="EstadoId" required><option value="">Seleccione</option>@foreach (var x in estados){
+                <option value="@x.Id">@x.Nombre</option>
+                                }
+</select></div>
+                <div class="form-group"><label for="categoriaId">Categoría</label><select id="categoriaId" name="CategoriaId"><option value="">Seleccione</option>@foreach (var x in categorias){
+                <option value="@x.Id">@x.Nombre</option>
+                                }
+</select></div>
+                <div class="form-group"><label for="unidadId">Unidad *</label><select id="unidadId" name="UnidadId" required><option value="">Seleccione</option>@foreach (var x in unidades){
+                <option value="@x.Id">@x.Nombre</option>
+                                }
+</select></div>
+                <div class="form-group"><label for="tecnicoId">Asignar a Técnico *</label><select id="tecnicoId" name="TecnicoId" required><option value="">Seleccione</option>@foreach (var x in tecnicos){
+                <option value="@x.Id">@x.Usuario.NombreCompleto (@x.Nivel?.Nombre)</option>
+                                }
+</select></div>
+                <div class="form-group"><label for="fechaLimite">Fecha Límite *</label><input type="datetime-local" id="fechaLimite" name="FechaLimite" required></div>
+                <div class="form-actions"><button type="button" class="btn-cancel" onclick="closeModal('modalNewTask')">Cancelar</button><button type="submit" class="btn-submit"><i class="bi bi-check-circle"></i> Crear Tarea</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalAssignTask">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="bi bi-person-plus"></i> Asignar Tarea</h3>
+                <button class="btn-close-modal" onclick="closeModal('modalAssignTask')">&times;</button>
+            </div>
+            <form id="formAssignTask">
+                <input type="hidden" id="assignTaskId">
+                <div class="form-group">
+                    <label for="assignTecnicoId">Seleccionar Técnico</label>
+                    <select id="assignTecnicoId" class="filter-input" required>
+                        <option value="">Seleccione un técnico</option>
+                        @foreach (var t in tecnicos)
+                        {
+                            var tareasActuales = tareas.Count(x => x.TecnicoId == t.Id && !x.Archivada);
+                            <option value="@t.Id">@t.Usuario.NombreCompleto - @t.Nivel?.Nombre (@tareasActuales tareas)</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('modalAssignTask')">Cancelar</button>
+                    <button type="submit" class="btn-submit"><i class="bi bi-check-circle"></i> Asignar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar móvil
+        function toggleSidebar(force){
+            const sb = document.getElementById('sidebar');
+            const show = (typeof force === 'boolean') ? force : !sb.classList.contains('show');
+            if(show) sb.classList.add('show'); else sb.classList.remove('show');
+        }
+
+        // Modales
+        function openNewTaskModal(){ document.getElementById('modalNewTask').classList.add('show'); }
+        function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+        function assignTask(id){ document.getElementById('assignTaskId').value = id; document.getElementById('modalAssignTask').classList.add('show'); }
+        function editTask(id){ window.location.href = `/Tareas/Edit/${id}`; }
+        function deleteTask(id){ if(confirm('¿Eliminar tarea?')) window.location.href = `/Tareas/Delete/${id}`; }
+
+        // Filtros
+        const searchInput = document.getElementById('searchTask');
+        const filterTecnico = document.getElementById('filterTecnico');
+        const filterEstado = document.getElementById('filterEstado');
+        const filterPrioridad = document.getElementById('filterPrioridad');
+        const sortSelect = document.getElementById('sortTasks');
+        const quickFilterBtns = document.querySelectorAll('.quick-filter-btn');
+        let currentQuickFilter = 'all';
+
+        function filterTasks(){
+            const term = (searchInput?.value || '').toLowerCase();
+            const t = filterTecnico?.value || '';
+            const e = filterEstado?.value || '';
+            const p = filterPrioridad?.value || '';
+            const rows = document.querySelectorAll('.task-row');
+            const hoy = new Date(); hoy.setHours(0,0,0,0);
+
+            rows.forEach(r=>{
+                const titulo = r.dataset.titulo;
+                const tecnico = r.dataset.tecnico;
+                const estado = r.dataset.estado;
+                const prioridad = r.dataset.prioridad;
+                const fecha = new Date(r.dataset.fecha);
+                const vencida = r.dataset.vencida === 'true';
+
+                let ok = true;
+                if(term && !titulo.includes(term)) ok = false;
+                if(t && tecnico !== t) ok = false;
+                if(e && estado !== e) ok = false;
+                if(p && prioridad !== p) ok = false;
+
+                if(currentQuickFilter === 'vencidas' && !vencida) ok = false;
+                else if(currentQuickFilter === 'alta-prioridad' && prioridad !== 'alta') ok = false;
+                else if(currentQuickFilter === 'sin-asignar' && tecnico) ok = false;
+                else if(currentQuickFilter === 'hoy' && fecha.getTime() !== hoy.getTime()) ok = false;
+
+                r.style.display = ok ? '' : 'none';
+            });
+        }
+        function sortTasks(){
+            const tbody = document.querySelector('.tasks-table tbody');
+            const rows = Array.from(tbody.querySelectorAll('.task-row'));
+            const by = sortSelect.value;
+            rows.sort((a,b)=>{
+                if(by==='fecha') return new Date(a.dataset.fecha) - new Date(b.dataset.fecha);
+                if(by==='prioridad'){ const map={alta:1,media:2,baja:3}; return (map[a.dataset.prioridad]||9)-(map[b.dataset.prioridad]||9); }
+                if(by==='estado') return a.dataset.estado.localeCompare(b.dataset.estado);
+                if(by==='tecnico') return (a.dataset.tecnico||'').localeCompare(b.dataset.tecnico||'');
+                return 0;
+            });
+            rows.forEach(r=>tbody.appendChild(r));
+        }
+        searchInput?.addEventListener('input', filterTasks);
+        filterTecnico?.addEventListener('change', filterTasks);
+        filterEstado?.addEventListener('change', filterTasks);
+        filterPrioridad?.addEventListener('change', filterTasks);
+        sortSelect?.addEventListener('change', sortTasks);
+        quickFilterBtns.forEach(b=>b.addEventListener('click', function(){ quickFilterBtns.forEach(x=>x.classList.remove('active')); this.classList.add('active'); currentQuickFilter=this.dataset.filter; filterTasks(); }));
+        document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('show'); }));
+        document.querySelectorAll('.menu-item').forEach(i=>i.addEventListener('click', e=>{ e.preventDefault(); document.querySelectorAll('.menu-item').forEach(x=>x.classList.remove('active')); i.classList.add('active'); }));
+    </script>
+</body>
+</html>

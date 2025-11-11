@@ -1,6 +1,7 @@
 ﻿using DGASoporte.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using DGASoporte.Infraestructura;
 
 namespace DGASoporte.Controllers
 {
@@ -14,12 +15,11 @@ namespace DGASoporte.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            // Suponiendo que el técnico autenticado tiene su Id en Claims
-           // int tecnicoId = int.Parse(User.FindFirst("TecnicoId").Value);
+            int tecnicoId = User.GetRequiredUserId();
 
             var tareas = await _context.Tareas
-                .Where(t => t.TecnicoId == 5)
-                .OrderByDescending(t => t.FechaAsignacion)
+                .Where(t => t.TecnicoId == tecnicoId)
+                .OrderByDescending(t => t.Prioridad)
                 .ToListAsync();
 
             return View(tareas);

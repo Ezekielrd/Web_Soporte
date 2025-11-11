@@ -1,5 +1,4 @@
 ﻿@model DGASoporte.Models.SolicitudVM
-@using DGASoporte.Models.Enumeradores;
 
 @{
     ViewData["Title"] = "Crear Solicitud de Incidencia";
@@ -45,14 +44,14 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group mb-3">
-                                        <label asp-for="Tipo" class="form-label">
+                                        <label asp-for="TipoIncidenciaId" class="form-label">
                                             <i class="fas fa-tag text-warning"></i>
-                                            @Html.DisplayNameFor(model => model.Tipo)
+                                            @Html.DisplayNameFor(model => model.TipoIncidenciaId)
                                         </label>
-                                        <select asp-for="Tipo" class="form-control" asp-items="Html.GetEnumSelectList<TipoIncidencia>()">
+                                        <select asp-for="TipoIncidenciaId" class="form-control" asp-items="Model.TipoIncidencias">
                                             <option value="">-- Seleccione tipo --</option>
                                         </select>
-                                        <span asp-validation-for="Tipo" class="text-danger"></span>
+                                        <span asp-validation-for="TipoIncidenciaId" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>

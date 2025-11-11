@@ -1,5 +1,4 @@
-﻿using DGASoporte.Models.Enumeradores;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
 namespace DGASoporte.Models
@@ -29,9 +28,9 @@ namespace DGASoporte.Models
         public int UnidadId { get; set; }
 
         public Unidad Unidad { get; set; } = default!;
-        public TipoIncidencia Tipo { get; set; }
+        [Required]
+        public int TipoIncidenciaId { get; set; }
+        public TipoIncidencia TipoIncidencia { get; set; } = default!;
 
-        // Relación de Uno a Muchos con Archivos Adjuntos
-        public ICollection<ArchivoAdjunto> ArchivosAdjuntos { get; set; } = new List<ArchivoAdjunto>();
     }
 }

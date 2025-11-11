@@ -4,6 +4,7 @@ using DGASoporte.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DGASoporte.Migrations
 {
     [DbContext(typeof(DGADbContext))]
-    partial class DGADbContextModelSnapshot : ModelSnapshot
+    [Migration("20251111134712_tablaTipoIncidencia")]
+    partial class tablaTipoIncidencia
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,6 +24,36 @@ namespace DGASoporte.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("DGASoporte.Models.ArchivoAdjunto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("NombreOriginal")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RutaArchivo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SolicitudId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TipoMime")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SolicitudId");
+
+                    b.ToTable("ArchivosAdjuntos");
+                });
 
             modelBuilder.Entity("DGASoporte.Models.Categoria", b =>
                 {
@@ -88,6 +121,38 @@ namespace DGASoporte.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Estado", (string)null);
+                });
+
+            modelBuilder.Entity("DGASoporte.Models.ImagenC", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ComentarioId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("DatosBinarios")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComentarioId");
+
+                    b.ToTable("Imagenes");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Nivel", b =>
@@ -166,7 +231,7 @@ namespace DGASoporte.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("TipoIncidenciaId")
+                    b.Property<int>("Tipo")
                         .HasColumnType("int");
 
                     b.Property<string>("Titulo")
@@ -181,8 +246,6 @@ namespace DGASoporte.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("TipoIncidenciaId");
 
                     b.HasIndex("UnidadId");
 
@@ -406,6 +469,17 @@ namespace DGASoporte.Migrations
                     b.ToTable("Usuario", (string)null);
                 });
 
+            modelBuilder.Entity("DGASoporte.Models.ArchivoAdjunto", b =>
+                {
+                    b.HasOne("DGASoporte.Models.Solicitud", "Solicitud")
+                        .WithMany("ArchivosAdjuntos")
+                        .HasForeignKey("SolicitudId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Solicitud");
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Comentario", b =>
                 {
                     b.HasOne("DGASoporte.Models.Tarea", "Tarea")
@@ -425,14 +499,19 @@ namespace DGASoporte.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("DGASoporte.Models.Solicitud", b =>
+            modelBuilder.Entity("DGASoporte.Models.ImagenC", b =>
                 {
-                    b.HasOne("DGASoporte.Models.TipoIncidencia", "TipoIncidencia")
-                        .WithMany()
-                        .HasForeignKey("TipoIncidenciaId")
+                    b.HasOne("DGASoporte.Models.Comentario", "Comentario")
+                        .WithMany("Imagenes")
+                        .HasForeignKey("ComentarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Comentario");
+                });
+
+            modelBuilder.Entity("DGASoporte.Models.Solicitud", b =>
+                {
                     b.HasOne("DGASoporte.Models.Unidad", "Unidad")
                         .WithMany()
                         .HasForeignKey("UnidadId")
@@ -444,8 +523,6 @@ namespace DGASoporte.Migrations
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("TipoIncidencia");
 
                     b.Navigation("Unidad");
 
@@ -534,6 +611,11 @@ namespace DGASoporte.Migrations
                     b.Navigation("Tareas");
                 });
 
+            modelBuilder.Entity("DGASoporte.Models.Comentario", b =>
+                {
+                    b.Navigation("Imagenes");
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Estado", b =>
                 {
                     b.Navigation("Tareas");
@@ -552,6 +634,11 @@ namespace DGASoporte.Migrations
             modelBuilder.Entity("DGASoporte.Models.Rol", b =>
                 {
                     b.Navigation("Usuarios");
+                });
+
+            modelBuilder.Entity("DGASoporte.Models.Solicitud", b =>
+                {
+                    b.Navigation("ArchivosAdjuntos");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Tecnico", b =>

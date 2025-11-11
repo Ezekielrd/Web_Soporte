@@ -1,8 +1,10 @@
 ﻿using DGASoporte.Data;
+using DGASoporte.Infraestructura;
 using DGASoporte.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace DGASoporte.Controllers
 {
@@ -21,14 +23,9 @@ namespace DGASoporte.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var vm = new SolicitudVM
-            {
-                Unidades = await _context.Unidades
-                .OrderBy(u => u.Nombre)
-                .Select(u => new SelectListItem { Value = u.Id.ToString(), Text = u.Nombre })
-                .ToListAsync()
-            };
-
+            var vm = new SolicitudVM();
+            await CargarUnidadesAsync(vm);
+            
             return View(vm);
         }
 
@@ -43,6 +40,8 @@ namespace DGASoporte.Controllers
                 await CargarUnidadesAsync(vm);
                 return View(vm);
             }
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
 
             // Mapear
             var entidad = new Solicitud
@@ -51,8 +50,8 @@ namespace DGASoporte.Controllers
                 Descripcion = vm.Descripcion.Trim(),
                 FechaCreacion = DateTime.Now,
                 UnidadId = vm.UnidadId,
-                Tipo = vm.Tipo!.Value,
-                UsuarioId=2
+                TipoIncidenciaId = vm.TipoIncidenciaId,
+                UsuarioId = User.GetRequiredUserId()
             };
 
             _context.Solicitudes.Add(entidad);
@@ -68,6 +67,11 @@ namespace DGASoporte.Controllers
                 .OrderBy(u => u.Nombre)
                 .Select(u => new SelectListItem { Value = u.Id.ToString(), Text = u.Nombre })
                 .ToListAsync();
+
+            vm.TipoIncidencias = await _context.TipoIncidencias
+               .OrderBy(i => i.Nombre)
+               .Select(i => new SelectListItem { Value = i.Id.ToString(), Text = i.Nombre })
+               .ToListAsync();
         }      
     }
 }

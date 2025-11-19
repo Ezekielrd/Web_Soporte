@@ -1,64 +1,80 @@
 ﻿using DGASoporte.Data;
+using DGASoporte.Hubs;
 using DGASoporte.Models;
+using DGASoporte.Models.Enumeradores;
+using DGASoporte.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System.Dynamic;
+using System.Threading;
+
 
 public class TareaController : Controller
 {
     private readonly DGADbContext _context;
+    private readonly AsignacionTareasService _asignacionService;
+    private readonly IHubContext<NotificacionesHub> _notificacionesHub;
 
-    public TareaController(DGADbContext context)
+
+    private const int tecnicoid = 2;
+
+    public TareaController(DGADbContext context, AsignacionTareasService asignacionService, IHubContext<NotificacionesHub> notificacionesHub)
     {
         _context = context;
+        _asignacionService = asignacionService;
+        _notificacionesHub = notificacionesHub;
     }
 
-    // GET: /Tareas?estadoId=&prioridadId=&unidadId=&q=&incluirArchivadas=false
+    // GET
     [HttpGet]
-    public async Task<IActionResult> Index(int? estadoId, int? prioridadId, int? unidadId,int? categoriaId, bool incluirArchivadas = false)
+    public async Task<IActionResult> Index()
     {
-        var qry = _context.Tareas
-            .Include(t => t.Estado)
-            .Include(t => t.Prioridad)
+        dynamic model = new ExpandoObject();
+
+        
+        // Cargar todas las tareas con sus relaciones
+        model.Tareas = await _context.Tareas
             .Include(t => t.Categoria)
             .Include(t => t.Unidad)
-            .AsQueryable();
-
-        if (!incluirArchivadas) qry = qry.Where(t => !t.Archivada);
-        if (estadoId is not null) qry = qry.Where(t => t.EstadoId == estadoId);
-        if (prioridadId is not null) qry = qry.Where(t => t.PrioridadId == prioridadId);
-        if (unidadId is not null) qry = qry.Where(t => t.UnidadId == unidadId);
-        if (unidadId is not null) qry = qry.Where(t => t.CategoriaId == categoriaId);
-
-        ViewBag.Estados = await _context.Estados
-            .OrderBy(e => e.Id)
-            .Select(e => new SelectListItem(e.Nombre, e.Id.ToString()))
+            .Include(t=>t.TipoServicio)
+            .Include(t => t.Tecnico)
+            .ThenInclude(te => te.Usuario)
+                .Include(t => t.Tecnico)
+                .ThenInclude(te => te.Nivel)
+            .Where(t => !t.Archivada)
+            .OrderByDescending(t => t.FechaCreacion)
             .ToListAsync();
 
-        ViewBag.Prioridades = await _context.Prioridades
-            .OrderBy(p => p.Id)
-            .Select(p => new SelectListItem(p.Nombre, p.Id.ToString()))
+        // Cargar técnicos con sus relaciones
+        model.Tecnicos = await _context.Tecnicos
+            .Include(t => t.Usuario)
+            .Include(t => t.Nivel)
+            .Include(t => t.TareasAsignadas)
+            .OrderBy(t => t.Usuario.NombreCompleto)
             .ToListAsync();
 
-        ViewBag.Unidades = await _context.Unidades
-                .OrderBy(u => u.Nombre)
-                .Select(u => new SelectListItem { Value = u.Id.ToString(), Text = u.Nombre })
-                .ToListAsync();
+        model.TipoServicio = await _context.TipoIncidencias
+               .OrderBy(p => p.Nombre)
+               .ToListAsync();
 
-        ViewBag.Unidades = await _context.Categorias
+        model.Categorias = await _context.Categorias
+            .OrderBy(c => c.Nombre)
+            .ToListAsync();
+
+        model.Unidades = await _context.Unidades
             .OrderBy(u => u.Nombre)
-            .Select(u => new SelectListItem(u.Nombre, u.Id.ToString()))
             .ToListAsync();
 
-        ViewBag.Filtros = new { estadoId, prioridadId, unidadId,categoriaId, incluirArchivadas };
-
-        var lista = await qry
-            .OrderBy(t => t.Archivada)
-            .ThenByDescending(t => t.PrioridadId)
-            .ThenBy(t => t.FechaLimite)
+        model.Niveles = await _context.Niveles
+            .OrderBy(n => n.Nombre)
             .ToListAsync();
 
-        return View(lista);
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            return PartialView("_tareas", model); // solo el contenido
+
+        return View(model);
     }
 
     // GET: /Tareas/Details/5
@@ -80,23 +96,27 @@ public class TareaController : Controller
                 Titulo = t.Titulo,
                 Descripcion = t.Descripcion,
                 FechaCreacion = t.FechaCreacion,
-                FechaLimite = t.FechaLimite.ToLocalTime(),
-
-                EstadoId = t.EstadoId,
-                EstadoNombre = t.Estado != null ? t.Estado.Nombre : null,
-
-                PrioridadId = t.PrioridadId,
-                PrioridadNombre = t.Prioridad != null ? t.Prioridad.Nombre : null,
-
+                FechaLimite = t.FechaLimite.HasValue ? t.FechaLimite.Value.ToLocalTime() : (DateTime?)null,               
                 CategoriaId = t.CategoriaId,
                 CategoriaNombre = t.Categoria != null ? t.Categoria.Nombre : null,
-
                 UnidadId = t.UnidadId,
-                UnidadNombre = t.Unidad != null ? t.Unidad.Nombre : null
+                UnidadNombre = t.Unidad != null ? t.Unidad.Nombre : null,
+                TecnicoId = t.TecnicoId,
+                TecnicoNombre = t.Tecnico != null ? t.Tecnico.Usuario.NombreCompleto : null,
+                Estado = t.Estado,
+                Prioridad= t.Prioridad,
+                EstadoNombre = EnumExtension.GetDisplayName(t.Estado),
+                PrioridadNombre = EnumExtension.GetDisplayName(t.Prioridad),
+                TipoServicioId = t.TipoServicioId,
+                TipoServicioNombre = t.TipoServicio != null ? t.TipoServicio.Nombre : null,
             })
             .FirstOrDefaultAsync(ct);
 
         if (vm is null) return NotFound();
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+        {
+            return PartialView("_TareaDetalle", vm);
+        }
 
         return View(vm);
     }
@@ -105,31 +125,36 @@ public class TareaController : Controller
     [HttpGet]
     public async Task<IActionResult> Create(CancellationToken ct)
     {
-        var vm = new TareaFormVM
-        {
-            FechaLimite = DateTime.Today.AddDays(1).ToLocalTime()
-        };
+        var vm = new TareaFormVM();
         await CargarSelects(vm, ct);
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+        {
+            return PartialView("_TareaCrear", vm);
+        }
         return View(vm);
     }
-
     // POST: /Tareas/Create
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TareaFormVM vm, CancellationToken ct)
     {
+        // ¿La petición viene desde el modal (fetch)?
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
         //validar fecha limite
-        if (vm.FechaLimite < DateTime.Now.Date)
+        if (vm.FechaLimite!=null&&vm.FechaLimite < DateTime.Now.Date)
             ModelState.AddModelError(nameof(vm.FechaLimite), "La fecha límite no puede ser anterior a hoy.");
 
         //validar la existencia de relaciones
-        var existeEstado = await _context.Estados.AnyAsync(e => e.Id == vm.EstadoId, ct);
-        var existePrioridad = await _context.Prioridades.AnyAsync(p => p.Id == vm.PrioridadId, ct);
         var existeArea = await _context.Unidades.AnyAsync(a => a.Id == vm.UnidadId, ct);
-        var existeCategoria = vm.CategoriaId == null || await _context.Categorias.AnyAsync(c => c.Id == vm.CategoriaId, ct);
+        var existeCategoria = await _context.Categorias.AnyAsync(c => c.Id == vm.CategoriaId, ct);
+        var existeTipoServicio = await _context.TipoServicios.AnyAsync(c => c.Id == vm.TipoServicioId, ct);
 
         if (!ModelState.IsValid)
         {
             await CargarSelects(vm, ct);
+            if (isAjax)
+            {
+                return PartialView("_TareaCrear", vm);
+            }
             return View(vm);
         }
 
@@ -137,33 +162,84 @@ public class TareaController : Controller
         var entidad = new Tarea
         {
             Titulo = vm.Titulo.Trim(),
-            Descripcion = string.IsNullOrWhiteSpace(vm.Descripcion) ? null : vm.Descripcion.Trim(),
+            Descripcion = vm.Descripcion.Trim(),
             FechaCreacion =  DateTime.Now.ToLocalTime(),
-            EstadoId = vm.EstadoId,
-            PrioridadId = vm.PrioridadId,
+            Prioridad = vm.Prioridad,
             CategoriaId = vm.CategoriaId,
             UnidadId = vm.UnidadId,
             FechaLimite = vm.FechaLimite,
-            Archivada = vm.Archivada
+            TipoServicioId = vm.TipoServicioId,
         };
+
+        Tecnico? tecnico = null;
+
+        if (vm.TecnicoId.HasValue)
+        {
+            tecnico = await _context.Tecnicos
+                .Include(x => x.Usuario) // para tener Usuario cargado
+                .FirstOrDefaultAsync(x => x.Id == vm.TecnicoId.Value, ct);
+
+            if (tecnico == null)
+            {
+                ModelState.AddModelError("TecnicoId", "El técnico seleccionado no existe.");
+                // volver a llenar combos y retornar la vista
+                await CargarSelects(vm, ct);
+                return View(vm);
+            }
+
+            entidad.TecnicoId = tecnico.Id;
+            entidad.FechaAsignacion = DateTime.Now;
+            entidad.Estado = EstadoT.Asignado;
+            tecnico.Disponible = false;
+
+        }
+        else
+        {
+            entidad.Estado = EstadoT.Nuevo; // o el que uses por defecto
+        }
 
         _context.Add(entidad);
         try
         {
             await _context.SaveChangesAsync(ct);
+
+            if (tecnico != null)
+            {
+                var evento = new
+                {
+                    tareaId = entidad.Id,
+                    titulo = entidad.Titulo ?? "(Sin título)",
+                    tecnicoId = tecnico.Id,
+                    tecnicoNombre = tecnico.Usuario?.NombreCompleto ?? "(Sin nombre)",
+                    prioridad = entidad.Prioridad
+                };
+
+                await _notificacionesHub.Clients.All.SendAsync("TaskAssigned", evento);
+            }
             TempData["Success"] = "La tarea fue creada correctamente.";
-            // PRG al detalle para ver el resultado inmediato
+            if (isAjax)
+            {
+                return Json(new { success = true });
+            }
             return RedirectToAction(nameof(Details), new { id = entidad.Id });
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex)
         {
-            ModelState.AddModelError(string.Empty, "No se pudo guardar la tarea. Verifica los datos e intenta nuevamente.");
-            await CargarSelects(vm, ct);
+            var innerExceptionMessage = ex.InnerException?.Message;
+            ModelState.AddModelError(string.Empty, "No se pudo guardar la tarea. Verifica los datos e intenta nuevamente. Detalle: " + innerExceptionMessage); await CargarSelects(vm, ct);
+            if (isAjax)
+            {
+                return PartialView("_TareaCrear", vm);
+            }
             return View(vm);
         }
         catch (Exception ex)
         {
             ModelState.AddModelError("", $"Error inesperado: {ex.GetBaseException().Message}");
+            if (isAjax)
+            {
+                return PartialView("_TareaCrear", vm);
+            }
             return View(vm);
         }
     }
@@ -188,17 +264,23 @@ public class TareaController : Controller
                     Id = t.Id,
                     Titulo = t.Titulo,
                     Descripcion = t.Descripcion,
-                    EstadoId = t.EstadoId,
-                    PrioridadId = t.PrioridadId,
+                    Estado = t.Estado,
+                    Prioridad = t.Prioridad,
                     CategoriaId = t.CategoriaId,
                     UnidadId = t.UnidadId,
-                    FechaLimite = t.FechaLimite.ToLocalTime()
+                    FechaLimite = t.FechaLimite.HasValue ? t.FechaLimite.Value.ToLocalTime() : (DateTime?)null,
+                    TecnicoId = t.TecnicoId,
+                    TipoServicioId= t.TipoServicioId
                 })
                 .FirstOrDefaultAsync(ct);
 
         if (vm is null) return NotFound();
 
         await CargarSelects(vm, ct);
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+        {
+            return PartialView("_TareaEditar", vm);
+        }
         return View(vm);
     }
 
@@ -206,30 +288,32 @@ public class TareaController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, TareaFormVM vm, CancellationToken ct)
     {
+        // ¿La petición viene desde el modal (fetch)?
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
         if (id != vm.Id) return BadRequest("Identificadores no coinciden.");
 
         //validar la fechaLimite
-        if (vm.FechaLimite < DateTime.Now.Date)
+        if (vm.FechaLimite!= null && vm.FechaLimite < DateTime.Now.Date)
             ModelState.AddModelError(nameof(vm.FechaLimite), "La fecha límite no puede ser anterior a hoy.");
 
         // Validar relaciones
-        var existeEstado = await _context.Estados.AnyAsync(e => e.Id == vm.EstadoId, ct);
-        var existePrioridad = await _context.Prioridades.AnyAsync(p => p.Id == vm.PrioridadId, ct);
         var existeArea = await _context.Unidades.AnyAsync(a => a.Id == vm.UnidadId, ct);
-        var existeCategoria = vm.CategoriaId == null || await _context.Categorias.AnyAsync(c => c.Id == vm.CategoriaId, ct);
-
-        if (!existeEstado) ModelState.AddModelError(nameof(vm.EstadoId), "Estado no válido.");
-        if (!existePrioridad) ModelState.AddModelError(nameof(vm.PrioridadId), "Prioridad no válida.");
+        var existeCategoria = await _context.Categorias.AnyAsync(c => c.Id == vm.CategoriaId, ct);
         if (!existeArea) ModelState.AddModelError(nameof(vm.UnidadId), "Área no válida.");
         if (!existeCategoria) ModelState.AddModelError(nameof(vm.CategoriaId), "Categoría no válida.");
 
         if (!ModelState.IsValid)
         {
             await CargarSelects(vm,ct);
+            if (isAjax)
+            {
+                return PartialView("_TareaEditar", vm);
+            }
             return View(vm);
         }
 
-        // Carga la entidad a editar (TRACKING)
+        // Carga la entidad a editar
         var t = await _context.Tareas
             .FirstOrDefaultAsync(t => t.Id == id, ct);
 
@@ -240,24 +324,43 @@ public class TareaController : Controller
         {
             ModelState.AddModelError(string.Empty, "La tarea fue modificada por otro usuario. Refresca la página e intenta de nuevo.");
             await CargarSelects(vm, ct);
+            if (isAjax)
+            {
+                return PartialView("_TareaEditar", vm);
+            }
             return View(vm);
         }
 
+        // Si se asigna técnico por primera vez
+        if (vm.TecnicoId.HasValue && !t?.TecnicoId.HasValue == true)
+        {
+            vm.FechaAsignacion = DateTime.Now;
+            vm.Estado = EstadoT.Asignado;
+        }
+        else
+        {
+            vm.FechaActualizacion = DateTime.Now;
+            vm.Estado = EstadoT.Escalado;
+        }
+
         // Mapeo explícito: solo campos editables
-        t.Id = id;
         t.Titulo = vm.Titulo.Trim();
-        t.Descripcion = string.IsNullOrWhiteSpace(vm.Descripcion) ? null : vm.Descripcion.Trim();
-        t.EstadoId = vm.EstadoId;
-        t.PrioridadId = vm.PrioridadId;
+        t.Descripcion = vm.Descripcion.Trim();
+        t.Estado = vm.Estado;
+        t.Prioridad = vm.Prioridad;
         t.CategoriaId = vm.CategoriaId;
         t.UnidadId = vm.UnidadId;
-        t.FechaLimite =  vm.FechaLimite.ToLocalTime();
+        t.FechaLimite = vm.FechaLimite.HasValue ? vm.FechaLimite.Value.ToLocalTime() : (DateTime?)null;
         t.Archivada = vm.Archivada;
         t.FechaActualizacion = DateTime.Now.ToLocalTime();
-
+        t.TecnicoId= vm.TecnicoId;
         try
         {
             await _context.SaveChangesAsync(ct);
+            if (isAjax)
+            {
+                return Json(new { success = true });
+            }
             TempData["Success"] = "La tarea fue actualizada correctamente.";
             return RedirectToAction(nameof(Details), new { id = t.Id });
         }
@@ -265,94 +368,170 @@ public class TareaController : Controller
         {
             // Si implementas RowVersion (ver abajo), aquí detectas ediciones simultáneas
             ModelState.AddModelError(string.Empty, "Otro usuario modificó este registro. Actualiza la página y vuelve a intentarlo.");
+            if (isAjax)
+            {
+                // volvemos a pintar el card dentro del modal con el error
+                return PartialView("_TareaEditar", vm);
+            }
+            return View(vm);
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex)
         {
-            ModelState.AddModelError(string.Empty, "No se pudo guardar los cambios. Verifica los datos e intenta de nuevo.");
+            var innerExceptionMessage = ex.InnerException?.Message;
+            ModelState.AddModelError(string.Empty, "No se pudo guardar la tarea. Verifica los datos e intenta nuevamente. Detalle: " + innerExceptionMessage); await CargarSelects(vm, ct);
+            if (isAjax)
+            {
+                // volvemos a pintar el card dentro del modal con el error
+                return PartialView("_TareaeEditar", vm);
+            }
+            return View(vm);
         }
-
-        await CargarSelects(vm, ct);
-        return View(vm);
     }
 
     // GET: /Tareas/Delete/5
     [HttpGet]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
+        if (id <= 0)
+        {
+            return NotFound();
+        }
         var t = await _context.Tareas
-           .Include(x => x.Estado)
-           .Include(x => x.Prioridad)
            .Include(x => x.Unidad)
+           .Include(x => x.Tecnico.Usuario)
            .FirstOrDefaultAsync(m => m.Id == id,ct);
         if (t == null) return NotFound();
+
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+        {
+            return PartialView("_TareaEliminar", t);
+        }
         return View(t);
     }
 
-    // POST: /Tareas/Delete/5
+    // POST: /Tarea/Delete/5
     [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken ct)
     {
-        var t = await _context.Tareas.FindAsync(id);
-        if (t == null) return NotFound();
-
-        try
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+        // Validar el ID
+        if (id <= 0)
         {
-            _context.Tareas.Remove(t);
+            if (isAjax)
+                return Json(new { success = false, message = "El Identificador no es Válido." });
+
+            TempData["Alert"] = "El Identificador no es Válido.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        try {
+             // Buscar tarea
+             var t = await _context.Tareas
+                    .FirstOrDefaultAsync(u => u.Id == id, ct);
+
+            if (t == null)
+            {
+                if (isAjax)
+                    return Json(new { success = false, message = "Tarea no encontrado." });
+
+                return NotFound();
+            }
+        
+            _context.Remove(t);
             await _context.SaveChangesAsync(ct);
+            if (isAjax)
+                return Json(new { success = true, message = "Tarea eliminada correctamente" });
+
             TempData["Success"] = "La tarea fue eliminada correctamente.";
             return RedirectToAction(nameof(Index));
         }
         catch (DbUpdateConcurrencyException)
         {
+            if (isAjax)
+                return Json(new { success = false, message = "La tarea fue modificada o eliminada por otro usuario. Actualiza la página." });
             TempData["Error"] = "La tarea fue modificada o eliminada por otro usuario. Actualiza la página.";
             return RedirectToAction(nameof(Details));
         }
         catch (DbUpdateException)
         {
             // Posible restricción por FK (p. ej., comentarios/adjuntos)
+            if (isAjax)
+                return Json(new { success = false, message = "No se pudo eliminar la tarea porque existen datos relacionados" });
             TempData["Error"] = "No se pudo eliminar la tarea porque existen datos relacionados.";
             return RedirectToAction(nameof(Details));
         }
     }
+
     [HttpGet]
-    public async Task<IActionResult> Assign()
+    public async Task<IActionResult> Asignar(int id)
     {
-        ViewBag.Estados = await _context.Estados
-            .OrderBy(e => e.Id)
-            .Select(e => new SelectListItem(e.Nombre, e.Id.ToString()))
+
+        var Tarea = await _context.Tareas
+       .Include(t => t.Categoria)
+       .Include(t => t.Unidad)
+       .Include(t => t.TipoServicio)
+       .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (Tarea == null) return NotFound();
+
+        var Tecnicos = await _context.Tecnicos
+            .Include(t => t.Usuario)
+            .Include(t => t.Nivel)
             .ToListAsync();
-        var disponibles = await _context.Tecnicos.Select(t=>t.Disponible==false).ToListAsync();
-        return View(disponibles);
+
+        var Niveles = await _context.Niveles.ToListAsync();
+
+        var vm = new TareaAsignarVM
+        {
+            Tarea = Tarea,
+            Tecnicos = Tecnicos,
+            Niveles = Niveles
+        };
+
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+        {
+            return PartialView("_TareaAsignar", vm);
+        }
+
+        return View(vm);
     }
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Assign(int id, int TecnicoId)
+    public async Task<IActionResult> Asignar(int tareaId, int tecnicoId)
     {
-        var ticket = await _context.Tareas.FindAsync(id);
-        if (ticket == null) return NotFound();
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
 
-        ticket.TecnicoId = TecnicoId;
-        ticket.FechaAsignacion = DateTime.Now.ToLocalTime();
-        await _context.SaveChangesAsync();
-        return RedirectToAction("Details", new { id });
+        var ok = await _asignacionService.AsignarManualAsync(tareaId, tecnicoId);
+
+
+        if (!ok)
+            TempData["Error"] = "No se pudo asignar la tarea al técnico seleccionado.";
+        else
+            TempData["ok"] = "Tarea asignada correctamente.";
+        if (isAjax)
+        {
+            return Json(new { success = true });
+        }
+
+        return RedirectToAction(nameof(Index));
     }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AsignarAuto(int tareaId)
+    {
+        var ok = await _asignacionService.AsignarAutoPorTareaAsync(tareaId);
 
+        if (!ok)
+            TempData["Error"] = "No se pudo asignar automáticamente la tarea. Verifica que no tenga técnico y que haya técnicos.";
+        else 
+            TempData["ok"] = "Tarea asignada automáticamente a un técnico.";
+
+
+        return RedirectToAction(nameof(Index));
+    }
+    
     private async Task CargarSelects(TareaFormVM vm, CancellationToken ct)
     {
-        ct.ThrowIfCancellationRequested();
-
-        vm.Estados = await _context.Estados
-            .OrderBy(e => e.Id)
-            .Select(e => new SelectListItem(e.Nombre, e.Id.ToString()))
-            .ToListAsync(ct);
-
-        ct.ThrowIfCancellationRequested();
-
-        vm.Prioridades = await _context.Prioridades
-            .OrderBy(p => p.Id)
-            .Select(p => new SelectListItem(p.Nombre, p.Id.ToString()))
-            .ToListAsync(ct);
-
         ct.ThrowIfCancellationRequested();
 
         vm.Categorias = await _context.Categorias
@@ -362,10 +541,40 @@ public class TareaController : Controller
 
         ct.ThrowIfCancellationRequested();
 
+        vm.TipoServicos = await _context.TipoServicios
+          .OrderBy(t => t.Nombre)
+          .Select(t => new TipoServicioVM
+          {
+              Id = t.Id,
+              Nombre = t.Nombre,
+              CategoriaId = t.CategoriaId,
+              Descripcion = t.Descripcion!  // 👈 si tienes columna Descripcion
+                                           // si no, puedes usar Nombre u otra cosa
+          })
+          .ToListAsync(ct);
+
+        vm.MapTipoDesc = await _context.TipoServicios
+            .ToDictionaryAsync(t => t.Id, t => t.Descripcion!, ct);
+
+        ct.ThrowIfCancellationRequested();
+
         vm.Unidades = await _context.Unidades
             .OrderBy(u => u.Nombre)
             .Select(u => new SelectListItem(u.Nombre, u.Id.ToString()))
             .ToListAsync(ct);
+
+        ct.ThrowIfCancellationRequested();
+
+        vm.Tecnicos = await _context.Tecnicos
+            .Include(t => t.Usuario)   // Para acceder a Usuario
+            .OrderBy(t => t.Usuario.NombreCompleto)
+            .Select(t => new SelectListItem
+            {
+                Value = t.Id.ToString(),
+                Text = t.Usuario.NombreCompleto
+            })
+            .ToListAsync();
+
     }
     // POST: /Tareas/Archivar/5
     [HttpPost, ValidateAntiForgeryToken]
@@ -380,4 +589,89 @@ public class TareaController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+    // AJAX: Eliminar tarea
+    [HttpPost]
+    public async Task<IActionResult> DeleteAjax(int id)
+    {
+        try
+        {
+            var tarea = await _context.Tareas.FindAsync(id);
+            if (tarea == null)
+            {
+                return Json(new { success = false, message = "Tarea no encontrada." });
+            }
+
+            _context.Remove(tarea);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Tarea eliminada exitosamente." });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"Error al eliminar: {ex.Message}" });
+        }
+    }
+
+    // AJAX: Archivar/Desarchivar tarea
+    [HttpPost]
+    public async Task<IActionResult> ToggleArchivo(int id)
+    {
+        try
+        {
+            var tarea = await _context.Tareas.FindAsync(id);
+            if (tarea == null)
+            {
+                return Json(new { success = false, message = "Tarea no encontrada." });
+            }
+
+            tarea.Archivada = !tarea.Archivada;
+            tarea.FechaActualizacion = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                archivada = tarea.Archivada,
+                message = tarea.Archivada ? "Tarea archivada." : "Tarea desarchivada."
+            });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"Error: {ex.Message}" });
+        }
+    }
+
+    // AJAX: Obtener estadísticas
+    [HttpGet]
+    public async Task<IActionResult> GetEstadisticas()
+    {
+        var total = await _context.Tareas.CountAsync(t => !t.Archivada);
+        var vencidas = await _context.Tareas.CountAsync(t =>
+            !t.Archivada && // No archivadas
+            t.FechaLimite.HasValue && // Tiene una fecha límite asignada
+            t.FechaLimite.Value.Date < DateTime.Now.Date // La fecha límite es menor que hoy
+        );
+        var porEstado = await _context.Tareas
+            .Where(t => !t.Archivada)
+          //  .GroupBy(t => t.Estado.Nombre)
+          //  .Select(g => new { estado = g.Key, cantidad = g.Count() })
+            .ToListAsync();
+
+        return Json(new { total, vencidas, porEstado });
+    }
+
+    private bool TareaExists(int id)
+    {
+        return _context.Tareas.Any(e => e.Id == id);
+    }
+
+    private async Task CargarListasDesplegables(Tarea? tarea = null)
+    {
+     //   ViewData["EstadoId"] = new SelectList(await _context.Estados.ToListAsync(), "Id", "Nombre", tarea?.EstadoId);
+       // ViewData["PrioridadId"] = new SelectList(await _context.Prioridades.ToListAsync(), "Id", "Nombre", tarea?.PrioridadId);
+        ViewData["CategoriaId"] = new SelectList(await _context.Categorias.ToListAsync(), "Id", "Nombre", tarea?.CategoriaId);
+        ViewData["UnidadId"] = new SelectList(await _context.Unidades.ToListAsync(), "Id", "Nombre", tarea?.UnidadId);
+        ViewData["TecnicoId"] = new SelectList(await _context.Tecnicos.ToListAsync(), "Id", "Nombre", tarea?.TecnicoId);
+    }
+
 }

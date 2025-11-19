@@ -1,0 +1,88 @@
+﻿@model DGASoporte.Models.UsuarioVM
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    Layout = null;
+}
+<link href="~/css/cardUsaurio.css" rel="stylesheet" asp-append-version="true" />
+    <div class="usuario-card">
+        <div class="usuario-card__bar"></div>
+
+        <div class="usuario-card__header">
+            <div>
+                <h3 class="usuario-title" id="no-select">Agregar usuario</h3>
+                <div class="usuario--sub" id="no-select">Crea una cuenta con rol y contraseña seguras</div>
+            </div>
+            <a href="#" class="link-back js-close-modal">Volver</a>
+        </div>
+
+        <div class="usuario-card__body">
+        <form asp-action="Create" method="post" id="formUsuario" data-ajax-usuario="true" novalidate>
+                @Html.AntiForgeryToken()
+                <div class="form-section grid-2">
+                    <div>
+                        <label asp-for="Usher" class="form-label no-select"></label>
+                        <input asp-for="Usher" class="form-control" placeholder="Ej: jdoe" required />
+                        <span asp-validation-for="Usher" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Password" class="form-label no-select"></label>
+                        <div class="input-container">
+                            <input asp-for="Password" type="password" class="secure-password form-control" placeholder="Mín. 8 caracteres" required />
+                            <button type="button" class="togglePassword btn-eye">👁</button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Email" class="form-label no-select"></label>
+                        <input asp-for="Email" class="form-control" placeholder="Ej: jdoe@demo.com" required />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Codigo" class="form-label no-select"></label>
+                        <input asp-for="Codigo" class="form-control" placeholder="Ej: dga-jdoe" required />
+                        <span asp-validation-for="Codigo" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="NombreCompleto" class="form-label no-select"></label>
+                        <input asp-for="NombreCompleto" class="form-control" placeholder="Ej: jdoe" required />
+                        <span asp-validation-for="NombreCompleto" class="text-danger"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="RolId" class="form-label no-select"></label>
+                        <select asp-for="RolId" asp-items="@Model.Roles" class="form-select" id="IdRol">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                        <span class="input-help" id="no-select">Define los permisos del usuario.</span>
+                        <span asp-validation-for="RolId" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="form-check form-switch">
+                        <input asp-for="Activo" class="form-check-input" type="checkbox" role="switch" id="switchActivo" />
+                        <label for="switchActivo" class="form-check-label no-select labelEstado"></label>
+                    </div>
+                    <span asp-validation-for="Activo" class="text-danger"></span>
+                </div>
+                <!-- Panel de campos propios del técnico-->
+                <div id="panelTecnico" class="border rounded p-3 mb-3 bg-light" style="display:none;">
+                    <h3 class="usuario-title" id="no-select">Agregar Tecnico</h3>
+
+                    <div>
+                        <label asp-for="NivelId" class="form-label no-select"></label>
+                        <select asp-for="NivelId"
+                                asp-items="@Model.Niveles" class=" form-select form-select-sm w-50">
+                            <option value="">-- Seleccione --</option>
+                        </select>
+                        <span class="input-help" id="no-select">Define el nivel del tecnico.</span>
+                        <span asp-validation-for="NivelId" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="usuario-card__footer">
+                    <a href="#" class="usuarioM-btn usuarioM-btn-cl js-close-modal">Cancelar</a>
+                    <button type="submit" class="usuarioM-btn usuarioM-btn-gd">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>

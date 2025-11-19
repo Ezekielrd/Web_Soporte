@@ -1,0 +1,65 @@
+﻿@model Tarea
+@{
+    Layout = null;
+}
+<link href="~/css/cardTarea.css" rel="stylesheet" />
+<div class="wizard-card">
+    <div class="card-body p-4 p-md-4">
+        <div class="wizard-header d-flex align-items-center">
+            <div class="wizard-icon-circle">
+                <i class="bi bi-kanban fs-5"></i>
+            </div>
+            <div>
+                <h3 class="mb-0">
+                    <i class="bi bi-card-text me-2"></i>
+                    Eliminar la Tarea
+                </h3>
+                <div class="wizard-subtitle">
+                    Inspecionar los detalles de las tareas.
+                </div>
+            </div>
+            <div class="ms-auto d-none d-md-block">
+                <span class="badge-soft">
+                    <i class="bi bi-shield-check me-1"></i> Soporte Técnico
+                </span>
+            </div>
+        </div>
+        <div class="alert alert-danger d-flex align-items-start">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-4"></i>
+            <div>
+                <h6 class="alert-heading mb-1">¿Confirmar eliminación?</h6>
+                <p class="mb-1">
+                    Se eliminará la tarea
+                    <strong>@Model.Titulo</strong>.
+                </p>
+                <p class="mb-0">
+                    Esta acción no se puede deshacer.
+                </p>
+            </div>
+        </div>
+        <div class="mb-3 small">
+            <label class="form-label fw-semibold">Resumen</label>
+            <div class="border rounded p-2 bg-light text-dark eresumen">
+                <div><strong>Categoría:</strong> @Model.CategoriaId</div>
+                <div><strong>Tipo servicio:</strong> @Model.TipoServicioId</div>
+                <div><strong>Estado:</strong> @Model.Estado</div>
+                <div><strong>Fecha límite:</strong> @(Model.FechaLimite?.ToString("dd/MM/yyyy") ?? "—")</div>
+                <div><strong>Tecnico:</strong> @(Model.Tecnico?.Usuario?.NombreCompleto ?? "Técnico no asignado")</div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2">
+             <form asp-action="Delete" asp-route-id="@Model.Id"  method="post" class="d-flex gap-2" data-ajax-delete-tarea="true">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash me-1"></i> Eliminar
+                </button>
+                <button type="button"
+                        class="btn btn-outline-secondary js-close-modal"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+             </form>
+        </div>
+    </div>
+</div>

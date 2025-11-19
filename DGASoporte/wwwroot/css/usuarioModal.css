@@ -1,0 +1,167 @@
+﻿
+.usuarioM-card {
+    width: min(820px, 100%);
+    background: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.06);
+    border: 1px solid #eef2f7;
+    overflow: hidden;
+}
+
+/* Barra superior*/
+.usuarioM-card__bar {
+    height: 6px;
+    background: linear-gradient(90deg,#4946fb, #261dfa);
+}
+
+/* Header del formulario */
+.usuarioM-card__header {
+    padding: 20px 22px 0 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.usuarioM-title {
+    margin: 0;
+    color: #01337a;
+    font-weight: 700;
+    letter-spacing: .2px;
+}
+
+.usuarioM-sub {
+    margin-top: 4px;
+    color: #dadafe;
+    font-size: .92rem;
+}
+
+/* Contenido */
+.usuarioM-card__body {
+    padding: 18px 22px 22px 22px;
+}
+
+/* ========= Campos ========= */
+.usuarioM-form-section {
+    display: grid;
+    gap: 14px;
+}
+
+@media (min-width: 768px) {
+    .usuarioM-form-section.grid-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.usuarioM-form-label {
+    font-size: .9rem;
+    color: #212121;
+    font-weight: 600;
+}
+
+.usuarioM-form-control, .usuarioM-form-select {
+    border-radius: 10px;
+    border: 2px solid #d9e1ec;
+    padding: .55rem .8rem;
+    box-shadow: none;
+}
+
+.usuarioM-form-control::placeholder {
+    color: #a3afbf;
+}
+
+    .usuarioM-form-control:focus, .usuarioM-form-select:focus {
+        border-color: #FFC107;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+.usuarioM-input-help {
+    font-size: .82rem;
+    color: #838383;
+}
+
+/* ========= Footer / acciones ========= */
+.usuarioM-card__footer {
+    padding: 18px 20px 18px 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+    border-top: 1px solid #9292ff;
+    background: #ffffff;
+}
+
+/* Botones marca */
+.usuarioM-btn {
+    border: 1px solid #d8d8ef;
+    color: #171794;
+    padding: .55rem 1.05rem;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.usuarioM-btn-cl:hover {
+    background: #f73852;
+    border-color: #d2203d;
+    color: #fff;
+}
+
+.usuarioM-btn-gd:hover {
+    background: #4ec83d;
+    border-color: #46b536;
+    color: #fff;
+}
+
+.usuarioM-form-switch {
+    padding: 10px 50px;
+}
+
+/* Botón ojo dentro de inputs password*/
+.usuarioM-input-container .usuarioM-btn-eye {
+    border-radius: 10px;
+    border: 2px solid #d9e1ec;
+    background: #fff;
+}
+
+.usuarioM-input-container .usuarioM-btn-eye:hover {
+    background: #f8fafc;
+}
+
+/* Links utilitarios */
+.usuarioM-link-back {
+    color: #4272aa;
+    font-weight: 600;
+}
+
+.usuarioM-link-back:hover {
+    text-decoration: underline;
+}
+
+input[type="password"]::-ms-reveal {
+    display: none;
+}
+
+.usuarioM-form-group .usuarioM-input-container {
+    position: relative;
+    display: flex;
+}
+
+.togglePassword {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-left: 10px;
+    user-select: none;
+    cursor: default;
+}
+
+.no-select {
+    user-select: none;
+    cursor: default;
+}
+
+/* Borde ROJO cuando el control es inválido (aplica a input y select) */
+.input-validation-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 .15rem rgba(220,38,38,.08) !important;
+}

@@ -1,0 +1,550 @@
+﻿/* wwwroot/css/tareas.css */
+/* Estilos personalizados para el módulo de Tareas */
+
+/* ============================================
+   Variables CSS
+   ============================================ */
+:root {
+    --primary-color: #0d6efd;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --secondary-color: #6c757d;
+    --light-bg: #f8f9fa;
+    --border-radius: 0.5rem;
+    --transition-speed: 0.3s;
+    --shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
+    --shadow-md: 0 .5rem 1rem rgba(0,0,0,.15);
+    --shadow-lg: 0 1rem 3rem rgba(0,0,0,.175);
+}
+
+/* ============================================
+   Estilos Generales
+   ============================================ */
+.card {
+    border-radius: var(--border-radius);
+    transition: all var(--transition-speed) ease;
+}
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+.btn {
+    border-radius: var(--border-radius);
+    transition: all var(--transition-speed) ease;
+    font-weight: 500;
+}
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+/* ============================================
+   Badges Personalizados - Estados
+   ============================================ */
+.estado-badge {
+    padding: 0.5em 1em;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+    /* Colores dinámicos para estados comunes */
+    .estado-badge[data-estado*="Pendiente"],
+    .estado-badge[data-estado*="pendiente"] {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .estado-badge[data-estado*="Proceso"],
+    .estado-badge[data-estado*="proceso"],
+    .estado-badge[data-estado*="En curso"] {
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+
+    .estado-badge[data-estado*="Completad"],
+    .estado-badge[data-estado*="completad"],
+    .estado-badge[data-estado*="Finaliza"] {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .estado-badge[data-estado*="Cancelad"],
+    .estado-badge[data-estado*="cancelad"] {
+        background-color: #f8d7da;
+        color: #842029;
+    }
+
+    .estado-badge[data-estado*="Pausad"],
+    .estado-badge[data-estado*="pausad"] {
+        background-color: #e2e3e5;
+        color: #41464b;
+    }
+
+/* ============================================
+   Badges Personalizados - Prioridades
+   ============================================ */
+.prioridad-badge {
+    padding: 0.5em 1em;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+    .prioridad-badge[data-prioridad*="Baja"],
+    .prioridad-badge[data-prioridad*="baja"] {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .prioridad-badge[data-prioridad*="Media"],
+    .prioridad-badge[data-prioridad*="media"],
+    .prioridad-badge[data-prioridad*="Normal"] {
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+
+    .prioridad-badge[data-prioridad*="Alta"],
+    .prioridad-badge[data-prioridad*="alta"] {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .prioridad-badge[data-prioridad*="Urgente"],
+    .prioridad-badge[data-prioridad*="urgente"],
+    .prioridad-badge[data-prioridad*="Crítica"] {
+        background-color: #f8d7da;
+        color: #842029;
+    }
+
+/* ============================================
+   Tabla de Tareas
+   ============================================ */
+#tareasTable {
+    font-size: 0.95rem;
+}
+
+    #tareasTable thead th {
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        padding: 1rem 0.75rem;
+    }
+
+    #tareasTable tbody tr {
+        transition: all var(--transition-speed) ease;
+        cursor: pointer;
+    }
+
+        #tareasTable tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+            transform: scale(1.01);
+        }
+
+    #tareasTable tbody td {
+        vertical-align: middle;
+        padding: 1rem 0.75rem;
+    }
+
+/* Filas con estados especiales */
+.table-danger-subtle {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+    border-left: 4px solid var(--danger-color);
+}
+
+.table-secondary {
+    opacity: 0.7;
+    border-left: 4px solid var(--secondary-color);
+}
+
+/* ============================================
+   Botones de Acción
+   ============================================ */
+.btn-group-sm .btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.btn-outline-info:hover {
+    color: #fff;
+    background-color: var(--info-color);
+    border-color: var(--info-color);
+}
+
+.btn-outline-primary:hover {
+    color: #fff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-warning:hover {
+    color: #000;
+    background-color: var(--warning-color);
+    border-color: var(--warning-color);
+}
+
+.btn-outline-danger:hover {
+    color: #fff;
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+/* ============================================
+   Formularios
+   ============================================ */
+.form-control,
+.form-select {
+    border-radius: var(--border-radius);
+    border: 2px solid #e0e0e0;
+    transition: all var(--transition-speed) ease;
+    padding: 0.75rem 1rem;
+}
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+    .form-control.is-valid,
+    .form-select.is-valid {
+        border-color: var(--success-color);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+    }
+
+    .form-control.is-invalid,
+    .form-select.is-invalid {
+        border-color: var(--danger-color);
+    }
+
+.form-label.required-field::after {
+    content: " *";
+    color: var(--danger-color);
+    font-weight: bold;
+}
+
+.section-header h5 {
+    margin-bottom: 0.5rem;
+}
+
+.section-header hr {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.2;
+}
+
+/* ============================================
+   Cards de Estadísticas
+   ============================================ */
+.card.shadow-sm {
+    border: none;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.card.bg-primary,
+.card.bg-danger,
+.card.bg-success,
+.card.bg-info {
+    background: linear-gradient(135deg, var(--primary-color) 0%, rgba(13, 110, 253, 0.8) 100%);
+}
+
+.card.bg-danger {
+    background: linear-gradient(135deg, var(--danger-color) 0%, rgba(220, 53, 69, 0.8) 100%);
+}
+
+.card.bg-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, rgba(25, 135, 84, 0.8) 100%);
+}
+
+.card.bg-info {
+    background: linear-gradient(135deg, var(--info-color) 0%, rgba(13, 202, 240, 0.8) 100%);
+}
+
+/* ============================================
+   Filtros
+   ============================================ */
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.form-check-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* ============================================
+   Modal
+   ============================================ */
+.modal-content {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.modal-backdrop.show {
+    opacity: 0.7;
+}
+
+/* ============================================
+   Toast/Notificaciones
+   ============================================ */
+.toast {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--shadow-md);
+}
+
+    .toast.bg-success,
+    .toast.bg-danger,
+    .toast.bg-warning {
+        color: white;
+    }
+
+        .toast.bg-success .toast-header,
+        .toast.bg-danger .toast-header,
+        .toast.bg-warning .toast-header {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .toast.bg-success .btn-close,
+        .toast.bg-danger .btn-close,
+        .toast.bg-warning .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+/* ============================================
+   Timeline (Vista Details)
+   ============================================ */
+.timeline-item {
+    padding-left: 1.5rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+    .timeline-item:not(:last-child)::before {
+        content: '';
+        position: absolute;
+        left: 0.5rem;
+        top: 1.5rem;
+        bottom: -0.5rem;
+        width: 2px;
+        background: linear-gradient(to bottom, #dee2e6 0%, transparent 100%);
+    }
+
+    .timeline-item i {
+        font-size: 1.25rem;
+    }
+
+/* ============================================
+   Info Box
+   ============================================ */
+.info-box {
+    transition: all var(--transition-speed) ease;
+}
+
+    .info-box:hover {
+        background-color: #e9ecef !important;
+        transform: translateX(5px);
+    }
+
+/* ============================================
+   Detail Item
+   ============================================ */
+.detail-item {
+    transition: all var(--transition-speed) ease;
+}
+
+    .detail-item:hover {
+        background-color: #e9ecef !important;
+        transform: scale(1.02);
+    }
+
+/* ============================================
+   Alertas Personalizadas
+   ============================================ */
+.alert {
+    border-radius: var(--border-radius);
+    border: none;
+    border-left: 4px solid;
+}
+
+.alert-danger {
+    border-left-color: var(--danger-color);
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.alert-warning {
+    border-left-color: var(--warning-color);
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+.alert-info {
+    border-left-color: var(--info-color);
+    background-color: rgba(13, 202, 240, 0.1);
+}
+
+.alert-success {
+    border-left-color: var(--success-color);
+    background-color: rgba(25, 135, 84, 0.1);
+}
+
+/* ============================================
+   Animaciones
+   ============================================ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn var(--transition-speed) ease;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in-right {
+    animation: slideInRight var(--transition-speed) ease;
+}
+
+/* ============================================
+   Spinner de Carga
+   ============================================ */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 768px) {
+    .display-5,
+    .display-6 {
+        font-size: 1.5rem;
+    }
+
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    #tareasTable {
+        font-size: 0.85rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .timeline-item {
+        padding-left: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.35em 0.65em;
+    }
+}
+
+/* ============================================
+   Utilidades Personalizadas
+   ============================================ */
+.text-white-50 {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.shadow-sm {
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.shadow-md {
+    box-shadow: var(--shadow-md) !important;
+}
+
+.shadow-lg {
+    box-shadow: var(--shadow-lg) !important;
+}
+
+/* ============================================
+   Dark Mode Support (Opcional)
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --light-bg: #212529;
+    }
+
+    .card {
+        background-color: #2d3238;
+        color: #f8f9fa;
+    }
+
+    .table {
+        color: #f8f9fa;
+    }
+
+    .form-control,
+    .form-select {
+        background-color: #2d3238;
+        color: #f8f9fa;
+        border-color: #495057;
+    }
+}
+input.input-validation-error,
+select.input-validation-error,
+textarea.input-validation-error {
+    border-color: #dc3545;
+}
+
+.field-validation-error {
+    color: #fca5a5; /* o el rojo que uses */
+    font-size: 0.85rem;
+}

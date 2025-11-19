@@ -122,7 +122,7 @@ namespace DGASoporte.Controllers
             {
                 "admin" => RedirectToAction("Index", "Home"),
                 "tecnico" => RedirectToAction("Index", "Tecnico"),
-                "cliente" => RedirectToAction("Create", "Solicitud"),
+                "cliente" => RedirectToAction("Index", "Solicitud"),
                 _ => RedirectToAction("Index", "Home")
             };
         }

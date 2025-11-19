@@ -40,20 +40,24 @@ namespace DGASoporte.Models
         [Required(ErrorMessage = "La Contraseña es Obligatorio")]
         public string Password { get; set; } = "";
 
+        [Display(Name = "Rol")]
         [Required(ErrorMessage = "Seleccione un rol")]
         [Range(1, int.MaxValue, ErrorMessage = "Seleccione un rol válido")]
-        [Display(Name = "Rol")]
-        public int RolId { get; set; }
+        public int? RolId { get; set; }
+
         public string? RolNombre { get; init; }
+        public IEnumerable<SelectListItem> Roles { get; set; } = [];
+
 
         public bool Activo { get; set; } = true;
         public bool Bloqueado { get; set; }
         // hidden para controlar si se pidió “Siguiente”
-        public IEnumerable<SelectListItem> Roles { get; set; } = [];
 
         [Required]
         public bool? Disponible { get; set; } = false;
-        [Display(Name = "Nivel Tecnico")]
+        [Display(Name = "Nivel Técnico")]
+        [Required(ErrorMessage = "Seleccione un nivel")]
+        [Range(1, int.MaxValue, ErrorMessage = "Seleccione un nivel válido")]
         public int? NivelId { get; set; }
         public string? NivelNombre { get; init; }
         public IEnumerable<SelectListItem> Niveles { get; set; } = [];

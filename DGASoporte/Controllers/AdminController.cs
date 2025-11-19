@@ -21,13 +21,13 @@ namespace TuProyecto.Controllers
 
             // Cargar todas las tareas con sus relaciones
             model.Tareas = await _context.Tareas
-                .Include(t => t.Estado)
-                .Include(t => t.Prioridad)
+               // .Include(t => t.Estado)
+               // .Include(t => t.Prioridad)
                 .Include(t => t.Categoria)
                 .Include(t => t.Unidad)
                 .Include(t => t.Tecnico)
                     .ThenInclude(te => te.Usuario)
-                .Include(t => t.Tecnico)
+                    .Include(t => t.Tecnico)
                     .ThenInclude(te => te.Nivel)
                 .Where(t => !t.Archivada)
                 .OrderByDescending(t => t.FechaCreacion)
@@ -42,13 +42,13 @@ namespace TuProyecto.Controllers
                 .ToListAsync();
 
             // Cargar catálogos
-            model.Estados = await _context.Estados
+           /* model.Estados = await _context.Estados
                 .OrderBy(e => e.Nombre)
                 .ToListAsync();
 
             model.Prioridades = await _context.Prioridades
                 .OrderBy(p => p.Nombre)
-                .ToListAsync();
+                .ToListAsync();*/
 
             model.Categorias = await _context.Categorias
                 .OrderBy(c => c.Nombre)
@@ -98,18 +98,18 @@ namespace TuProyecto.Controllers
         {
             var tareas = await _context.Tareas
                 .Where(t => t.TecnicoId == id && !t.Archivada)
-                .Include(t => t.Estado)
-                .Include(t => t.Prioridad)
+              //  .Include(t => t.Estado)
+               // .Include(t => t.Prioridad)
                 .ToListAsync();
 
             var estadisticas = new
             {
-                TotalTareas = tareas.Count,
-                TareasCompletadas = tareas.Count(t => t.Estado?.Nombre?.ToLower() == "completado"),
-                TareasPendientes = tareas.Count(t => t.Estado?.Nombre?.ToLower() == "pendiente"),
-                TareasEnProceso = tareas.Count(t => t.Estado?.Nombre?.ToLower() == "proceso"),
+              //  TotalTareas = tareas.Count,
+              //  TareasCompletadas = tareas.Count(t => t.Estado?.Nombre?.ToLower() == "completado"),
+              //  TareasPendientes = tareas.Count(t => t.Estado?.Nombre?.ToLower() == "pendiente"),
+             //   TareasEnProceso = tareas.Count(t => t.Estado?.Nombre?.ToLower() == "proceso"),
                 TareasVencidas = tareas.Count(t => t.Vencida),
-                TareasAltaPrioridad = tareas.Count(t => t.Prioridad?.Nombre?.ToLower() == "alta")
+             //   TareasAltaPrioridad = tareas.Count(t => t.Prioridad?.Nombre?.ToLower() == "alta")
             };
 
             return Json(estadisticas);

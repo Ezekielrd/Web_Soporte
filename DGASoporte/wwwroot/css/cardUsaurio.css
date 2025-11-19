@@ -110,7 +110,7 @@ main, .container, .container-fluid, .content, .page, #app, .layout-content {
 }
 
 /* Botones marca */
-.btn {
+.usuarioM-btn {
     border: 1px solid #d8d8ef;
     color: #171794;
     padding: .55rem 1.05rem;
@@ -118,16 +118,21 @@ main, .container, .container-fluid, .content, .page, #app, .layout-content {
     font-weight: 700;
 }
 
-    .btn-cl:hover {
+    .usuarioM-btn-cl:hover {
         background: #f73852;
         border-color:#d2203d;
         color:#fff;
     }
-    .btn-gd:hover {
+    .usuarioM-btn-gd:hover {
         background: #4ec83d;
         border-color: #46b536;
         color: #fff;
     }
+.usuarioM-btn-clu:hover {
+    background: #bdbdbd;
+    border-color: #e0e0e0;
+    color: #fff;
+}
 .form-switch{
     padding: 10px 50px;
 }

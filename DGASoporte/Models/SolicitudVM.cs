@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using DGASoporte.Models.Enumeradores;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -24,7 +25,7 @@ namespace DGASoporte.Models
         // Relaciones (Foreign Keys)
         [Required]
         public int UsuarioId { get; set; } 
-        public string UsuarioNombre { get; set; } = default!;
+        public string? UsuarioNombre { get; set; } = default!;
 
         [Display(Name = "Area  de Procedencia")]
         [Required(ErrorMessage = "La Unidad es obligatoria.")]
@@ -40,6 +41,12 @@ namespace DGASoporte.Models
 
         public string? TipoIncidenciaNombre { get; set; } = default!;
         public IEnumerable<SelectListItem> TipoIncidencias { get; set; } = [];
+        public Dictionary<int, string> MapTipoDesc { get; set; } = new();
+        [Required]
+        public EstadoS Estado { get; set; }
+        public string? MotivoRechazo { get; set; }
+
+
 
     }
 }

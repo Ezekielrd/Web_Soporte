@@ -1,6 +1,8 @@
 using DGASoporte.Data;
 using DGASoporte.Models;
+using DGASoporte.Models.Enumeradores;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Dynamic;
@@ -22,8 +24,8 @@ namespace DGASoporte.Controllers
 
             // Cargar todas las tareas con sus relaciones
             model.Tareas = await _context.Tareas
-                .Include(t => t.Estado)
-                .Include(t => t.Prioridad)
+               // .Include(t => t.Estado)
+               // .Include(t => t.Prioridad)
                 .Include(t => t.Categoria)
                 .Include(t => t.Unidad)
                 .Include(t => t.Tecnico)
@@ -43,13 +45,13 @@ namespace DGASoporte.Controllers
                 .ToListAsync();
 
             // Cargar catálogos
-            model.Estados = await _context.Estados
+         /*   model.Estados = await _context.Estados
                 .OrderBy(e => e.Nombre)
                 .ToListAsync();
 
             model.Prioridades = await _context.Prioridades
                 .OrderBy(p => p.Nombre)
-                .ToListAsync();
+                .ToListAsync();*/
 
             model.Categorias = await _context.Categorias
                 .OrderBy(c => c.Nombre)
@@ -63,12 +65,53 @@ namespace DGASoporte.Controllers
                 .OrderBy(n => n.Nombre)
                 .ToListAsync();
 
-            return View(model);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_tareas", model); // solo el contenido
+
+            return View();
         }
 
-        public IActionResult Privacy()
+        public async Task<IActionResult> Privacy()
         {
-            return View();
+            var vm = new TareaFormVM
+            {
+                FechaCreacion = DateTime.Now,
+                FechaLimite = DateTime.Now.AddDays(7),
+                Estado = EstadoT.EnEspara,  // ajusta valor por defecto si quieres
+                Prioridad = Prioridad.Media  // idem
+            };
+
+            await CargarCombosAsync(vm);
+            return View(vm);
+        }
+        private async Task CargarCombosAsync(TareaFormVM vm)
+        {
+            vm.Categorias = await _context.Categorias
+                .OrderBy(c => c.Nombre)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Nombre
+                })
+                .ToListAsync();
+
+            vm.Unidades = await _context.Unidades
+                .OrderBy(u => u.Nombre)
+                .Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.Nombre
+                })
+                .ToListAsync();
+
+            vm.Tecnicos = await _context.Tecnicos
+                .OrderBy(t => t.Usuario.NombreCompleto)
+                .Select(t => new SelectListItem
+                {
+                    Value = t.Id.ToString(),
+                    Text = t.Usuario.NombreCompleto
+                })
+                .ToListAsync();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

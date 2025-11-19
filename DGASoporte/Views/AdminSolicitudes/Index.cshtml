@@ -1,0 +1,29 @@
+﻿@model IEnumerable<Solicitud>
+
+<h3>Solicitudes pendientes</h3>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Título</th>
+            <th>Usuario</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.FechaCreacion</td>
+                <td>@s.Titulo</td>
+                <td>@s.Usuario?.NombreCompleto</td>
+                <td>
+                    <a asp-action="Evaluar" asp-route-id="@s.Id" class="btn btn-sm btn-primary">
+                        Evaluar
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

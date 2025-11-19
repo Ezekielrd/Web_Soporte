@@ -1,0 +1,66 @@
+﻿@model UsuarioVM
+@{
+    Layout = null;
+}
+<link href="~/css/cardUsaurio.css" rel="stylesheet"  asp-append-version="true"/>
+    <div class="usuario-card">
+        <div class="usuario-card__bar"></div>
+
+        <div class="usuario-card__header">
+            <h3 class="title">Detalle de usuario</h3>
+            <div class="actions">
+            <a asp-action="EditarModal"asp-controller="Usuario"  asp-route-id="@Model.Id" class="usuarioM-btn usuarioM-btn-gd js-modal-link">Editar</a>
+            <a href="#" class="usuarioM-btn usuarioM-btn-cl js-close-modal">Volver</a>
+        </div>
+        </div>
+
+        <div class="usuario-card__body">
+            <dl class="form-section grid-2">
+                <div>
+                    <dt>Usuario</dt>
+                    <dd>@Model.Usher</dd>
+                </div>
+                <div>
+                    <dt>Correo</dt>
+                    <dd>@Model.Email</dd>
+                </div>
+                <div>
+                    <dt>Nombre Completo</dt>
+                    <dd>@Model.NombreCompleto</dd>
+                </div>
+                <div>
+                    <dt>Codigo</dt>
+                    <dd>@Model.Codigo</dd>
+                </div>
+                <div>
+                    <dt>Rol</dt>
+                    <dd>@(Model.RolNombre)</dd>
+                </div>
+                <div>
+                    <dt>Fecha de Creación</dt>
+                    <dd>@Model.FechaCracion.ToString("yyyy-MM-dd")</dd>
+                </div>
+                <div>
+                    <dt>Estado</dt>
+                    <dd>
+                        @if (Model.Activo)
+                        {
+                            <span class="badge bg-success">Activo</span>
+                        }
+                        else
+                        {
+
+                            <span class="badge bg-secondary">Desactivo</span>
+                        }
+                    </dd>
+                </div>
+                <div>
+                    @if (Model.RolId == 2)
+                    {
+                        <dt>Nivel</dt>
+                        <dd>@(Model.NivelNombre)</dd>
+                    }
+                </div>
+            </dl>
+        </div>
+    </div>

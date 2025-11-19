@@ -5,7 +5,7 @@ namespace DGASoporte.Models
     public class LoginVM
     {
         [StringLength(50, MinimumLength = 3)]
-        [Required(ErrorMessage = "Ingrese su Usuario.")]
+        [Required(ErrorMessage = "Ingrese su Usuario o Correo.")]
         [Display(Name = " Tu Usuario o correo")]
         public string UserNameOrEmail { get; set; } = string.Empty;
 

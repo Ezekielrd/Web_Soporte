@@ -9,9 +9,7 @@ namespace DGASoporte.Data
 
         // DbSets
         public DbSet<Tarea> Tareas { get; set; } = default!;
-        public DbSet<Estado> Estados { get; set; } = default!;
         public DbSet<Unidad> Unidades { get; set; } = default!;
-        public DbSet<Prioridad> Prioridades { get; set; } = default!;
         public DbSet<Categoria> Categorias { get; set; } = default!;
         public DbSet<Rol> Roles { get; set; } = default!;
         public DbSet<Usuario> Usuarios { get; set; } = default!;
@@ -20,6 +18,8 @@ namespace DGASoporte.Data
         public DbSet<Comentario> Comentarios { get; set; } = default!;
         public DbSet<Solicitud> Solicitudes { get; set; } = default!;
         public DbSet<TipoIncidencia> TipoIncidencias { get; set; } = default!;
+        public DbSet<TipoServicio> TipoServicios { get; set; } = default!;
+        public DbSet<Asignacion> Asignaciones { get; set; } = default!;
 
 
 
@@ -31,9 +31,7 @@ namespace DGASoporte.Data
             modelBuilder.Entity<Usuario>().ToTable("Usuario");
             modelBuilder.Entity<Tecnico>().ToTable("Tecnico");
             modelBuilder.Entity<Tarea>().ToTable("Tarea");
-            modelBuilder.Entity<Estado>().ToTable("Estado");
             modelBuilder.Entity<Unidad>().ToTable("Unidad");
-            modelBuilder.Entity<Prioridad>().ToTable("Prioridad");
             modelBuilder.Entity<Categoria>().ToTable("Categoria");
             modelBuilder.Entity<Rol>().ToTable("Rol");
             modelBuilder.Entity<Nivel>().ToTable("Nivel");
@@ -105,31 +103,21 @@ namespace DGASoporte.Data
                 e.HasKey(t => t.Id);
 
                 e.Property(t => t.FechaCreacion).HasColumnType("datetime");
-                e.Property(t => t.FechaLimite).HasColumnType("datetime");
+                e.Property(t => t.FechaLimite).HasColumnType("datetime").IsRequired(false);
 
                 e.HasOne(t => t.Tecnico)
                  .WithMany(te => te.TareasAsignadas) // inversa en Tecnico
                  .HasForeignKey(t => t.TecnicoId)
+                 .IsRequired(false)
                  .OnDelete(DeleteBehavior.Restrict)
                  .HasConstraintName("FK_Tarea_TecnicoAsignado");
 
                 e.HasOne(t => t.Categoria)
                  .WithMany(c => c.Tareas)   // inversa en Categoria
                  .HasForeignKey(t => t.CategoriaId)
+                 .IsRequired(true)
                  .OnDelete(DeleteBehavior.Restrict)
                  .HasConstraintName("FK_Tareas_Categoria");
-
-                e.HasOne(t => t.Prioridad)
-                 .WithMany(p => p.Tareas)   // inversa en Prioridad
-                 .HasForeignKey(t => t.PrioridadId)
-                 .OnDelete(DeleteBehavior.Restrict)
-                 .HasConstraintName("FK_Tareas_Prioridad");
-
-                e.HasOne(t => t.Estado)
-                 .WithMany(es => es.Tareas) // inversa en Estado
-                 .HasForeignKey(t => t.EstadoId)
-                 .OnDelete(DeleteBehavior.Restrict)
-                 .HasConstraintName("FK_Tareas_Estado");
 
                 e.HasOne(t => t.Unidad)
                  .WithMany(u => u.Tareas)   // inversa en Unidad

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using DGASoporte.Models.Enumeradores;
 using System.ComponentModel.DataAnnotations;
 
 namespace DGASoporte.Models
@@ -21,8 +21,7 @@ namespace DGASoporte.Models
 
         // Relaciones (Foreign Keys)
         [Required]
-
-        public int UsuarioId { get; set; } // FK al usuario que reporta
+        public int UsuarioId { get; set; } //el usuario que reporta
         public Usuario Usuario { get; set; } = default!;
         [Required]
         public int UnidadId { get; set; }
@@ -31,6 +30,9 @@ namespace DGASoporte.Models
         [Required]
         public int TipoIncidenciaId { get; set; }
         public TipoIncidencia TipoIncidencia { get; set; } = default!;
+        public EstadoS Estado { get; set; }
+        public string? MotivoRechazo { get; set; }
+
 
     }
 }

@@ -1,0 +1,213 @@
+﻿body {
+    background: radial-gradient(circle at top left, #4f46e5 0, #111827 40%, #020617 100%);
+    min-height: 100vh;
+}
+
+.wizard-card {
+    border-radius: 18px;
+    overflow: hidden;
+    border: 0;
+    background: rgba(15, 23, 42, 0.95);
+    color: #e5e7eb;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+}
+
+.wizard-header {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.wizard-icon-circle {
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 0, #a855f7, #4f46e5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 12px;
+}
+
+.wizard-subtitle {
+    font-size: .9rem;
+    color: #9ca3af;
+}
+
+/* Stepper */
+.stepper-wrapper {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    position: relative;
+    /* opcional: un poco de padding arriba para que se vea mejor */
+    padding-top: 0.5rem;
+}
+
+    .stepper-wrapper::before {
+        content: "";
+        position: absolute;
+        /* altura de la línea más o menos a la mitad del círculo */
+        top: 22px; /* prueba 20–24px según cómo lo veas */
+        left: 10%;
+        right: 10%;
+        height: 2px;
+        background: linear-gradient(to right, rgba(148, 163, 184, 0.4), rgba(55, 65, 81, 0.5));
+        /* quitamos el translateY porque ya no usamos 50% */
+        transform: none;
+        z-index: 1;
+    }
+
+
+.stepper-item {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    flex: 1;
+}
+
+.step-counter {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 2px solid rgba(148, 163, 184, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto .3rem;
+    font-size: .9rem;
+    background: #020617;
+    color: #9ca3af;
+    transition: all .25s ease;
+}
+
+.step-name {
+    font-size: .75rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.stepper-item.active .step-counter {
+    border-color: #6366f1;
+    background: radial-gradient(circle at 30% 0, #a855f7, #4f46e5);
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(94, 234, 212, 0.4);
+}
+
+.stepper-item.completed .step-counter {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.stepper-item.active .step-name {
+    color: #e5e7eb;
+}
+
+.stepper-item.completed .step-name {
+    color: #bbf7d0;
+}
+
+/* Form fields */
+.form-label {
+    font-weight: 500;
+    color: #e5e7eb;
+}
+
+.form-control,
+.form-select {
+    background-color: rgba(15, 23, 42, .8);
+    border-color: rgba(148, 163, 184, .5);
+    color: #e5e7eb;
+}
+
+    .form-control:focus,
+    .form-select:focus,
+    .eresumen{
+        background-color: rgba(15, 23, 42, .98);
+        border-color: #6366f1;
+        box-shadow: 0 0 0 .15rem rgba(79, 70, 229, .35);
+        color: #e5e7eb;
+    }
+
+.form-text {
+    color: #9ca3af;
+}
+
+.text-danger {
+    color: #fca5a5 !important;
+}
+
+.invalid-feedback {
+    color: #fecaca;
+}
+
+.tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    border-radius: 999px;
+    padding: .25rem .7rem;
+    font-size: .7rem;
+    background: rgba(148, 163, 184, .15);
+    color: #e5e7eb;
+}
+
+.badge-soft {
+    background: rgba(55, 65, 81, .75);
+    border-radius: 999px;
+    padding: .25rem .75rem;
+    font-size: .7rem;
+    color: #e5e7eb;
+}
+
+.btn-gradient-primary {
+    background: linear-gradient(to right, #6366f1, #a855f7);
+    border: none;
+    color: white;
+}
+
+    .btn-gradient-primary:hover {
+        filter: brightness(1.07);
+        color: white;
+    }
+
+.btn-outline-light {
+    border-color: rgba(148, 163, 184, .7);
+    color: #e5e7eb;
+}
+
+    .btn-outline-light:hover {
+        background-color: rgba(148, 163, 184, .15);
+        color: #f9fafb;
+    }
+
+.form-step {
+    display: none;
+    animation: fadeIn .25s ease-out;
+}
+
+    .form-step.active {
+        display: block;
+    }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Borde ROJO cuando el control es inválido (aplica a input y select) */
+.input-validation-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 .15rem rgba(220,38,38,.08) !important;
+}

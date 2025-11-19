@@ -18,11 +18,11 @@ namespace DGASoporte.Models
         public int UsuarioId { get; set; }
 
         [ForeignKey(nameof(UsuarioId))]
-        public virtual Usuario Usuario { get; set; }
+        public virtual Usuario Usuario { get; set; } = null!;
 
         [Required]
         public int TareaId { get; set; }
-        public virtual Tarea Tarea { get; set; }
+        public virtual Tarea Tarea { get; set; } = null!;
 
     }
 }

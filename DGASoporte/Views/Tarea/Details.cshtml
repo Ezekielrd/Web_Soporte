@@ -7,13 +7,13 @@
 
     var now = DateTime.Now;
 
-    var diasRestantes = (Model.FechaLimite.Date - now.Date).TotalDays;
+    var diasRestantes = (Model.FechaLimite?.Date - now.Date)?.TotalDays;
     var vencimientoClase = diasRestantes < 0 ? "text-danger" : (diasRestantes <= 3 ? "text-warning" : "text-muted");
     var vencimientoTexto = diasRestantes < 0
         ? $"Vencida hace {Math.Abs((int)diasRestantes)} día(s)"
         : (diasRestantes == 0 ? "Vence hoy" : $"Vence en {(int)diasRestantes} día(s)");
 
-    string clsEstado = Model.EstadoNombre?.ToLowerInvariant() switch
+  @*  string clsEstado = Model.EstadoNombre?.ToLowerInvariant() switch
     {
         "pendiente" => "bg-warning text-dark",
         "en progreso" => "bg-info text-dark",
@@ -31,7 +31,7 @@
         "media" => "bg-warning text-dark",
         "baja" => "bg-success",
         _ => "bg-secondary"
-    };
+    };*@ 
 }
 
 <style>
@@ -114,7 +114,7 @@
                         <div class="label-muted mb-1">Título</div>
                         <h3 class="mb-0">@Model.Titulo</h3>
                     </div>
-                    <div class="d-flex flex-wrap gap-2">
+                    @*<div class="d-flex flex-wrap gap-2">
                         @if (!string.IsNullOrWhiteSpace(Model.EstadoNombre))
                         {
                             <span class="meta-chip badge @clsEstado">
@@ -127,7 +127,7 @@
                                 <i class="bi bi-lightning-charge"></i> @Model.PrioridadNombre
                             </span>
                         }
-                    </div>
+                    </div>*@ 
                 </div>
             </div>
 
@@ -141,7 +141,7 @@
                     <div class="col-12 col-md-6">
                         <div class="label-muted">Fecha límite</div>
                         <div class="value-strong">
-                            @Model.FechaLimite.ToLocalTime().ToString("dd/MM/yyyy HH:mm", new CultureInfo("es-NI"))
+                            @Model.FechaLimite?.ToLocalTime().ToString("dd/MM/yyyy HH:mm", new CultureInfo("es-NI"))
                             <span class="@vencimientoClase ms-2 small">(@vencimientoTexto)</span>
                         </div>
                     </div>

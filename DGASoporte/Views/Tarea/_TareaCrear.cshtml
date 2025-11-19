@@ -1,0 +1,177 @@
+﻿@using DGASoporte.Models.Enumeradores
+@model TareaFormVM
+@{
+    Layout = null; // importante: que no meta el layout dentro del modal
+}
+<link href="~/css/cardTarea.css" rel="stylesheet" />
+<div class="wizard-card">
+    <div class="card-body p-4 p-md-4">
+        <div class="wizard-header d-flex align-items-center">
+            <div class="wizard-icon-circle">
+                <i class="bi bi-kanban fs-5"></i>
+            </div>
+            <div>
+                <h3 class="mb-0">Nueva Tarea</h3>
+                <div class="wizard-subtitle">
+                    Completa los pasos para registrar una tarea de soporte.
+                </div>
+            </div>
+            <div class="ms-auto d-none d-md-block">
+                <span class="badge-soft">
+                    <i class="bi bi-shield-check me-1"></i> Soporte Técnico
+                </span>
+            </div>
+        </div>
+
+        <!-- STEPPER -->
+        <div class="stepper-wrapper">
+            <div class="stepper-item active" data-step-indicator="1">
+                <div class="step-counter">1</div>
+                <div class="step-name">INFORMACIÓN</div>
+            </div>
+            <div class="stepper-item" data-step-indicator="2">
+                <div class="step-counter">2</div>
+                <div class="step-name">ASIGNACIÓN</div>
+            </div>
+            <div class="stepper-item" data-step-indicator="3">
+                <div class="step-counter">3</div>
+                <div class="step-name">FECHAS</div>
+            </div>
+            <div class="stepper-item" data-step-indicator="4">
+                <div class="step-counter">4</div>
+                <div class="step-name">RESUMEN</div>
+            </div>
+        </div>
+
+        <form asp-action="Create" method="post" id="wizardForm" data-ajax-tarea="true" novalidate>
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger mb-2"></div>
+
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="RowVersion" type="hidden" />
+            <input asp-for="FechaCreacion" type="hidden" />
+
+            <!-- PASO 1 -->
+            <div class="form-step active" data-step="1">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="CategoriaId" class="form-label"></label>
+                        <select asp-for="CategoriaId" asp-items="Model.Categorias" class="form-select" id="CategoriaId">
+                            <option value="">-- Seleccione Categoria --</option>
+                        </select>
+                        <span asp-validation-for="CategoriaId" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="TipoServicioId" class="form-label"></label>
+                        <select asp-for="TipoServicioId" class="form-select" id="TipoServicioId">
+                            <option value="">-- Seleccione tiposervicio --</option>
+                            @foreach (var tipo in Model.TipoServicos)
+                            {
+                                <option value="@tipo.Id"
+                                        data-categoria-id="@tipo.CategoriaId"
+                                        title="@tipo.Descripcion">
+                                        @tipo.Nombre
+                                </option>
+                            }
+                        </select>
+                        <span asp-validation-for="TipoServicioId" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Titulo" class="form-label"></label>
+                    <input asp-for="Titulo" class="form-control" />
+                    <span asp-validation-for="Titulo" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Descripcion" class="form-label"></label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Descripcion" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- PASO 2 -->
+            <div class="form-step" data-step="2">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Prioridad" class="form-label"></label>
+                        <select asp-for="Prioridad" class="form-select" asp-items="Html.GetEnumSelectList<Prioridad>()">
+                            <option value="">-- Seleccione Prioridad --</option>
+                        </select>
+                        <span asp-validation-for="Prioridad" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="UnidadId" class="form-label"></label>
+                        <select asp-for="UnidadId" asp-items="Model.Unidades" class="form-select">
+                            <option value="">-- Seleccione unidad --</option>
+                        </select>
+                        <span asp-validation-for="UnidadId" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="TecnicoId" class="form-label">Técnico (opcional)</label>
+                        <select asp-for="TecnicoId" asp-items="Model.Tecnicos" class="form-select">
+                            <option value="">-- Sin asignar --</option>
+                        </select>
+                        <span asp-validation-for="TecnicoId" class="text-danger"></span>
+                    </div>
+                </div>            
+            </div>
+
+            <!-- PASO 3 -->
+            <div class="form-step" data-step="3">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="FechaLimite" class="form-label"></label>
+                        <input asp-for="FechaLimite" type="date" class="form-control" />
+                        <span asp-validation-for="FechaLimite" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="FechaAsignacion" class="form-label"></label>
+                        <input asp-for="FechaAsignacion" class="form-control" type="date" />
+                        <span asp-validation-for="FechaAsignacion" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PASO 4 -->
+            <div class="form-step" data-step="4">
+                <h5 class="mb-3">
+                    <i class="bi bi-clipboard2-check me-2"></i> Revisión final
+                </h5>
+                <div class="border rounded-3 p-3 mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <div>
+                            <div class="text-muted small">Título</div>
+                            <div id="resumenTitulo" class="fw-semibold"></div>
+                        </div>
+                        <span class="badge-soft" id="resumenPrioridad"></span>
+                    </div>
+                    <hr class="border-secondary-subtle" />
+                    <div class="small text-muted mb-1">Descripción</div>
+                    <div id="resumenDescripcion" class="small"></div>
+                </div>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-outline-light d-none" id="btnPrev">
+                    <i class="bi bi-arrow-left-circle me-1"></i> Anterior
+                </button>
+
+                <div class="ms-auto d-flex gap-2">
+                    <button type="button" class="btn btn-gradient-primary" id="btnNext">
+                        Siguiente <i class="bi bi-arrow-right-circle ms-1"></i>
+                    </button>
+
+                    <button type="submit" class="btn btn-success d-none" id="btnSubmit">
+                        <i class="bi bi-check2-circle me-1"></i> Guardar tarea
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="application/json" id="tipoServicio-map">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MapTipoDesc))
+</script>

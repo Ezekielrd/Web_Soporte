@@ -1,0 +1,136 @@
+﻿@model IEnumerable<DGASoporte.Models.Usuario>
+@{
+    string q = (string)(ViewBag.Q ?? "");
+}
+<link href="~/css/Usuarios.css" rel="stylesheet" />
+
+<div class="container-fluid">
+    @if (TempData["Ok"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Ok"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error:</strong> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Alert"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <strong>Alerta:</strong> @TempData["Alert"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    <!-- Encabezado + botón agregar -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0 no-select">Usuarios</h3>
+        <a asp-action="Create"
+           asp-controller="Usuario"
+           class="btn btn-success btn-sm js-modal-link">
+            <i class="bi bi-plus-circle"></i> Nuevo usuario
+        </a>
+    </div>
+    <form method="get" class="d-flex align-items-center gap-2 mb-3">
+        <div class="input-group input-group-sm busqueda-compacta">
+            <input name="q" class="form-control" placeholder="Buscar por nombre..." value="@q" />
+            <button class="btn btn-primary" type="submit">Buscar</button>
+        </div>
+        <a class="btn btn-outline-secondary btn-sm" asp-action="Index">Limpiar</a>
+    </form>
+    <!-- Tabla -->
+    <div class="table-responsive">
+        <table class="table table-striped" id="example">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Codigo</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Activo</th>
+                    <th>Bloqueado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    var bloqueado = u.finBloqueo.HasValue && u.finBloqueo > DateTimeOffset.UtcNow;
+
+                    <tr>
+                        <td>@u.Usher</td>
+                        <td>@u.Codigo</td>
+                        <td>@u.Email</td>
+                        <td>@u.Rol?.Nombre</td>
+                        <td class="text-center">
+                            <span class="badge @(u.Activo ? "bg-success" : "bg-secondary")">@(u.Activo ? "Sí" : "No")</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge @(bloqueado ? "bg-danger" : "bg-success")">@(bloqueado ? "Sí" : "No")</span>
+                        </td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-info js-modal-link" asp-action="Details" asp-controller="Usuario" asp-route-id="@u.Id">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                            <a class="btn btn-sm btn-outline-primary js-modal-link" asp-action="Edit" asp-controller="Usuario" asp-route-id="@u.Id">
+                                <i class="bi bi-pencil-square"></i> Editar
+                            </a>
+
+                            <form asp-action="ToggleBloqueo" asp-route-id="@u.Id" method="post" class="d-inline">
+                                <button class="btn btn-sm btn-outline-secondary" type="submit">
+                                    <i class="bi @(bloqueado ? "bi-unlock" : "bi-lock")"></i> @(bloqueado ? "Desbloquear" : "Bloquear")
+                                </button>
+                                @Html.AntiForgeryToken()
+                            </form>
+
+                            <!-- Reset pass rápido con prompt -->
+                            <form asp-action="ResetPassword" asp-route-id="@u.Id" method="post" class="d-inline resetPwdForm">
+                                <input type="hidden" name="newPassword" />
+                                <button type="button" class="btn btn-sm btn-outline-dark" onclick="openResetModal(this)" data-bs-toggle="modal" data-bs-target="#passwordResetModal">
+                                    <i class="bi bi-key"></i> Reset pass
+                                </button>
+                                @Html.AntiForgeryToken()
+                            </form>
+
+                            <a class="btn btn-sm btn-outline-danger js-modal-link" asp-action="Delete" asp-controller="Usuario" asp-route-id="@u.Id">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <i class="bi bi-people"></i>
+                <p>No hay usuarios registrados</p>
+            </div>
+        }
+    </div>
+    <div class="modal fade" id="passwordResetModal" tabindex="-1" aria-labelledby="passwordResetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="passwordResetModalLabel">Restablecer Contraseña</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ingrese la nueva contraseña para el usuario:</p>
+                    <input type="password" class="form-control" id="pwdInput" placeholder="Mínimo 8 caracteres">
+                    <div class="text-danger mt-2 d-none" id="pwdError">Mínimo 6 caracteres requeridos.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitPasswordReset()">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+ </div>

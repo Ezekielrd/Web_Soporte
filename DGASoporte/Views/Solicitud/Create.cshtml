@@ -1,4 +1,5 @@
 ﻿@model DGASoporte.Models.SolicitudVM
+@inject IJsonHelper Json
 
 @{
     ViewData["Title"] = "Crear Solicitud de Incidencia";
@@ -18,33 +19,22 @@
             <div class="col-md-8 mx-auto">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">
+                        <h4 class="mb-0 no-select">
                             <i class="fas fa-plus-circle"></i>
                             Nueva Solicitud de Incidencia
                         </h4>
-                        <span class="badge">Sistema de Tareas</span>
+                        <span class="badge no-select">Sistema de Tareas</span>
                     </div>
                     <div class="card-body">
                         <form id="solicitudForm" asp-action="Create" method="post">
+                            <div asp-validation-summary="All" class="text-danger"></div>
                             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                             @Html.AntiForgeryToken()
                             <div class="row">
-                                <div class="col-md-8">
-                                    <div class="form-group mb-3">
-                                        <label asp-for="Titulo" class="form-label">
-                                            <i class="fas fa-heading text-primary"></i>
-                                            @Html.DisplayNameFor(model => model.Titulo)
-                                        </label>
-                                        <input asp-for="Titulo" class="form-control" placeholder="Ej: Problema con impresora en oficina" maxlength="100" />
-                                        <span asp-validation-for="Titulo" class="text-danger"></span>
-                                        <div class="form-text">
-                                            <span id="titulo-count">0</span>/100 caracteres
-                                        </div>
-                                    </div>
-                                </div>
+                              
                                 <div class="col-md-4">
                                     <div class="form-group mb-3">
-                                        <label asp-for="TipoIncidenciaId" class="form-label">
+                                        <label asp-for="TipoIncidenciaId" class="form-label no-select">
                                             <i class="fas fa-tag text-warning"></i>
                                             @Html.DisplayNameFor(model => model.TipoIncidenciaId)
                                         </label>
@@ -54,24 +44,37 @@
                                         <span asp-validation-for="TipoIncidenciaId" class="text-danger"></span>
                                     </div>
                                 </div>
+                                <div class="col-md-8">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="Titulo" class="form-label no-select">
+                                            <i class="fas fa-heading text-primary"></i>
+                                            @Html.DisplayNameFor(model => model.Titulo)
+                                        </label>
+                                        <input asp-for="Titulo" class="form-control" placeholder="Ej: Problema con impresora en oficina" maxlength="100" />
+                                        <span asp-validation-for="Titulo" class="text-danger"></span>
+                                        <div class="form-text">
+                                            <span id="titulo-count" class="no-select">0</span>/100 caracteres
+                                        </div>
+                                    </div>
+                                 </div>
                             </div>
 
                             <div class="form-group mb-3">
-                                <label asp-for="Descripcion" class="form-label">
+                                <label asp-for="Descripcion" class="form-label no-select">
                                     <i class="fas fa-align-left text-info"></i>
                                     @Html.DisplayNameFor(model => model.Descripcion)
                                 </label>
                                 <textarea asp-for="Descripcion" class="form-control" rows="6" placeholder="Describa detalladamente el problema."></textarea>
                                 <span asp-validation-for="Descripcion" class="text-danger"></span>
                                 <div class="form-text">
-                                    <span id="descripcion-count">0</span> caracteres
+                                    <span id="descripcion-count" class="no-select">0</span> caracteres
                                 </div>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-8">
                                     <div class="form-group mb-3">
-                                        <label asp-for="UnidadId" class="form-label">
+                                        <label asp-for="UnidadId" class="form-label no-select">
                                             <i class="fas fa-building text-success"></i>
                                             @Html.DisplayNameFor(model => model.UnidadId)
                                         </label>
@@ -82,6 +85,8 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <input asp-for="Estado" type="hidden" value="Nueva" />
 
                             <div class="d-flex justify-content-between align-items-center mt-4">
                                 <div>
@@ -148,10 +153,18 @@
 
                                     <div class="row mb-3">
                                         <div class="col-sm-3">
-                                            <strong>Tipo:</strong>
+                                            <strong>TipoInicdencia:</strong>
                                         </div>
                                         <div class="col-sm-9">
                                             <span id="modalTipo" class="text-dark"></span>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Estado</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <span id="modalEstado" class="text-dark"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -219,13 +232,17 @@
                     const unidadSelect = document.getElementById('UnidadId');
                     const unidadTexto = unidadSelect?.options[unidadSelect.selectedIndex]?.text || '';
 
-                    const tipoSelect = document.getElementById('Tipo');
+                    const tipoSelect = document.getElementById('TipoIncidenciaId');
                     const tipoTexto = tipoSelect?.options[tipoSelect.selectedIndex]?.text || '';
+
+                    const estadoElemento = document.getElementById('Estado');
+                    const estadoTexto = estadoElemento?.value || 'N/A';
 
                     document.getElementById('modalTitulo').textContent = titulo;
                     document.getElementById('modalDescripcion').textContent = descripcion;
                     document.getElementById('modalUnidad').textContent = unidadTexto;
                     document.getElementById('modalTipo').textContent = tipoTexto;
+                    document.getElementById('modalEstado').textContent = estadoTexto; 
 
                     // Mostrar modal
                     modal.show();
@@ -241,6 +258,22 @@
                     confirmado = true;
                     form.submit();
                 });
+            })();
+        </script>
+        <script>
+            (function() {
+            const map = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MapTipoDesc));
+            const sel = document.getElementById('TipoIncidenciaId');
+              if (!sel) return;
+
+              Array.from(sel.options).forEach(opt => {
+                const desc = map[opt.value];
+                if (desc) {
+                  opt.title = desc;           // tooltip nativo
+                  opt.dataset.desc = desc;    // útil si luego usas Select2
+                }
+              });
+
             })();
         </script>
     }

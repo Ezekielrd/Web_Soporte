@@ -1,9 +1,6 @@
 ﻿@model TareaFormVM
-@{
-    ViewData["Title"] = "Nueva Tarea";
-}
-<h2>Nueva Tarea</h2>
-<form asp-action="Create" method="post">
+
+<form asp-controller="Tarea" asp-action="Create" method="post">
     <partial name="_Form" model="Model" />
 </form>
 @section Scripts {

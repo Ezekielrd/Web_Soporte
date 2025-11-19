@@ -22,6 +22,32 @@ namespace DGASoporte.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("DGASoporte.Models.Asignacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Modo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TareaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TecnicoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Asignaciones");
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Categoria", b =>
                 {
                     b.Property<int>("Id")
@@ -71,25 +97,6 @@ namespace DGASoporte.Migrations
                     b.ToTable("Comentario", (string)null);
                 });
 
-            modelBuilder.Entity("DGASoporte.Models.Estado", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Nombre");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Estado", (string)null);
-                });
-
             modelBuilder.Entity("DGASoporte.Models.Nivel", b =>
                 {
                     b.Property<int>("Id")
@@ -105,25 +112,6 @@ namespace DGASoporte.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Nivel", (string)null);
-                });
-
-            modelBuilder.Entity("DGASoporte.Models.Prioridad", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("Id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("Nombre");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Prioridad", (string)null);
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Rol", b =>
@@ -163,8 +151,14 @@ namespace DGASoporte.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("MotivoRechazo")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TipoIncidenciaId")
                         .HasColumnType("int");
@@ -202,18 +196,15 @@ namespace DGASoporte.Migrations
                     b.Property<bool>("Archivada")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("CategoriaId")
-                        .HasColumnType("int")
-                        .HasColumnName("CategoriaId");
+                    b.Property<int>("CategoriaId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Descripcion")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)")
-                        .HasColumnName("Descripcion");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("EstadoId")
-                        .HasColumnType("int")
-                        .HasColumnName("EstadoId");
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("FechaActualizacion")
                         .HasColumnType("datetime2");
@@ -222,45 +213,39 @@ namespace DGASoporte.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime")
-                        .HasColumnName("FechaCreacion");
+                        .HasColumnType("datetime");
 
-                    b.Property<DateTime>("FechaLimite")
-                        .HasColumnType("datetime")
-                        .HasColumnName("FechaLimite");
+                    b.Property<DateTime?>("FechaLimite")
+                        .HasColumnType("datetime");
 
-                    b.Property<int>("PrioridadId")
-                        .HasColumnType("int")
-                        .HasColumnName("PrioridadId");
+                    b.Property<int>("Prioridad")
+                        .HasColumnType("int");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
-                    b.Property<int>("TecnicoId")
-                        .HasColumnType("int")
-                        .HasColumnName("TecnicoId");
+                    b.Property<int?>("TecnicoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoServicioId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Titulo")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)")
-                        .HasColumnName("Titulo");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UnidadId")
-                        .HasColumnType("int")
-                        .HasColumnName("UnidadId");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CategoriaId");
 
-                    b.HasIndex("EstadoId");
-
-                    b.HasIndex("PrioridadId");
-
                     b.HasIndex("TecnicoId");
+
+                    b.HasIndex("TipoServicioId");
 
                     b.HasIndex("UnidadId");
 
@@ -294,6 +279,10 @@ namespace DGASoporte.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -301,6 +290,33 @@ namespace DGASoporte.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TipoIncidencias");
+                });
+
+            modelBuilder.Entity("DGASoporte.Models.TipoServicio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoriaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(70)
+                        .HasColumnType("nvarchar(70)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoriaId");
+
+                    b.ToTable("TipoServicios");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Unidad", b =>
@@ -458,28 +474,20 @@ namespace DGASoporte.Migrations
                         .WithMany("Tareas")
                         .HasForeignKey("CategoriaId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
                         .HasConstraintName("FK_Tareas_Categoria");
-
-                    b.HasOne("DGASoporte.Models.Estado", "Estado")
-                        .WithMany("Tareas")
-                        .HasForeignKey("EstadoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_Tareas_Estado");
-
-                    b.HasOne("DGASoporte.Models.Prioridad", "Prioridad")
-                        .WithMany("Tareas")
-                        .HasForeignKey("PrioridadId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("FK_Tareas_Prioridad");
 
                     b.HasOne("DGASoporte.Models.Tecnico", "Tecnico")
                         .WithMany("TareasAsignadas")
                         .HasForeignKey("TecnicoId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
                         .HasConstraintName("FK_Tarea_TecnicoAsignado");
+
+                    b.HasOne("DGASoporte.Models.TipoServicio", "TipoServicio")
+                        .WithMany()
+                        .HasForeignKey("TipoServicioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("DGASoporte.Models.Unidad", "Unidad")
                         .WithMany("Tareas")
@@ -490,11 +498,9 @@ namespace DGASoporte.Migrations
 
                     b.Navigation("Categoria");
 
-                    b.Navigation("Estado");
-
-                    b.Navigation("Prioridad");
-
                     b.Navigation("Tecnico");
+
+                    b.Navigation("TipoServicio");
 
                     b.Navigation("Unidad");
                 });
@@ -518,6 +524,17 @@ namespace DGASoporte.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("DGASoporte.Models.TipoServicio", b =>
+                {
+                    b.HasOne("DGASoporte.Models.Categoria", "Categoria")
+                        .WithMany()
+                        .HasForeignKey("CategoriaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Categoria");
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Usuario", b =>
                 {
                     b.HasOne("DGASoporte.Models.Rol", "Rol")
@@ -534,19 +551,9 @@ namespace DGASoporte.Migrations
                     b.Navigation("Tareas");
                 });
 
-            modelBuilder.Entity("DGASoporte.Models.Estado", b =>
-                {
-                    b.Navigation("Tareas");
-                });
-
             modelBuilder.Entity("DGASoporte.Models.Nivel", b =>
                 {
                     b.Navigation("Tecnicos");
-                });
-
-            modelBuilder.Entity("DGASoporte.Models.Prioridad", b =>
-                {
-                    b.Navigation("Tareas");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Rol", b =>

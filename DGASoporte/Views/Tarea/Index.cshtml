@@ -1,7 +1,6 @@
 ﻿@model IEnumerable<DGASoporte.Models.Tarea>
 @{
     ViewData["Title"] = "Tareas";
-    var filtros = ViewBag.Filtros;
 }
 <!DOCTYPE html>
 <html lang="es">
@@ -79,8 +78,8 @@
                     var rowClass = t.Vencida ? "table-danger" : "";
                     <tr class="@rowClass">
                         <td>@t.Titulo</td>
-                        <td>@t.Estado?.Nombre</td>
-                        <td>@t.Prioridad?.Nombre</td>
+                       @* <td>@t.Estado?.Nombre</td>
+                        <td>@t.Prioridad?.Nombre</td>*@
                         <td>@t.Unidad?.Nombre</td>
                         <td>@t.FechaLimite</td>
                         <td>@(t.Archivada ? "Sí" : "No")</td>

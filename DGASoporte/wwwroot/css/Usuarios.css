@@ -8,50 +8,6 @@ body {
 main, .container, .container-fluid {
     background: transparent;
 }
-.top-bar {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-    .top-bar h1 {
-        color: #1f2937;
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin: 0;
-    }
-
-.top-bar-actions {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
-.btn-new-task {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-    .btn-new-task:hover {
-        background: #4f46e5;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
-    }
 /*encabezado*/
 h3 {
     color: #01337a;
@@ -69,7 +25,7 @@ h3 {
 /* 
    Tabla*/
 /*estilo genral de la tabla*/
-#example {
+#tablaUsuarios {
     border-collapse: collapse;
     border-spacing: 0;
     margin: 0;
@@ -78,7 +34,7 @@ h3 {
     border: 1px solid #ddd;
 }
     /*estilo encabezado*/
-    #example thead th {
+    #tablaUsuarios thead th {
         background: #0360d8;
         color: #fff;
         font-weight: 600;
@@ -97,19 +53,19 @@ h3 {
         }
     /*estilo del cuerpo */
 
-    #example tbody tr {
-        background: #edf0ff !important;
-    }
-    #example tbody td {
-        padding: 0.75rem;
-        border-top: 1px solid #ccacf8;
-        vertical-align: middle;
-    }
-#example tbody tr:hover {
+#tablaUsuarios tbody tr {
+    background: #edf0ff !important;
+}
+#tablaUsuarios tbody td {
+    padding: 0.75rem;
+    border-top: 1px solid #ccacf8;
+    vertical-align: middle;
+}
+#tablaUsuarios tbody tr:hover {
     filter: brightness(0.985);
     transition: filter 0.2s ease;
 }
-.btn-sm {
+.btn-sm-usuario {
     padding: .15rem .50rem;
     border-radius: .4rem;
     font-weight: 600;
@@ -132,4 +88,10 @@ h3 {
 .no-select {
     user-select: none;
     cursor: default;
+}
+.acciones-usuario {
+    gap: 0.25rem 0.5rem; /* vertical | horizontal */
+}
+.btn-success {
+    border-radius: 10px;
 }

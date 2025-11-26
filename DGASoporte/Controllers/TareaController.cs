@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Dynamic;
-using System.Threading;
 
 
 public class TareaController : Controller
@@ -31,14 +30,23 @@ public class TareaController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        dynamic model = new ExpandoObject();
 
-        
+        dynamic model = new ExpandoObject();
+        // DEBUG contadores
+        ViewBag.TotalEF = await _context.Tareas
+            .IgnoreQueryFilters()
+            .CountAsync();
+
+        ViewBag.NoArchivadasEF = await _context.Tareas
+            .IgnoreQueryFilters()
+            .CountAsync(t => !t.Archivada);
+
         // Cargar todas las tareas con sus relaciones
         model.Tareas = await _context.Tareas
+                .IgnoreQueryFilters()
             .Include(t => t.Categoria)
             .Include(t => t.Unidad)
-            .Include(t=>t.TipoServicio)
+            .Include(t => t.TipoServicio)
             .Include(t => t.Tecnico)
             .ThenInclude(te => te.Usuario)
                 .Include(t => t.Tecnico)
@@ -46,6 +54,8 @@ public class TareaController : Controller
             .Where(t => !t.Archivada)
             .OrderByDescending(t => t.FechaCreacion)
             .ToListAsync();
+
+        ViewBag.CantTareasModelo = ((List<Tarea>)model.Tareas).Count;
 
         // Cargar técnicos con sus relaciones
         model.Tecnicos = await _context.Tecnicos
@@ -105,10 +115,11 @@ public class TareaController : Controller
                 TecnicoNombre = t.Tecnico != null ? t.Tecnico.Usuario.NombreCompleto : null,
                 Estado = t.Estado,
                 Prioridad= t.Prioridad,
-                EstadoNombre = EnumExtension.GetDisplayName(t.Estado),
+                EstadoNombre = EnumExtension.GetDisplayName(t.Estado!),
                 PrioridadNombre = EnumExtension.GetDisplayName(t.Prioridad),
                 TipoServicioId = t.TipoServicioId,
                 TipoServicioNombre = t.TipoServicio != null ? t.TipoServicio.Nombre : null,
+                FechaInicioDiagnostico = t.FechaInicioDiagnostico
             })
             .FirstOrDefaultAsync(ct);
 
@@ -137,38 +148,82 @@ public class TareaController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(TareaFormVM vm, CancellationToken ct)
     {
-        // ¿La petición viene desde el modal (fetch)?
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
-        //validar fecha limite
-        if (vm.FechaLimite!=null&&vm.FechaLimite < DateTime.Now.Date)
+
+        const int ID_CATEGORIA_GENERAL = 5; // Soporte General
+
+        // --- Validar fecha límite ---
+        if (vm.FechaLimite != null && vm.FechaLimite < DateTime.Now.Date)
             ModelState.AddModelError(nameof(vm.FechaLimite), "La fecha límite no puede ser anterior a hoy.");
 
-        //validar la existencia de relaciones
-        var existeArea = await _context.Unidades.AnyAsync(a => a.Id == vm.UnidadId, ct);
-        var existeCategoria = await _context.Categorias.AnyAsync(c => c.Id == vm.CategoriaId, ct);
-        var existeTipoServicio = await _context.TipoServicios.AnyAsync(c => c.Id == vm.TipoServicioId, ct);
+        // --- Validar existencia de relaciones básicas ---
+        bool existeArea = await _context.Unidades.AnyAsync(a => a.Id == vm.UnidadId, ct);
+        if (!existeArea)
+            ModelState.AddModelError(nameof(vm.UnidadId), "El área seleccionada no existe.");
 
+        bool existeCategoria = await _context.Categorias.AnyAsync(c => c.Id == vm.CategoriaId, ct);
+        if (!existeCategoria)
+            ModelState.AddModelError(nameof(vm.CategoriaId), "La categoría seleccionada no existe.");
+
+        // --- Validar TipoServicio SOLO si la categoría NO es general ---
+        if (vm.CategoriaId != ID_CATEGORIA_GENERAL)
+        {
+            if (!vm.TipoServicioId.HasValue)
+            {
+                ModelState.AddModelError(nameof(vm.TipoServicioId), "Debe elegir el Tipo de Servicio");
+            }
+            else
+            {
+                bool existeTipoServicio = await _context.TipoServicios
+                    .AnyAsync(c => c.Id == vm.TipoServicioId.Value, ct);
+
+                if (!existeTipoServicio)
+                {
+                    ModelState.AddModelError(nameof(vm.TipoServicioId),
+                        "El tipo de servicio seleccionado no existe.");
+                }
+            }
+        }
+        else
+        {
+            // Categoría general → aseguramos que venga en null
+            vm.TipoServicioId = null;
+        }
+
+        // --- Validación División vs Unidad ---
+        if (vm.UnidadId > 0)
+        {
+            var unidad = await _context.Unidades.FindAsync(vm.UnidadId);
+            if (unidad != null && unidad.DivisionId != null && vm.DivisionId == null)
+            {
+                ModelState.AddModelError(nameof(vm.DivisionId), "Debe elegir la división correspondiente.");
+            }
+        }
+
+        // --- Si hay errores, recargar combos y volver a la vista/partial ---
         if (!ModelState.IsValid)
         {
             await CargarSelects(vm, ct);
+
             if (isAjax)
-            {
                 return PartialView("_TareaCrear", vm);
-            }
+
             return View(vm);
         }
 
-        //mapeo
+        // ================== MAPE0 ENTIDAD ==================
         var entidad = new Tarea
         {
             Titulo = vm.Titulo.Trim(),
             Descripcion = vm.Descripcion.Trim(),
-            FechaCreacion =  DateTime.Now.ToLocalTime(),
+            FechaCreacion = DateTime.Now.ToLocalTime(),
             Prioridad = vm.Prioridad,
             CategoriaId = vm.CategoriaId,
             UnidadId = vm.UnidadId,
             FechaLimite = vm.FechaLimite,
-            TipoServicioId = vm.TipoServicioId,
+            TipoServicioId = (vm.CategoriaId != ID_CATEGORIA_GENERAL)
+                ? vm.TipoServicioId
+                : null
         };
 
         Tecnico? tecnico = null;
@@ -176,14 +231,17 @@ public class TareaController : Controller
         if (vm.TecnicoId.HasValue)
         {
             tecnico = await _context.Tecnicos
-                .Include(x => x.Usuario) // para tener Usuario cargado
+                .Include(x => x.Usuario)
                 .FirstOrDefaultAsync(x => x.Id == vm.TecnicoId.Value, ct);
 
             if (tecnico == null)
             {
-                ModelState.AddModelError("TecnicoId", "El técnico seleccionado no existe.");
-                // volver a llenar combos y retornar la vista
+                ModelState.AddModelError(nameof(vm.TecnicoId), "El técnico seleccionado no existe.");
                 await CargarSelects(vm, ct);
+
+                if (isAjax)
+                    return PartialView("_TareaCrear", vm);
+
                 return View(vm);
             }
 
@@ -191,14 +249,14 @@ public class TareaController : Controller
             entidad.FechaAsignacion = DateTime.Now;
             entidad.Estado = EstadoT.Asignado;
             tecnico.Disponible = false;
-
         }
         else
         {
-            entidad.Estado = EstadoT.Nuevo; // o el que uses por defecto
+            entidad.Estado = EstadoT.Nuevo;
         }
 
         _context.Add(entidad);
+
         try
         {
             await _context.SaveChangesAsync(ct);
@@ -216,33 +274,40 @@ public class TareaController : Controller
 
                 await _notificacionesHub.Clients.All.SendAsync("TaskAssigned", evento);
             }
+
             TempData["Success"] = "La tarea fue creada correctamente.";
+
             if (isAjax)
-            {
                 return Json(new { success = true });
-            }
+
             return RedirectToAction(nameof(Details), new { id = entidad.Id });
         }
         catch (DbUpdateException ex)
         {
             var innerExceptionMessage = ex.InnerException?.Message;
-            ModelState.AddModelError(string.Empty, "No se pudo guardar la tarea. Verifica los datos e intenta nuevamente. Detalle: " + innerExceptionMessage); await CargarSelects(vm, ct);
+            ModelState.AddModelError(string.Empty,
+                "No se pudo guardar la tarea. Verifica los datos e intenta nuevamente. Detalle: " + innerExceptionMessage);
+
+            await CargarSelects(vm, ct);
+
             if (isAjax)
-            {
                 return PartialView("_TareaCrear", vm);
-            }
+
             return View(vm);
         }
         catch (Exception ex)
         {
-            ModelState.AddModelError("", $"Error inesperado: {ex.GetBaseException().Message}");
+            ModelState.AddModelError(string.Empty, $"Error inesperado: {ex.GetBaseException().Message}");
+
+            await CargarSelects(vm, ct);
+
             if (isAjax)
-            {
                 return PartialView("_TareaCrear", vm);
-            }
+
             return View(vm);
         }
     }
+
 
     // GET: /Tareas/Edit/5
     [HttpGet]
@@ -515,21 +580,22 @@ public class TareaController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AsignarAuto(int tareaId)
     {
         var ok = await _asignacionService.AsignarAutoPorTareaAsync(tareaId);
 
-        if (!ok)
-            TempData["Error"] = "No se pudo asignar automáticamente la tarea. Verifica que no tenga técnico y que haya técnicos.";
-        else 
-            TempData["ok"] = "Tarea asignada automáticamente a un técnico.";
-
-
-        return RedirectToAction(nameof(Index));
+        return Json(new
+        {
+            success = ok,
+            message = ok
+                ? "Tarea asignada automáticamente a un técnico."
+                : "No se pudo asignar automáticamente la tarea. Verifica que no tenga técnico y que haya técnicos disponibles."
+        });
     }
-    
+
     private async Task CargarSelects(TareaFormVM vm, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
@@ -541,27 +607,33 @@ public class TareaController : Controller
 
         ct.ThrowIfCancellationRequested();
 
-        vm.TipoServicos = await _context.TipoServicios
-          .OrderBy(t => t.Nombre)
-          .Select(t => new TipoServicioVM
-          {
-              Id = t.Id,
-              Nombre = t.Nombre,
-              CategoriaId = t.CategoriaId,
-              Descripcion = t.Descripcion!  // 👈 si tienes columna Descripcion
-                                           // si no, puedes usar Nombre u otra cosa
-          })
-          .ToListAsync(ct);
+        vm.TiposServicio = await _context.TipoServicios
+             .OrderBy(t => t.Nombre)
+             .AsNoTracking()
+             .ToListAsync(ct);
 
         vm.MapTipoDesc = await _context.TipoServicios
             .ToDictionaryAsync(t => t.Id, t => t.Descripcion!, ct);
 
         ct.ThrowIfCancellationRequested();
 
+        vm.Divisiones = await _context.Divisiones
+             .OrderBy(d => d.Nombre)
+             .Select(d => new SelectListItem
+             {
+                 Value = d.Id.ToString(),
+                 Text = d.Nombre
+             })
+             .ToListAsync(ct);
+
+        ct.ThrowIfCancellationRequested();
+
+        // TODAS las unidades (algunas tendrán DivisionId, otras no)
         vm.Unidades = await _context.Unidades
             .OrderBy(u => u.Nombre)
-            .Select(u => new SelectListItem(u.Nombre, u.Id.ToString()))
+            .AsNoTracking()
             .ToListAsync(ct);
+
 
         ct.ThrowIfCancellationRequested();
 

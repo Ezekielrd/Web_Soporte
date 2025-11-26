@@ -11,6 +11,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>@ViewData["Title"] - Sistema Soporte</title>
     <link href="~/css/Login.css" rel="stylesheet" asp-append-version="true" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
 </head>
 <body>
     <div class="login-contenedor">
@@ -32,6 +34,13 @@
                         <div class="subtitle no-select">Bienvenido al sistema de registro y control de tareas. Ingresa para comenzar.</div>
                     </div>
                 </div>
+                @if (ViewBag.Error != null)
+                {
+                    <div id="loginErrorAlert" class=" error alert alert-danger py-2 px-3 mb-3 small">
+                        <i class="bi bi-exclamation-circle-fill me-1"></i>
+                        @ViewBag.Error
+                    </div>
+                }
 
                 <form method="post" id="loginForm">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
@@ -75,16 +84,29 @@
             </div>
         </div>
     </div>
-    <partial name="_ValidationScriptsPartial" />
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const alert = document.getElementById('loginErrorAlert');
+            if (!alert) return;
 
-    <!-- jQuery Validation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+            // Tiempo que quieres mostrar el mensaje (en milisegundos)
+            const tiempoVisible = 4000; // 4 segundos
 
-    <!-- Unobtrusive Validation (adapter de ASP.NET) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
-   <script src="~/js/cuenta/Error.js"></script>
+            setTimeout(function () {
+                // 1) Aplicamos la clase que hace el fade-out
+                alert.classList.add('fade-out');
+
+                // 2) Después de la animación, lo ocultamos totalmente
+                setTimeout(function () {
+                    alert.style.display = 'none';
+                }, 600); // un poco más que el transition del CSS
+            }, tiempoVisible);
+        });
+    </script>
+    <script src="~/js/cuenta/Error.js"></script>
     <script src="~/js/cuenta/Icono.js"></script>
     <script src="~/js/cuenta/Sacudida.js"></script>
 </body>

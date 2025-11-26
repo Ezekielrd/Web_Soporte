@@ -1,0 +1,55 @@
+﻿@{
+    Layout = null;
+}
+<div class="container-fluid px-4 mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-ticket-perforated-fill"></i> Rechazo Solicitud
+            </h5>
+            <a href="#" class="btn btn-sm btn-light js-close-modal"> <i class="bi bi-arrow-left"></i> Regresar</a>
+        </div>
+        <div class="card-body">
+            <form asp-action="Rechazar" asp-controller="AdminSolicitudes" method="post" id="formRechazo" data-ajax-solicitud="true">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" name="id" value="@ViewBag.SolicitudId" />
+
+                    <div class="mb-2">
+                        <p class="mb-0 small text-muted">
+                            Por favor, indica el motivo del rechazo
+                            @if (ViewBag.Codigo != null)
+                            {
+                                <span>para la solicitud <strong>@ViewBag.Codigo</strong></span>
+                            }
+                            :
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="motivoRechazo" class="form-label fw-semibold">
+                            Motivo de rechazo
+                        </label>
+                        <textarea name="motivoRechazo"
+                                  id="motivoRechazo"
+                                  class="form-control form-control-sm"
+                                  rows="4"
+                                  placeholder="Escribe aquí el motivo del rechazo..."
+                                  style="min-height: 120px; resize: vertical;"></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-2">
+                        <button type="button"
+                                class="btn btn-sm btn-secondary js-close-modal"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            Confirmar rechazo
+                        </button>
+                    </div>
+                </form>
+        </div>
+    </div>
+</div>
+

@@ -34,7 +34,7 @@
         <a asp-action="Create"
            asp-controller="Usuario"
            class="btn btn-success btn-sm js-modal-link">
-            <i class="bi bi-plus-circle"></i> Nuevo usuario
+            <i class="bi bi-plus-circle"></i> Nuevo Usuario
         </a>
     </div>
     <form method="get" class="d-flex align-items-center gap-2 mb-3">
@@ -46,7 +46,7 @@
     </form>
     <!-- Tabla -->
     <div class="table-responsive">
-        <table class="table table-striped" id="example">
+        <table class="table table-striped" id="tablaUsuarios">
             <thead>
                 <tr>
                     <th>Usuario</th>
@@ -75,32 +75,34 @@
                             <span class="badge @(bloqueado ? "bg-danger" : "bg-success")">@(bloqueado ? "Sí" : "No")</span>
                         </td>
                         <td class="text-end">
-                            <a class="btn btn-sm btn-outline-info js-modal-link" asp-action="Details" asp-controller="Usuario" asp-route-id="@u.Id">
-                                <i class="bi bi-eye"></i> Ver
-                            </a>
-                            <a class="btn btn-sm btn-outline-primary js-modal-link" asp-action="Edit" asp-controller="Usuario" asp-route-id="@u.Id">
-                                <i class="bi bi-pencil-square"></i> Editar
-                            </a>
+                            <div class="acciones-usuario d-flex flex-wrap justify-content-end gap-1">
+                                <a class="btn btn-sm btn-outline-info js-modal-link" asp-action="Details" asp-controller="Usuario" asp-route-id="@u.Id">
+                                    <i class="bi bi-eye"></i> Ver
+                                </a>
+                                <a class="btn btn-sm btn-outline-primary js-modal-link" asp-action="Edit" asp-controller="Usuario" asp-route-id="@u.Id">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </a>
 
-                            <form asp-action="ToggleBloqueo" asp-route-id="@u.Id" method="post" class="d-inline">
-                                <button class="btn btn-sm btn-outline-secondary" type="submit">
-                                    <i class="bi @(bloqueado ? "bi-unlock" : "bi-lock")"></i> @(bloqueado ? "Desbloquear" : "Bloquear")
-                                </button>
-                                @Html.AntiForgeryToken()
-                            </form>
+                                <form asp-action="ToggleBloqueo" asp-route-id="@u.Id" method="post" class="d-inline">
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit">
+                                        <i class="bi @(bloqueado ? "bi-unlock" : "bi-lock")"></i> @(bloqueado ? "Desbloquear" : "Bloquear")
+                                    </button>
+                                    @Html.AntiForgeryToken()
+                                </form>
 
-                            <!-- Reset pass rápido con prompt -->
-                            <form asp-action="ResetPassword" asp-route-id="@u.Id" method="post" class="d-inline resetPwdForm">
-                                <input type="hidden" name="newPassword" />
-                                <button type="button" class="btn btn-sm btn-outline-dark" onclick="openResetModal(this)" data-bs-toggle="modal" data-bs-target="#passwordResetModal">
-                                    <i class="bi bi-key"></i> Reset pass
-                                </button>
-                                @Html.AntiForgeryToken()
-                            </form>
+                                <!-- Reset pass rápido con prompt -->
+                                <form asp-action="ResetPassword" asp-route-id="@u.Id" method="post" class="d-inline resetPwdForm">
+                                    <input type="hidden" name="newPassword" />
+                                    <button type="button" class="btn btn-sm btn-outline-dark" onclick="openResetModal(this)" data-bs-toggle="modal" data-bs-target="#passwordResetModal">
+                                        <i class="bi bi-key"></i> Reset pass
+                                    </button>
+                                    @Html.AntiForgeryToken()
+                                </form>
 
-                            <a class="btn btn-sm btn-outline-danger js-modal-link" asp-action="Delete" asp-controller="Usuario" asp-route-id="@u.Id">
-                                <i class="bi bi-trash"></i> Eliminar
-                            </a>
+                                <a class="btn btn-sm btn-outline-danger js-modal-link" asp-action="Delete" asp-controller="Usuario" asp-route-id="@u.Id">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 }

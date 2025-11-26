@@ -76,9 +76,13 @@ namespace DGASoporte.Controllers
         }
 
         // GET: Usuarios/Create
-        public async Task<IActionResult> Create(CancellationToken ct)
+        public async Task<IActionResult> Create(int? rolId, CancellationToken ct)
         {
             var vm = new UsuarioVM { Activo = true };
+            if (rolId != null)
+            {
+                vm.RolId = rolId;
+            }
             await CargarCombosAsync(vm, ct);
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {

@@ -34,7 +34,7 @@
 }
 
 .btn-new-task {
-    background: var(--primary-color);
+    background: #0b0f5b;
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -48,15 +48,15 @@
 }
 
     .btn-new-task:hover {
-        background: #4f46e5;
-        transform: translateY(-2px);
+        background: #171d8e;
+        transform: translate(-12px,-10px);
         box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
     }
 
 /* Dashboard Stats */
 .dashboard-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -170,19 +170,23 @@
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 1rem;
 }
-
-.tech-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-    padding: 1.25rem;
-    color: white;
-    transition: transform 0.3s;
-    cursor: pointer;
-}
-
-    .tech-card:hover {
-        transform: translateY(-5px);
+    .technicians-grid:hover > :not(:hover) {
+        opacity: 0.3;
+        filter: blur(2px);
     }
+
+    .tech-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 1.25rem;
+        color: white;
+        transition: transform 0.3s;
+        cursor: pointer;
+    }
+
+        .tech-card:hover {
+            transform: translateY(-5px) scale(1, 1);
+        }
 
     .tech-card.available {
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -384,7 +388,10 @@
     background: #dbeafe;
     color: #1e40af;
 }
-
+.priority-critica {
+    background: #f95f4f;
+    color: #6f1809;
+}
 .task-status {
     display: inline-flex;
     align-items: center;
@@ -650,4 +657,13 @@
     .empty-state i {
         font-size: 4rem;
         margin-bottom: 1rem;
+    }
+.btn-primary {
+    background: #0b0f5b;
+    color: #fff;
+    border-radius: 10px;
+}
+    .btn-primary:hover {
+        background: #171d8e;
+        transform: translateY(-5px)
     }

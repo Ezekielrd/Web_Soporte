@@ -1,6 +1,5 @@
 ﻿// wwwroot/js/usuarios.js
 (function (window) {
-
     function initSwitchActivo(root) {
         root = root || document;
 
@@ -137,7 +136,7 @@
         });
     }
 
-     async function initUsuarioDeleteForm(root) {
+    async function initUsuarioDeleteForm(root) {
         root = root || document;
 
         const form = root.querySelector('form[data-ajax-delete-usuario="true"]');
@@ -183,7 +182,49 @@
         });
     }
 
+    function initUsuarioDataTable(root) {
+        root = root || document;
+        console.log('[Usuarios] initTablaUusuarios llamado en root:', root);
 
+        if (!$.fn.DataTable) {
+            console.error('[Usuarios] DataTables no está cargado');
+            return;
+        }
+
+        const tabla = root.querySelector('#tablaUsuarios');
+        if (!tabla) {
+            console.warn('[Usuarios] No se encontró la tabla de usuarios en este root', root);
+            return;
+        }
+
+        const $tabla = $(tabla);
+
+        if ($.fn.DataTable.isDataTable($tabla)) {
+            $tabla.DataTable().destroy();
+        }
+
+        const dt = $tabla.DataTable({
+            searching: false,
+            stripeClasses: [],  
+            paging: true,
+            info: true,
+            lengthChange: true,
+            dom:
+                "<'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            language: {
+                url: "https://cdn.datatables.net/plug-ins/1.13.8/i18n/es-ES.json",
+            },
+            pageLength: 10,
+            lengthMenu: [5, 10, 25, 50],
+            columnDefs: [
+                { orderable: false, targets: -1 }
+            ]
+        });
+
+        console.log('[Usuarios] DataTable inicializado correctamente');
+    }
 
     function initUsuarioForm(root) {
         initSwitchActivo(root);
@@ -191,7 +232,7 @@
         initPasswordEye(root);
         initUsuarioAjaxForm(root);
         initUsuarioDeleteForm(root);  
-
+        initUsuarioDataTable(root);
 
         if (window.Usuarios && typeof window.Usuarios.initPasswordEdicion === 'function') {
             window.Usuarios.initPasswordEdicion(root);

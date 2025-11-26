@@ -211,3 +211,44 @@
     border-color: #dc2626 !important;
     box-shadow: 0 0 0 .15rem rgba(220,38,38,.08) !important;
 }
+.resumen-card {
+    background: #0b1220; /* fondo oscuro similar al modal */
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+    .resumen-card h6 {
+        color: #f9fafb;
+    }
+
+    .resumen-card p,
+    .resumen-card .small {
+        color: #e5e7eb;
+    }
+
+    .resumen-card hr {
+        border-color: rgba(148, 163, 184, 0.35);
+    }
+
+/* Si quieres suavizar aún más la badge de prioridad */
+.badge-soft {
+    background: rgba(34, 197, 94, 0.15); /* verde suave por defecto */
+    color: #bbf7d0;
+    font-size: 0.75rem;
+}
+
+    /* Puedes cambiar color según prioridad con clases extra */
+    .badge-soft.alta {
+        background: rgba(248, 113, 113, 0.2);
+        color: #fecaca;
+    }
+
+    .badge-soft.media {
+        background: rgba(250, 204, 21, 0.18);
+        color: #fef08a;
+    }
+
+    .badge-soft.baja {
+        background: rgba(52, 211, 153, 0.18);
+        color: #a7f3d0;
+    }

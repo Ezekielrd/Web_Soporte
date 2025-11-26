@@ -24,11 +24,11 @@ builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(opt =>
     {
-        opt.LoginPath = "/Cuenta/Login";              // ruta de login
-        opt.LogoutPath = "/Cuenta/Logout";      // ruta de logout
-        opt.AccessDeniedPath = "/Cuenta/Denied";
-        opt.SlidingExpiration = true;
-        opt.ExpireTimeSpan = TimeSpan.FromHours(8);
+        opt.LoginPath = "/Cuenta/Login";         //Ruta a la que se redirige si el usuario no está autenticado
+        opt.LogoutPath = "/Cuenta/Logout";      // Ruta para cerrar sesión
+        opt.AccessDeniedPath = "/Cuenta/Denied";// Ruta para acceso denegado
+        opt.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Tiempo de expiración de la cookie
+        opt.SlidingExpiration = true;   // Renueva el tiempo de expiración si el usuario está activo
     });
 builder.Services.AddAuthorization();
 

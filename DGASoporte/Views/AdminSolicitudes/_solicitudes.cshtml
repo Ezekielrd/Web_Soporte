@@ -1,0 +1,83 @@
+﻿@using DGASoporte.Models.Enumeradores
+@model IEnumerable<Solicitud>
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Gestión de Solicitudes de Soporte";
+}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Error:</strong> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+<div class="container-fluid px-4 mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 no-select"><i class="bi bi-ticket-perforated"></i> Bandeja de Solicitudes</h4>
+            <span id="countBadge" class="badge bg-light text-primary fs-6">@Model.Count()</span>
+        </div>
+
+        <div class="card-body no-select">
+            <table id="tablaSolicitudes" class="table table-striped table-hover w-100">
+                <thead class="table-light">
+                    <tr>
+                        <th>Título</th>
+                        <th>Usuario</th>
+                        <th>Unidad</th>
+                        <th>Tipo</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr data-id="@s.Id">
+                            <td class="text-truncate" style="max-width:180px;" title="@s.Titulo">@s.Titulo</td>
+                            <td>@s.Usuario.NombreCompleto</td>
+                            <td>@s.Unidad.Nombre</td>
+                            <td>@s.TipoIncidencia.Nombre</td>
+                            <td>@s.FechaCreacion.ToString("g")</td>
+                            <td>
+                                @{
+                                    var badge = s.Estado switch
+                                    {
+                                        EstadoS.EnEspera => "warning",
+                                        EstadoS.Enviada => "info",
+                                        EstadoS.Aprobada => "success",
+                                        EstadoS.Rechazada => "danger",
+                                        _ => "secondary"
+                                    };
+                                }
+                                <span class="badge bg-@badge estado-badge">@s.Estado</span>
+                            </td>
+                            <td class="text-end d-flex gap-2">
+                                <a class="btn btn-sm btn-outline-primary js-modal-link" asp-action="Details" asp-route-id="@s.Id" title="Ver"><i class="bi bi-eye"></i></a>
+                                <form asp-action="Aprobar" method="post">
+                                    <input type="hidden" name="id" value="@s.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-success d-inline" title="Aprobar">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </button>
+                                    @Html.AntiForgeryToken()
+                                </form>
+                                <a href="@Url.Action("Rechazar", "AdminSolicitudes", new { id = s.Id })"
+                                   class="btn btn-sm btn-outline-danger js-modal-link"
+                                   data-title="Rechazar solicitud" title="Rechazar">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </a>
+
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

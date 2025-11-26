@@ -36,17 +36,18 @@ namespace DGASoporte.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginVM vm, string? returnUrl = null)
         {
-            if (!ModelState.IsValid)
-                return View(vm);
 
             var entrada = (vm.UserNameOrEmail ?? "").Trim().ToLowerInvariant();
             var pwd = (vm.Password ?? "").Trim();
-
+            // Si vienen vacíos -> mensaje propio
             if (string.IsNullOrWhiteSpace(entrada) || string.IsNullOrWhiteSpace(pwd))
             {
-                ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
+                ViewBag.Error = "Usuario o contraseña obligatorios.";
                 return View(vm);
             }
+            // Validaciones de DataAnnotations, etc.
+            if (!ModelState.IsValid)
+                return View(vm);
 
             bool esEmail = entrada.Contains('@');
 
@@ -55,20 +56,40 @@ namespace DGASoporte.Controllers
                 .FirstOrDefaultAsync(u =>
                     esEmail ? u.Email.ToLower() == entrada : u.Usher.ToLower() == entrada);
 
-            if (usuario is null || !usuario.Activo || (usuario.Bloqueado))
+            // Usuario no existe / inactivo / bloqueado -> mensaje propio
+            if (usuario is null || !usuario.Activo || usuario.Bloqueado)
             {
-                ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
+                ViewBag.Error = "Usuario o contraseña incorrectos.";
                 return View(vm);
             }
+            const int MAX_INTENTOS = 5;
+            const int MINUTOS_BLOQUEO = 15;
 
-            // ✅ Usa orden estándar (password, hash, salt)
+            // Si está bloqueado por tiempo
+            if (usuario.finBloqueo != null && usuario.finBloqueo > DateTime.Now)
+            {
+                ViewBag.Error = "Tu cuenta está bloqueada temporalmente. Intenta más tarde.";
+                return View(vm);
+            }
             var ok = PasswordHasher.Verificar(pwd, usuario.PasswordHash, usuario.PasswordSalt);
             if (!ok)
             {
-                ModelState.AddModelError(string.Empty, "Credenciales inválidas.");
+                usuario.AccesoFallado++;
+
+                if (usuario.AccesoFallado >= MAX_INTENTOS)
+                {
+                    usuario.finBloqueo = DateTime.Now.AddMinutes(MINUTOS_BLOQUEO);
+                    //usuario.Bloqueado = true;
+                }
+
+                await _context.SaveChangesAsync();
+
+                ViewBag.Error = "Usuario o contraseña incorrectos.";
                 return View(vm);
             }
-
+            usuario.AccesoFallado = 0;
+            usuario.finBloqueo = null;
+         
             // Crear claims
             var claims = new List<Claim>
             {
@@ -84,7 +105,10 @@ namespace DGASoporte.Controllers
             var props = new AuthenticationProperties
             {
                 IsPersistent = vm.RememberMe,
-                AllowRefresh = true
+                AllowRefresh = true,
+                ExpiresUtc = vm.RememberMe
+                    ? DateTimeOffset.UtcNow.AddDays(7)   // recuerdame → 7 días
+                    : DateTimeOffset.UtcNow.AddMinutes(30)
             };
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, props);
@@ -111,7 +135,7 @@ namespace DGASoporte.Controllers
         [AllowAnonymous]
         public IActionResult Denied()
         {
-            return View(); // Crea vista simple con mensaje “Acceso denegado”
+            return View();
         }
 
         private IActionResult RedirectByRole(string? roleName)

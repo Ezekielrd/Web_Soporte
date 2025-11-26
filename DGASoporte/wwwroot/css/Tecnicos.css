@@ -206,20 +206,30 @@ body {
     color: white;
 }
 
+/* ESTADOS DE TAREA */
 .badge-estado-pendiente {
     background: #ffc107;
     color: #333;
 }
 
-.badge-estado-proceso {
+/* Coincide con ToString().ToLower() = "enproceso" */
+.badge-estado-enproceso {
     background: #0dcaf0;
     color: white;
 }
 
-.badge-estado-completado {
+/* Si en tu enum usas "Resuelta" */
+.badge-estado-resuelta {
     background: #198754;
     color: white;
 }
+
+/* Nuevo estado: Asignado */
+.badge-estado-asignado {
+    background: #6f42c1; /* morado bonito, puedes cambiarlo */
+    color: white;
+}
+
 
 .badge-vencida {
     background: var(--danger-color);

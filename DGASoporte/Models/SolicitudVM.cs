@@ -33,7 +33,10 @@ namespace DGASoporte.Models
         public int UnidadId { get; set; }
 
         public string? UnidadNombre { get; set; } = default!;
-        public IEnumerable<SelectListItem> Unidades { get; set; } = [];
+        [Display(Name = "Division de Procedencia")]
+        public int? DivisionId { get; set; }
+        public string? DivisionNombre { get; init; }
+
         [Required(ErrorMessage = "El TipoIncidencia es obligatoria.")]
         [Display(Name = "Tipo de Incidencia")]
 
@@ -46,7 +49,8 @@ namespace DGASoporte.Models
         public EstadoS Estado { get; set; }
         public string? MotivoRechazo { get; set; }
 
-
+        public IEnumerable<SelectListItem> Divisiones { get; set; } = Enumerable.Empty<SelectListItem>();
+        public List<Unidad> Unidades { get; set; } = new();
 
     }
 }

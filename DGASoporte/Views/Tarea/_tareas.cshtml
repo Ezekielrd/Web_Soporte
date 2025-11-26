@@ -1,4 +1,5 @@
 ﻿@model dynamic
+@using DGASoporte.Models.Enumeradores;
 @{
     Layout = null;
     ViewData["Title"] = "Administración de Tareas";
@@ -13,7 +14,7 @@
 <link href="~/css/Principal.css" rel="stylesheet" asp-append-version="true" />
 
 <!-- Stats -->
-<div class="dashboard-stats">
+<div class="dashboard-stats no-select">
     <div class="stat-box primary">
         <div class="stat-content">
             <div class="stat-info">
@@ -62,19 +63,19 @@
 </div>
 
 <!-- Técnicos -->
-<div class="technicians-panel">
+<div class="technicians-panel no-select">
     <div class="panel-header">
         <h2><i class="bi bi-people"></i> Técnicos Disponibles</h2>
-        <button class="btn-new-task" style="font-size:.85rem;padding:.5rem 1rem">
+        <a href="@Url.Action("Create", "Usuario", new { rolId = 2 })" class="btn-new-task js-modal-link" style="font-size:.85rem;padding:.5rem 1rem">
             <i class="bi bi-person-plus"></i> Agregar Técnico
-        </button>
+        </a>
     </div>
     <div class="technicians-grid">
         @foreach (var tecnico in tecnicos)
         {
             var tareasAsignadas = tareas.Count(t => t.TecnicoId == tecnico.Id && !t.Archivada);
-            var tareasCompletadas = tareas.Count(t => t.TecnicoId == tecnico.Id && t.Estado?.ToString().ToLower() == "Cerrado");
-            var tareasPendientes = tareas.Count(t => t.TecnicoId == tecnico.Id && t.Estado?.ToString().ToLower() != "Cerrado" && !t.Archivada);
+            var tareasCompletadas = tareas.Count(t => t.TecnicoId == tecnico.Id && t.Estado?.GetDisplayName()=="Resuelta");
+            var tareasPendientes = tareas.Count(t => t.TecnicoId == tecnico.Id && t.Estado?.GetDisplayName() == "En Proceso");
             var statusClass = tareasAsignadas == 0 ? "available" : (tareasAsignadas > 5 ? "overloaded" : "busy");
             <div class="tech-card @statusClass" data-tech-id="@tecnico.Id">
                 <div class="tech-header">
@@ -86,11 +87,19 @@
                             <i class="bi bi-award"></i> @tecnico.Nivel?.Nombre
                         </p>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge @(tecnico.Disponible ? "bg-success" : "bg-warning")" style="font-size:.6rem">
-                                @(tecnico.Disponible ? "Disponible" : "No disponible")
+                            @{
+                                // 1. Contar las tareas NO archivadas y asignar a una variable
+                                var tareasActivas = tecnico.TareasAsignadas.Count(t => !t.Archivada);
+                                // 2. Determinar la condición: Disponible si NO tiene tareas activas (tareasActivas == 0)
+                                var estaDisponible = (tareasActivas == 0);
+                            }
+
+                            <span class="badge @(estaDisponible ? "bg-success" : "bg-warning")" style="font-size:.6rem">
+                                @(estaDisponible ? "Disponible" : "No disponible")
                             </span>
+
                             <span class="badge bg-primary" style="font-size:.6rem">
-                                @tecnico.TareasAsignadas.Count(t => !t.Archivada) tareas
+                                @tareasActivas tareas
                             </span>
                         </div>
                     </div>
@@ -111,153 +120,194 @@
         }
     </div>
 </div>
-
-<!-- Filtros -->
+<!--filtros-->
 <div class="filters-panel">
     <div class="filters-row">
-        <div class="filter-group">
-            <label><i class="bi bi-search"></i> Buscar</label>
-            <input type="text" id="searchTask" class="filter-input" placeholder="Buscar por título...">
-        </div>
+        <!-- Técnico -->
         <div class="filter-group">
             <label><i class="bi bi-person"></i> Técnico</label>
             <select id="filterTecnico" class="filter-input">
                 <option value="">Todos los técnicos</option>
                 @foreach (var t in tecnicos)
                 {
-                    <option value="@t.Id">@t.Usuario.NombreCompleto (@t.Nivel?.Nombre)</option>
+                    <option value="@t.Id">@t.Usuario.NombreCompleto</option>
                 }
             </select>
         </div>
-      @*  <div class="filter-group">
+
+        <!-- Estado -->
+        <div class="filter-group">
             <label><i class="bi bi-circle-fill"></i> Estado</label>
             <select id="filterEstado" class="filter-input">
                 <option value="">Todos los estados</option>
-                @foreach (var e in estados)
+                @foreach (EstadoT e in Enum.GetValues(typeof(EstadoT)))
                 {
-                    <option value="@e.Nombre.ToLower()">@e.Nombre</option>
+                    var value = e.ToString().ToLower(); 
+                   <option value="@value">@e.GetDisplayName()</option>
                 }
             </select>
         </div>
+
+        <!-- Prioridad -->
         <div class="filter-group">
             <label><i class="bi bi-flag"></i> Prioridad</label>
             <select id="filterPrioridad" class="filter-input">
                 <option value="">Todas las prioridades</option>
-                @foreach (var p in prioridades)
+                @foreach (Prioridad p in Enum.GetValues(typeof(Prioridad)))
                 {
-                    <option value="@p.Nombre.ToLower()">@p.Nombre</option>
+                    var value = p.ToString().ToLower();
+                    <option value="@value">@p.GetDisplayName()</option>
                 }
             </select>
-        </div>*@
+        </div>
+
+        <!-- Categoria -->
+        <div class="filter-group">
+            <label><i class="bi-list"></i> Categoria</label>
+            <select id="filterCategoria" class="filter-input">
+                <option value="">Todas las Categorias</option>
+                @foreach (var c in categorias)
+                {
+                    <option value="@c.Id">@c.Nombre</option>
+                }
+            </select>
+        </div>
     </div>
+
     <div class="quick-filters">
-        <button class="quick-filter-btn active" data-filter="all">Todas</button>
-        <button class="quick-filter-btn" data-filter="vencidas">Vencidas</button>
-        <button class="quick-filter-btn" data-filter="alta-prioridad">Alta Prioridad</button>
-        <button class="quick-filter-btn" data-filter="sin-asignar">Sin Asignar</button>
-        <button class="quick-filter-btn" data-filter="hoy">Vencen Hoy</button>
+        <button class="quick-filter-btn active" data-filter="all" type="button">Todas</button>
+        <button class="quick-filter-btn" data-filter="vencidas" type="button">Vencidas</button>
+        <button class="quick-filter-btn" data-filter="sin-asignar" type="button">Sin Asignar</button>
+        <button class="quick-filter-btn" data-filter="hoy" type="button">Vencen Hoy</button>
     </div>
 </div>
 
+
+
 <!-- Tabla -->
-<div class="tasks-panel">
+<div class="tasks-panel no-select">
     <div class="panel-header">
         <h2><i class="bi bi-table"></i> Gestión de Tareas</h2>
         <div>
-            <a href="@Url.Action("Create", "Tarea")" "
+            <a href="@Url.Action("Create", "Tarea")"
                class="btn btn-primary btn-sm js-modal-link">
-                Nueva Tarea
+                <i class="bi-check2-square"></i> Nueva Tarea
             </a>
         </div>
     </div>
-    <div style="overflow-x:auto">
-        <table class="tasks-table" id="tasksTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Título</th>
-                    <th>Prioridad</th>
-                    <th>Estado</th>
-                    <th>Técnico</th>
-                    <th>Unidad</th>
-                    <th>Fecha Límite</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var tarea in tareas.OrderByDescending(t => t.FechaCreacion))
-                {
-                    var prioridadClass = tarea.Prioridad.ToString().ToLower() ?? "baja";
-                    var estadoClass = tarea.Estado?.ToString().ToLower() ?? "pendiente";
-                    <tr class="task-row"
-                        data-task-id="@tarea.Id"
-                        data-prioridad="@prioridadClass"
-                        data-estado="@estadoClass"
-                        data-tecnico="@tarea.TecnicoId"
-                        data-fecha="@tarea.FechaLimite?.ToString("yyyy-MM-dd")"
-                        data-titulo="@tarea.Titulo.ToLower()"
-                        data-vencida="@tarea.Vencida.ToString().ToLower()">
-                        <td><strong>#@tarea.Id</strong></td>
-                        <td>
-                            <div class="task-title-cell">@tarea.Titulo</div>
-                            @if (tarea.Vencida)
-                            {
-                                <span class="task-overdue"><i class="bi bi-exclamation-circle"></i> VENCIDA</span>
-                            }
-                        </td>
-                        <td>
-                            <span class="task-priority priority-@prioridadClass">
-                                <i class="bi bi-flag-fill"></i> @tarea.Prioridad
-                            </span>
-                        </td>
-                        <td>
-                            <span class="task-status status-@estadoClass">
-                                <i class="bi bi-circle-fill"></i> @tarea.Estado
-                            </span>
-                        </td>
-                        <td>
-                            @if (tarea.Tecnico != null)
-                            {
-                                <div class="tech-badge">
-                                    <div class="tech-avatar-small">
-                                        @tarea.Tecnico.Usuario.NombreCompleto.Substring(0, 1).ToUpper()
-                                    </div>
-                                    @tarea.Tecnico.Usuario.NombreCompleto
-                                </div>
-                            }
-                            else
-                            {
 
-                                <span class="text-muted">Sin asignar</span>
-                            }
-                        </td>
-                        <td>@tarea.Unidad?.Nombre</td>
-                        <td>
-                            <div>@tarea.FechaLimite:dd/MM/yyyy</div>
-                            <small class="text-muted">@tarea.FechaLimite:HH:mm</small>
-                        </td>
-                        <td>
-                            <div class="action-btns">
-                                <a class="btn-action details js-modal-link" title="Detelle" asp-action="Details" asp-controller="Tarea" asp-route-id="@tarea.Id"> <i class="bi-card-text"></i></a>
-                                <a class="btn-action edit js-modal-link" title="Editar" asp-action="Edit" asp-controller="Tarea" asp-route-id="@tarea.Id"><i class="bi bi-pencil"></i></a>
-                                <a class="btn-action assign js-modal-link" title="Asignar" asp-action="Asignar" asp-controller="Tarea" asp-route-id="@tarea.Id"><i class="bi bi-person-plus"></i></a>
-                                <a class="btn-action delete js-modal-link" title="Eliminar" asp-action="Delete" asp-controller="Tarea" asp-route-id="@tarea.Id"><i class="bi bi-trash"></i></a>
-                            </div>
-                        </td>
+    <div style="overflow-x:auto">
+        <div class="table-responsive">
+            <table class="tasks-table table-striped" id="tablaTareas">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th>Técnico</th>
+                        <th>Unidad</th>
+                        <th>Categoria</th>
+                        <th>Fecha Creacion</th>
+                        <th>Acciones</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-        @if (!tareas.Any())
-        {
-            <div class="empty-state">
-                <i class="bi bi-inbox"></i>
-                <h3>No hay tareas registradas</h3>
-                <p>Crea una nueva tarea para comenzar</p>
-            </div>
-        }
+                </thead>
+                <tbody>
+                    @foreach (var tarea in tareas.OrderByDescending(t => t.FechaCreacion))
+                    {
+                        var prioridadClass = tarea.Prioridad.ToString().ToLower() ?? "baja";
+                        var estadoClass = tarea.Estado?.ToString().ToLower() ?? "pendiente";
+
+                        <tr class="task-row"
+                            data-prioridad="@prioridadClass"
+                            data-estado="@estadoClass"
+                            data-tecnico="@tarea.TecnicoId"
+                            data-categoria="@tarea.CategoriaId"
+                            data-unidad="@tarea.UnidadId"
+                            data-titulo="@tarea.Titulo.ToLower()"
+                            data-creacion="@tarea.FechaCreacion.ToString().ToLower()"
+                            data-vencida="@(tarea.Vencida ? "true" : "false")">
+                            
+                            <td>
+                                <div class="task-title-cell">@tarea.Titulo</div>
+                                @if (tarea.Vencida)
+                                {
+                                    <span class="task-overdue">
+                                        <i class="bi bi-exclamation-circle"></i> Vencida
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                <span class="task-priority priority-@prioridadClass">
+                                    <i class="bi bi-flag-fill"></i> @tarea.Prioridad.GetDisplayName()
+                                </span>
+                            </td>
+                            <td>
+                                <span class="task-status status-@estadoClass">
+                                    <i class="bi bi-circle-fill"></i> @tarea.Estado?.GetDisplayName()
+                                </span>
+                            </td>
+                            <td>
+                                @if (tarea.Tecnico != null)
+                                {
+                                    <div class="tech-badge">
+                                        <div class="tech-avatar-small">
+                                            @tarea.Tecnico.Usuario.NombreCompleto.Substring(0, 1).ToUpper()
+                                        </div>
+                                        @tarea.Tecnico.Usuario.NombreCompleto
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Sin asignar</span>
+                                }
+                            </td>
+                            <td>@tarea.Unidad?.Nombre</td>
+                            <td>@tarea.Categoria?.Nombre</td>
+                            <td>
+                                <div>@tarea.FechaCreacion</div>
+                                <small class="text-muted">@tarea.FechaLimite</small>
+                            </td>
+                            <td>
+                                <div class="action-btns">
+                                    <a class="btn-action details js-modal-link"
+                                       title="Detalle"
+                                       asp-action="Details" asp-controller="Tarea" asp-route-id="@tarea.Id">
+                                        <i class="bi-card-text"></i>
+                                    </a>
+                                    <a class="btn-action edit js-modal-link"
+                                       title="Editar"
+                                       asp-action="Edit" asp-controller="Tarea" asp-route-id="@tarea.Id">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a class="btn-action assign js-modal-link"
+                                       title="Asignar"
+                                       asp-action="Asignar" asp-controller="Tarea" asp-route-id="@tarea.Id">
+                                        <i class="bi bi-person-plus"></i>
+                                    </a>
+                                    <a class="btn-action delete js-modal-link"
+                                       title="Eliminar"
+                                       asp-action="Delete" asp-controller="Tarea" asp-route-id="@tarea.Id">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (!tareas.Any())
+            {
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h3>No hay tareas registradas</h3>
+                    <p>Crea una nueva tarea para comenzar</p>
+                </div>
+            }
+        </div>
     </div>
-</div>  
+</div>
+
 <!-- Modal de Confirmación de Eliminación -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

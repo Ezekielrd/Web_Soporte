@@ -195,10 +195,20 @@
                             <span asp-validation-for="CategoriaId" class="text-danger"></span>
                         </div>
 
-                        <div class="col-12 col-md-6">
+                        <div class="col-md-6" id="grupoUnidad">
                             <label asp-for="UnidadId" class="form-label"></label>
-                            <select asp-for="UnidadId" asp-items="Model.Unidades" class="form-select">
-                                <option value="">Seleccione el área...</option>
+                            <select asp-for="UnidadId" class="form-select" id="UnidadId">
+                                <option value="">-- Seleccione unidad --</option>
+
+                                @* Cada unidad lleva data-division con su DivisionId (o vacío si no tiene) *@
+                                @foreach (var u in Model.Unidades)
+                                {
+                                    var divisionId = u.DivisionId.HasValue ? u.DivisionId.Value.ToString() : "";
+                                    <option value="@u.Id"
+                                            data-division="@divisionId">
+                                        @u.Nombre
+                                    </option>
+                                }
                             </select>
                             <span asp-validation-for="UnidadId" class="text-danger"></span>
                         </div>

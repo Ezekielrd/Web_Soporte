@@ -64,11 +64,10 @@ namespace DGASoporte.Controllers
 
             // Calcular estadísticas
             ViewBag.TotalSolicitudes = solicitudes.Count;
-            ViewBag.NuevasSolicitudes = solicitudes.Count(s => s.Estado == EstadoS.Nueva);
             ViewBag.EnEsperaSolicitudes = solicitudes.Count(s => s.Estado == EstadoS.EnEspera);
             ViewBag.AprobadaSolicitudes = solicitudes.Count(s => s.Estado == EstadoS.Aprobada);
             ViewBag.RechazadaSolicitudes = solicitudes.Count(s => s.Estado == EstadoS.Rechazada);
-            ViewBag.EnTareaSolicitudes = solicitudes.Count(s => s.Estado == EstadoS.ConvertidaEnTarea);
+            ViewBag.EnviadaSolicitud = solicitudes.Count(s => s.Estado == EstadoS.Enviada);
 
             // Cargar datos para filtros
             //cargar tipos de incidencias
@@ -134,7 +133,24 @@ namespace DGASoporte.Controllers
             };
 
             _context.Solicitudes.Add(entidad);
+
+            var noti = new Notificacion
+            {
+                UsuarioId = User.GetRequiredUserId(),
+                Tipo = "SolicitudInicidencia",
+                Titulo = "Nueva solicitud de soporte",
+                Mensaje = $"{User.GetUserName} - {vm.Titulo}",
+                UrlDestino = $"/Home/Index",
+                FechaCreacion = DateTime.Now,
+                Leida = false
+            };
+
+            _context.Notificaciones.Add(noti);
             await _context.SaveChangesAsync();
+            // Enviar a todos los admins conectados
+            await _notificacionesHub
+                .Clients.Group("admins")
+                .SendAsync("SolicitudCreada", noti);
 
             TempData["ok"] = "Solicitud registrada con éxito.";
             return RedirectToAction(nameof(Index));
@@ -144,10 +160,22 @@ namespace DGASoporte.Controllers
         {
             ct.ThrowIfCancellationRequested();
 
+            vm.Divisiones = await _context.Divisiones
+            .OrderBy(d => d.Nombre)
+            .Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.Nombre
+            })
+            .ToListAsync(ct);
+
+            ct.ThrowIfCancellationRequested();
+
+            // TODAS las unidades (algunas tendrán DivisionId, otras no)
             vm.Unidades = await _context.Unidades
                 .OrderBy(u => u.Nombre)
-                .Select(u => new SelectListItem { Value = u.Id.ToString(), Text = u.Nombre })
-                .ToListAsync();
+                .AsNoTracking()
+                .ToListAsync(ct);
 
             ct.ThrowIfCancellationRequested();
 

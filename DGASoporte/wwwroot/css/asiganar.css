@@ -1,0 +1,76 @@
+﻿
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.card-modern {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    max-width: 600px;
+    margin: auto;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.form-select {
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    transition: border-color 0.3s;
+}
+
+    .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 12px;
+    padding: 0.5rem 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+    }
+
+.btn-secondary {
+    border-radius: 12px;
+    padding: 0.5rem 1.5rem;
+}
+
+.badge-custom {
+    background-color: #ffc107;
+    color: #212529;
+    font-size: 0.85rem;
+    padding: 0.4em 0.6em;
+    border-radius: 10px;
+}
+
+.auto-btn {
+    margin-top: 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+}
+

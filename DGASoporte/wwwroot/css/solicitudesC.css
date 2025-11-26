@@ -1,0 +1,148 @@
+﻿.no-select {
+    user-select: none;
+    cursor: default;
+}
+h1 {
+    color: #0b0f5b;
+}
+.tarjetas > [class*="col-"] {
+    margin-bottom: 0.75rem;
+}
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 768px) {
+    .tarjetas .card-body {
+        padding: 0.75rem 1rem;
+    }
+
+    .tarjetas h4.card-title {
+        font-size: 1.1rem;
+    }
+
+    .tarjetas .card-text {
+        font-size: 0.8rem;
+    }
+
+    .tarjetas i {
+        font-size: 1.4rem !important;
+    }
+}
+/* Wrapper general de la card de solicitudes */
+.tabla-solicitudes-wrapper .card-header {
+    border-bottom: 1px solid #edf0ff;
+}
+
+.tabla-solicitudes-wrapper h5 {
+    color: #0b0f5b;
+}
+
+/* Tabla */
+#tablaSolicitud {
+    table-layout: fixed;
+    width: 100%;
+}
+
+    /* Encabezado */
+    #tablaSolicitud thead th {
+        background: #0360d8;
+        color: #fff;
+        font-weight: 600;
+        vertical-align: middle;
+        padding: 0.45rem 0.75rem;
+        text-align: left;
+        border-bottom: none;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+    }
+
+        /* Bordes redondeados en el header */
+        #tablaSolicitud thead th:first-child {
+            border-top-left-radius: .55rem;
+        }
+
+        #tablaSolicitud thead th:last-child {
+            border-top-right-radius: .55rem;
+        }
+
+    /* Filas */
+    #tablaSolicitud tbody tr {
+        background: #f6f7ff;
+        transition: background-color 0.15s ease, transform 0.05s ease;
+    }
+
+        #tablaSolicitud tbody tr:nth-child(even) {
+            background: #edf0ff;
+        }
+
+        #tablaSolicitud tbody tr:hover {
+            background: #e1e6ff;
+        }
+
+    /* Celdas */
+    #tablaSolicitud tbody td {
+        padding: 0.45rem 0.75rem;
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+
+    /* Anchos de columnas */
+    #tablaSolicitud .col-titulo {
+        width: 18%;
+    }
+
+    #tablaSolicitud .col-descripcion {
+        width: 32%;
+    }
+
+    #tablaSolicitud .col-unidad {
+        width: 16%;
+    }
+
+    #tablaSolicitud .col-tipo {
+        width: 12%;
+    }
+
+    #tablaSolicitud .col-estado {
+        width: 10%;
+    }
+
+    #tablaSolicitud .col-fecha {
+        width: 12%;
+    }
+
+    #tablaSolicitud .col-acciones {
+        width: 10%;
+    }
+
+/* Descripción a dos líneas máximo */
+.texto-2-lineas {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Botones de acción compactos */
+#tablaSolicitud .btn-accion {
+    padding: 0.15rem 0.45rem;
+    font-size: 0.78rem;
+    border-radius: .45rem;
+}
+
+/* Badge de tipo/estado más redondito */
+#tablaSolicitud .badge {
+    font-weight: 500;
+}
+/* Filtros de solicitudes */
+#filtrosSolicitudes .form-label {
+    margin-bottom: .15rem;
+}
+
+#filtrosSolicitudes .form-select-sm,
+#filtrosSolicitudes .form-control-sm {
+    border-radius: .5rem;
+}
+
+#filtrosSolicitudes .form-check-input {
+    cursor: pointer;
+}

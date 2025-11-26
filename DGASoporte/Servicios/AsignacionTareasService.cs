@@ -18,13 +18,7 @@
             _notificacionesHub = notificacionesHub;
 
         }
-        // 🔹 Helper: contar tareas activas de un técnico
-        private int ContarTareasActivas(Tecnico t)
-        {
-            return t.TareasAsignadas
-                .Count(ta => ta.Estado != EstadoT.Resuelta && !ta.Archivada);
-        }
-
+       
         // 🔹 Helper: recalcular disponibilidad (Disponible = true si no tiene tareas activas)
         public async Task ActualizarDisponibilidadTecnicoAsync(int tecnicoId)
         {
@@ -34,7 +28,8 @@
 
             if (tecnico == null) return;
 
-            var activas = ContarTareasActivas(tecnico);
+            var activas = tecnico.TareasAsignadas.Count(ta => ta.Estado != EstadoT.Resuelta && !ta.Archivada);
+
             tecnico.Disponible = activas == 0;
 
             _context.Tecnicos.Update(tecnico);
@@ -48,14 +43,15 @@
         /// </summary>
         public async Task<Tecnico?> ObtenerTecnicoParaAsignarAsync()
         {
-            // 1️⃣ Técnicos disponibles
+            // 1️⃣ Técnicos disponibles primero
             var tecnicoDisponible = await _context.Tecnicos
                 .Include(t => t.TareasAsignadas)
                 .Where(t => t.Disponible)
                 .Select(t => new
                 {
                     Tecnico = t,
-                    TareasActivas = ContarTareasActivas(t)
+                    TareasActivas = t.TareasAsignadas
+                        .Count(ta => ta.Estado != EstadoT.Resuelta && !ta.Archivada)
                 })
                 .OrderBy(x => x.TareasActivas)
                 .ThenBy(x => x.Tecnico.NivelId)
@@ -72,7 +68,8 @@
                 .Select(t => new
                 {
                     Tecnico = t,
-                    TareasActivas = ContarTareasActivas(t)
+                    TareasActivas = t.TareasAsignadas
+                        .Count(ta => ta.Estado != EstadoT.Resuelta && !ta.Archivada)
                 })
                 .OrderBy(x => x.TareasActivas)
                 .ThenBy(x => x.Tecnico.NivelId)
@@ -82,6 +79,7 @@
 
             return tecnicoFallback;
         }
+
 
         /// <summary>
         /// Busca la siguiente tarea libre (sin técnico), ordenada por prioridad y antigüedad.

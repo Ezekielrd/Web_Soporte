@@ -1,0 +1,325 @@
+﻿@using DGASoporte.Models.Enumeradores
+@model TareaFormVM
+@{
+    ViewData["Title"] = $"Tarea #{Model.Id}";
+    var prioridadColor = Model.Prioridad switch
+    {
+        Prioridad.Baja => ("bg-success", "text-white"),
+        Prioridad.Media => ("bg-warning", "text-dark"),
+        Prioridad.Alta => ("bg-danger", "text-white"),
+        _ => ("bg-secondary", "text-white")
+    };
+}
+<link href="~/css/detalleTarea.css" rel="stylesheet" />
+<div class="container py-4 animate-fade">
+    <!-- HEADER -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header d-flex justify-content-between align-items-center @prioridadColor.Item1 @prioridadColor.Item2">
+                    <h4 class="mb-0"><i class="bi bi-ticket-perforated-fill"></i> @Model.Titulo</h4>
+                    <span class="badge @prioridadColor.Item1 @prioridadColor.Item2 fs-6">@Model.PrioridadNombre</span>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3 fs-5">@Model.Descripcion</p>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-3">
+                            <small class="text-muted">Creada</small>
+                            <div class="fw-semibold">@Model.FechaCreacion.ToString("g")</div>
+                        </div>
+                        @if (Model.FechaAsignacion.HasValue)
+                        {
+                            <div class="col-md-3">
+                                <small class="text-muted">Asignada</small>
+                                <div class="fw-semibold">@Model.FechaAsignacion.Value.ToString("g")</div>
+                            </div>
+                        }
+                        @if (Model.FechaLimite.HasValue)
+                        {
+                            <div class="col-md-3">
+                                <small class="text-muted">Límite</small>
+                                <div class="fw-semibold text-danger">@Model.FechaLimite.Value.ToString("d")</div>
+                            </div>
+                        }
+                        @if (Model.FechaActualizacion.HasValue)
+                        {
+                            <div class="col-md-3">
+                                <small class="text-muted">Actualizada</small>
+                                <div class="fw-semibold">@Model.FechaActualizacion.Value.ToString("g")</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARDS CLASIFICACIÓN / PERSONAS / ESTADO -->
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card shadow-sm rounded-4 h-100">
+                <div class="card-header bg-light"><h6 class="mb-0"><i class="bi bi-diagram-3"></i> Clasificación</h6></div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between"><span>Categoría</span><span class="fw-semibold">@Model.CategoriaNombre</span></li>
+                    @if (!string.IsNullOrEmpty(Model.TipoServicioNombre))
+                    {
+                        <li class="list-group-item d-flex justify-content-between"><span>Tipo Servicio</span><span class="fw-semibold">@Model.TipoServicioNombre</span></li>
+                    }
+                    <li class="list-group-item d-flex justify-content-between"><span>Área</span><span class="fw-semibold">@Model.UnidadNombre</span></li>
+                    @if (!string.IsNullOrEmpty(Model.DivisionNombre))
+                    {
+                        <li class="list-group-item d-flex justify-content-between"><span>División</span><span class="fw-semibold">@Model.DivisionNombre</span></li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm rounded-4 h-100">
+                <div class="card-header bg-light"><h6 class="mb-0"><i class="bi bi-people"></i> Personas</h6></div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between"><span>Solicitante</span><span class="fw-semibold">@Model.UsuarioNombre</span></li>
+                    @if (!string.IsNullOrEmpty(Model.TecnicoNombre))
+                    {
+                        <li class="list-group-item d-flex justify-content-between"><span>Técnico</span><span class="fw-semibold">@Model.TecnicoNombre</span></li>
+                    }
+                    else
+                    {
+                        <li class="list-group-item text-warning"><i class="bi bi-exclamation-triangle"></i> Sin técnico asignado</li>
+                    }
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card shadow-sm rounded-4 h-100">
+                <div class="card-header bg-light"><h6 class="mb-0"><i class="bi bi-info-circle"></i> Estado</h6></div>
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h3><span class="badge bg-secondary fs-4">@Model.EstadoNombre</span></h3>
+                    @if (Model.Archivada)
+                    {
+                        <span class="badge bg-dark mt-2">Archivada</span>
+                    }
+                    <div id="cronometroData"
+                         data-estado="@Model.Estado"
+                         data-inicio="@Model.FechaInicioDiagnostico?.ToString("yyyy-MM-ddTHH:mm:ss")"
+                         data-base="@Model.TiempoInvertido.TotalSeconds"
+                         style="display:none;"></div>
+
+                    <h5 class="mb-0" id="tiempoLabel">
+                        @Model.TiempoInvertido.ToString(@"hh\:mm\:ss")
+                    </h5>
+                    <small class="text-muted">Tiempo invertido</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HISTORIAL RÁPIDO 
+    if (Model.Historial.Any())
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm rounded-4">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-clock-history"></i> Historial reciente</span>
+                        <a asp-action="HistorialCompleto" asp-route-id="Model.Id" class="btn btn-sm btn-link">Ver todo</a>
+                    </div>
+                    <div class="card-body" style="max-height:300px; overflow-y:auto;">
+                        foreach (var h in Model.Historial.Take(5))
+                        {
+                            <div class="border-start border-3 border-info ps-3 mb-2">
+                                <small class="text-muted">h.FechaHora.ToString("g")</small><br>
+                                <span class="fw-semibold">h.Usuario.NombreCompleto</span>: h.Texto
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+-->
+
+    <!-- ACCIONES -->
+    <div class="row mt-5">
+        <div class="col-12 d-flex justify-content-between flex-wrap gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver al listado</a>
+            <div class="d-flex gap-2">
+                @if (Model.Estado == EstadoT.Asignado && Model.TecnicoId != null)
+                {
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalDiagnostico">
+                        <i class="bi bi-play-fill"></i> Iniciar diagnóstico
+                    </button>
+                }
+                @if (Model.Estado == EstadoT.EnProceso)
+                {
+                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalPausar">
+                        <i class="bi bi-pause-fill"></i> Pausar
+                    </button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalFinalizar"><i class="bi bi-check-circle"></i> Finalizar</button>
+                }
+                @if (Model.Estado != EstadoT.Escalado)
+                {
+                    <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalEscalar"><i class="bi bi-exclamation-triangle"></i> Escalar</button>
+                }
+                <!-- Botón Reanudar (solo si está Pausado) -->
+                @if (Model.Estado == EstadoT.Pausado)
+                {
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalReanudar">
+                        <i class="bi bi-play-fill"></i> Reanudar
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALES -->
+<!-- Modal Diagnóstico Inicial -->
+<div class="modal fade" id="modalDiagnostico" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="formDiagnostico" method="post" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="modal-content rounded-4">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-stethoscope"></i> Diagnóstico inicial</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label asp-for="DiagnosticoInicial" class="form-label">Describa el diagnóstico inicial <span class="text-danger">*</span></label>
+                    <textarea asp-for="DiagnosticoInicial" class="form-control" rows="4" required></textarea>
+                    <span asp-validation-for="DiagnosticoInicial" class="text-danger"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar e iniciar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Modal Pausar -->
+<div class="modal fade" id="modalPausar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="formPausar" asp-action="Pausar" method="post" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="modal-content rounded-4">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="bi bi-pause-circle"></i> Pausar tarea</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="motivoPausa" class="form-label">Motivo de la pausa <span class="text-danger">*</span></label>
+                    <textarea id="motivoPausa" name="motivo" class="form-control" rows="4" required placeholder="Ej. Esperando repuesto, usuario no disponible…"></textarea>
+                    <div class="invalid-feedback">Este campo es obligatorio.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">Pausar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Finalizar -->
+<div class="modal fade" id="modalFinalizar" tabindex="-1">
+    <div class="modal-dialog">
+        <form asp-action="Finalizar" method="post" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="modal-content rounded-4">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-check-circle"></i> Finalizar tarea</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="solucion" class="form-label">Solución aplicada</label>
+                    <textarea id="solucion" name="solucion" class="form-control" rows="4" required placeholder="Describe la solución…"></textarea>
+                    <div class="invalid-feedback">Este campo es obligatorio.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar y cerrar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Modal Reanudar -->
+<div class="modal fade" id="modalReanudar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="formReanudar" method="post" asp-action="Reanudar">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="modal-content rounded-4">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-play-fill"></i> Reanudar tarea</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="motivoReanudar" class="form-label">Motivo de reanudación (opcional)</label>
+                    <textarea id="motivoReanudar" name="motivo" class="form-control" rows="3" placeholder="Ej. Usuario disponible, repuesto llegó..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Reanudar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<!-- Escalar -->
+<div class="modal fade" id="modalEscalar" tabindex="-1">
+    <div class="modal-dialog">
+        <form asp-action="Escalar" method="post" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <div class="modal-content rounded-4">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Escalar tarea</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="motivoEscalar" class="form-label">Motivo de escalado</label>
+                    <textarea id="motivoEscalar" name="motivo" class="form-control" rows="4" required placeholder="Ej. Requiere permisos de admin…"></textarea>
+                    <div class="invalid-feedback">Por favor ingresa un motivo.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Escalar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script>
+        $('#formDiagnostico').on('submit', function (e) {
+            e.preventDefault(); // evita envío normal
+
+            if (!this.checkValidity()) {
+                this.classList.add('was-validated');
+                return;
+            }
+
+            const url = '@Url.Action("IniciarDiagnostico", "Tecnico")';
+            const data = $(this).serialize(); // id + diagnosticoInicial + token
+
+            $.post(url, data)
+                .done(function () {
+                    // Redirige al index después de guardar
+                    window.location.href = '@Url.Action("Index", "Tecnico")';
+                })
+                .fail(function () {
+                    alert('Error al guardar el diagnóstico.');
+                });
+        });
+    </script>
+    <script src="~/js/tecnico/Cronometro.js" asp-append-version="true"></script>
+    <script src="~/js/tecnico/Pausar.js" asp-append-version="true"></script>
+    <script src="~/js/tecnico/Reanudar.js" asp-append-version="true"></script>
+
+}

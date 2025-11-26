@@ -5,7 +5,7 @@ namespace DGASoporte.Models.Enumeradores
 {
     public static class EnumExtension
     {
-       public static string GetDisplayName(Enum enumValue)
+       public static string GetDisplayName( this Enum enumValue)
         {
         
             if (enumValue == null) return "No definido";

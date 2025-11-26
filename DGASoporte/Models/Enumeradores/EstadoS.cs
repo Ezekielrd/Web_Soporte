@@ -4,12 +4,13 @@ namespace DGASoporte.Models.Enumeradores
 {
     public enum EstadoS
     {
-        [Display(Name = "Pendiente")]
-        Nueva = 0,
-        Enviada = 1,     
-        Aprobada = 2,  
-        Rechazada = 3, 
+        [Display(Name = "Enviada")]
+        Enviada = 1,
+        [Display(Name = "Aprovada")]
+        Aprobada = 2,
+        [Display(Name = "Rechazada")]
+        Rechazada = 3,
+        [Display(Name = "En Revision")]
         EnEspera = 4,
-        ConvertidaEnTarea = 5
     }
 }

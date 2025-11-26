@@ -100,12 +100,33 @@
                         <div class="form-step" data-step="2">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label asp-for="UnidadId" class="form-label"></label>
-                                    <select asp-for="UnidadId" asp-items="Model.Unidades" class="form-select">
-                                        <option value="">-- Seleccione unidad --</option>
+                                    <label asp-for="DivisionId" class="form-label"></label>
+                                    <select asp-for="DivisionId"
+                                            asp-items="Model.Divisiones"
+                                            class="form-select" id="DivisionId">
+                                        <option value="">-- Seleccione división --</option>
                                     </select>
-                                    <span asp-validation-for="UnidadId" class="invalid-feedback"></span>
+                                    <span asp-validation-for="DivisionId" class="text-danger"></span>
                                 </div>
+
+                                <div class="col-md-6" id="grupoUnidad">
+                                    <label asp-for="UnidadId" class="form-label"></label>
+                                    <select asp-for="UnidadId" class="form-select" id="UnidadId">
+                                        <option value="">-- Seleccione unidad --</option>
+
+                                        @* Cada unidad lleva data-division con su DivisionId (o vacío si no tiene) *@
+                                        @foreach (var u in Model.Unidades)
+                                        {
+                                            var divisionId = u.DivisionId.HasValue ? u.DivisionId.Value.ToString() : "";
+                                            <option value="@u.Id"
+                                                    data-division="@divisionId">
+                                                @u.Nombre
+                                            </option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="UnidadId" class="text-danger"></span>
+                                </div>
+
                                 <div class="col-md-6">
                                     <label asp-for="TecnicoId" class="form-label">Técnico (opcional)</label>
                                     <select asp-for="TecnicoId" asp-items="Model.Tecnicos" class="form-select">

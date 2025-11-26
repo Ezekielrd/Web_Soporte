@@ -20,6 +20,10 @@ namespace DGASoporte.Data
         public DbSet<TipoIncidencia> TipoIncidencias { get; set; } = default!;
         public DbSet<TipoServicio> TipoServicios { get; set; } = default!;
         public DbSet<Asignacion> Asignaciones { get; set; } = default!;
+        public DbSet<Notificacion> Notificaciones { get; set; } = default!;
+        public DbSet<Division> Divisiones { get; set; } = default!;
+
+
 
 
 
@@ -124,6 +128,8 @@ namespace DGASoporte.Data
                  .HasForeignKey(t => t.UnidadId)
                  .OnDelete(DeleteBehavior.Restrict)
                  .HasConstraintName("FK_Tarea_Unidad");
+
+
             });
         }
     }

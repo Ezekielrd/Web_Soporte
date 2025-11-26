@@ -7,11 +7,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Panel Administrador"]</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <title>Panel Administrador</title>
+    <link href="~/css/librerias/sweetalert2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+          crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <link href="~/css/Home.css" rel="stylesheet" />
 </head>
 <body>
@@ -33,19 +36,19 @@
             </button>
         </div>
         <nav class="sidebar-menu">
-            <a href="#" class="menu-item active" data-view="Tareas" data-url="@Url.Action("Index", "Tarea")">
+            <a href="#" class="menu-item active" data-view="Tareas" data-url="@Url.Action("Index", "Tarea")"title="Tareas">
                 <i class="bi-list-task"></i><span>Tareas</span>
             </a>
             <a href="#" class="menu-item" data-view="Dashboard">
                 <i class="i bi-grid-fill"></i><span>Dashboard</span>
             </a>
-            <a href="#" class="menu-item" data-view="Usuarios" data-url="@Url.Action("Index", "Usuario")">
+            <a href="#" class="menu-item" data-view="Usuarios" data-url="@Url.Action("Index", "Usuario")" title="Usuarios">
                 <i class="bi bi-people-fill"></i><span>Usuarios</span>
             </a>
-            <a href="#" class="menu-item" data-view="Reportes">
+          <!-- <a href="#" class="menu-item" data-view="Reportes">
                 <i class="bi bi-bar-chart-fill"></i><span>Reportes</span>
-            </a>
-            <a href="#" class="menu-item" data-view="Solicitudes" data-url="@Url.Action("Index", "AddminSolicitudes")">
+              </a>-->
+            <a href="#" class="menu-item" data-view="Solicitudes" data-url="@Url.Action("Index", "AdminSolicitudes")"title="Solicitudes">
                 <i class="bi-envelope-fill"></i><span>Solicitudes</span>
             </a>
         </nav>
@@ -54,15 +57,21 @@
     <!-- Contenido -->
     <main class="main-content" id="mainContent">
         <div class="top-bar">
-            <h1><i class="bi bi-speedometer2"></i> Panel de Administración</h1>
+            <h1 class="no-select"><i class="bi bi-speedometer2"></i> Panel de Administración</h1>
+
             <div class="top-bar-actions">
-                <div class="header-actions">
-                    <span class="badge text-bg-light">
+                <div class="header-actions d-flex align-items-center gap-2">
+
+                    <!-- Reloj -->
+                    <span class="badge text-bg-light no-select">
                         <i class="bi bi-calendar-event"></i>
                         <span id="reloj-header"></span>
                     </span>
 
-                    <button class="btn btn-outline-secondary btn-sm position-relative" id="btnNotificaciones">
+                    <!-- Campana con badge -->
+                    <button class="btn btn-outline-secondary btn-sm position-relative"
+                            id="btnNotificaciones"
+                            type="button">
                         <i class="bi bi-bell"></i>
                         <span id="badge-solicitudes"
                               class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
@@ -92,158 +101,33 @@
     </div>
 
     <!-- Scripts -->
-        <script src="~/lib/jquery/dist/jquery.min.js"></script>
-        <partial name="_ValidationScriptsPartial" />
+    <!-- jQuery y validación DESDE wwwroot/lib -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+        <!--datatable-->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <link rel="stylesheet"
+          href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
+    <script src="~/js/tareas.js" asp-append-version="true"></script>
+
+        <!--boostrap-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            const sidebar = document.getElementById('sidebar');
-            const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+       
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 
-            btnToggleSidebar?.addEventListener('click', () => {
-                const isCollapsed = sidebar.classList.toggle('collapsed');
+        <script src="~/js/librerias/sweetalert2@11.js"></script>
 
-                const icon = btnToggleSidebar.querySelector('i');
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-double-left', !isCollapsed);
-                    icon.classList.toggle('bi-chevron-double-right', isCollapsed);
-                }
-            });
-            //CARGA DE VISTAS DINÁMICAS
-            const viewContainer = document.getElementById('view-container');
-            const menuItems = document.querySelectorAll('.menu-item');
-
-            menuItems.forEach(item => {
-                item.addEventListener('click', async (e) => {
-                    e.preventDefault();
-
-                    menuItems.forEach(x => x.classList.remove('active'));
-                    item.classList.add('active');
-
-                    const url = item.dataset.url;
-                    if (!url) return;
-
-                    try {
-                        viewContainer.innerHTML = `
-                            <div class="d-flex justify-content-center align-items-center py-5">
-                                <div class="spinner-border" role="status">
-                                    <span class="visually-hidden">Cargando...</span>
-                                </div>
-                            </div>`;
-
-                        const response = await fetch(url, {
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        });
-
-                        const html = await response.text();
-                        viewContainer.innerHTML = html;
-                    } catch (err) {
-                        console.error(err);
-                        viewContainer.innerHTML = `
-                            <div class="alert alert-danger mt-3">
-                                Ocurrió un error al cargar la sección.
-                            </div>`;
-                    }
-                });
-            });
-                document.addEventListener('DOMContentLoaded', () => {
-                const viewContainer = document.getElementById('view-container');
-                const activeItem = document.querySelector('.menu-item.active'); // normalmente Tareas
-
-                // Solo si el contenedor está vacío y hay un item activo con URL
-                if (viewContainer && activeItem && activeItem.dataset.url && viewContainer.innerHTML.trim() === '') {
-                    activeItem.click(); // dispara el mismo flujo AJAX que cuando haces clic
-                }
-            });
-                  // modal
-        // variables globales para que usuarios.js / tareas.js puedan usarlas
-        window.appModalElement = document.getElementById('appModal');
-        window.appModalBody    = document.getElementById('appModalBody');
-        window.appModal        = appModalElement ? new bootstrap.Modal(appModalElement) : null;
-
-        // Delegación para cualquier enlace/botón con .js-modal-link
-        document.addEventListener('click', async (e) => {
-            const link = e.target.closest('.js-modal-link');
-            if (!link) return;
-
-            e.preventDefault();
-
-            const url = link.getAttribute('href') || link.dataset.url;
-            if (!url) return;
-
-            try {
-                const response = await fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-
-                const html = await response.text();
-                appModalBody.innerHTML = html;
-
-                // Re-parse unobtrusive validation en lo que se inyectó
-                if (window.jQuery && $.validator && $.validator.unobtrusive) {
-                    $.validator.unobtrusive.parse(appModalBody);
-                }
-
-                // Inicializar comportamiento del formulario dentro del modal
-                if (window.Usuarios && typeof window.Usuarios.initForm === 'function') {
-                    window.Usuarios.initForm(appModalBody);
-                }
-
-                // 👇 también inicializar lógica de tareas si corresponde
-                if (window.Tareas && typeof window.Tareas.initForm === 'function') {
-                    window.Tareas.initForm(appModalBody);
-                }
-
-                appModal?.show();
-
-            } catch (err) {
-                console.error(err);
-            }
-        });
-
-        // cerrar modal desde enlaces dentro del card
-        document.addEventListener('click', (e) => {
-            const close = e.target.closest('.js-close-modal');
-            if (!close) return;
-            e.preventDefault();
-            appModal?.hide();
-        });
-        </script>
+        <script src="~/js/panel/sidebar.js"></script>
+        <script src="~/js/panel/modalGneral.js"></script>
+         <script src="~/js/panel/reloj.js"></script>
     <script>
         (function () {
-            const spanReloj = document.getElementById('reloj-header');
-            if (!spanReloj) return;
-
-            function dosDigitos(n) {
-                return n.toString().padStart(2, '0');
-            }
-
-            function actualizarReloj() {
-                const ahora = new Date();
-
-                const dia   = dosDigitos(ahora.getDate());
-                const mes   = dosDigitos(ahora.getMonth() + 1); // 0-11
-                const anio  = ahora.getFullYear();
-
-                const horas   = dosDigitos(ahora.getHours());
-                const minutos = dosDigitos(ahora.getMinutes());
-                const segundos= dosDigitos(ahora.getSeconds());
-
-                // Formato: 19/11/2025 14:33:16
-                spanReloj.textContent = `${dia}/${mes}/${anio} ${horas}:${minutos}:${segundos}`;
-            }
-
-            // Primera vez
-            actualizarReloj();
-            // Actualizar cada segundo
-            setInterval(actualizarReloj, 1000);
-        })();
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        (function () {
-            // --------- conexión SignalR para ADMIN ----------
             const connection = new signalR.HubConnectionBuilder()
                 .withUrl("/hubs/notificaciones")
                 .withAutomaticReconnect()
@@ -253,11 +137,13 @@
                 .then(() => console.log("Conectado a SignalR Notificaciones (ADMIN)"))
                 .catch(err => console.error("Error SignalR ADMIN:", err));
 
-            // ---------- handler de NUEVA SOLICITUD ----------
+            const badge = document.getElementById("badge-solicitudes");
+
+            // Evento que llega cuando un cliente crea una solicitud
             connection.on("SolicitudCreada", function (evento) {
                 console.log("Nueva solicitud recibida:", evento);
 
-                // 1) Toast tipo Facebook
+                // 1) Toast
                 if (window.Swal) {
                     Swal.fire({
                         toast: true,
@@ -271,33 +157,28 @@
                     });
                 }
 
-                // 2) Actualizar numerito sobre la campana
-                const badge = document.getElementById("badge-solicitudes");
+                // 2) Numerito sobre la campana
                 if (!badge) return;
-
                 let actual = parseInt(badge.textContent || "0");
                 actual++;
-
                 badge.textContent = actual;
                 badge.style.display = "inline-block";
             });
 
-            // (Opcional) click sobre la campana → ir a listado de solicitudes o limpiar contador
+            // (opcional) click en campana por ahora solo limpia el badge
             const btnNoti = document.getElementById("btnNotificaciones");
-            if (btnNoti) {
+            if (btnNoti && badge) {
                 btnNoti.addEventListener("click", function () {
-                    // Por ahora que lleve a la página de solicitudes:
-                    window.location.href = "/Solicitudes/Index";
-                    // Si luego quieres solo desplegar un panel lateral,
-                    // aquí meteríamos esa lógica en lugar de redirigir.
+                    // aquí luego podemos abrir historial, por ahora reiniciamos contador
+                    badge.textContent = "0";
+                    badge.style.display = "none";
                 });
             }
         })();
     </script>
-
+    <script src="~/js/solicitudes.js"></script>
     <script src="~/js/tareas.js"></script>
     <script src="~/js/usuarios.js"></script>
     <script src="~/js/cuenta/usuarios-password-edit.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>

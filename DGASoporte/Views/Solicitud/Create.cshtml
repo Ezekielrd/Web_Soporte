@@ -3,15 +3,27 @@
 
 @{
     ViewData["Title"] = "Crear Solicitud de Incidencia";
+    Layout = null;
 }
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
     <title>Portal de Reporte de Incidencias - Dirección General de Aduanas</title>
-    <link rel="stylesheet" href="~/css/solicitud-incidencia.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="..." crossorigin="anonymous" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+          crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+          integrity="sha512-..."
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer" />
+    <link href="~/css/solicitud-incidencia.css" rel="stylesheet" />
+    <link href="~/css/librerias/sweetalert2.min.css" rel="stylesheet" />
+
 </head>
 <body>
     <div class="container-fluid">
@@ -26,8 +38,7 @@
                         <span class="badge no-select">Sistema de Tareas</span>
                     </div>
                     <div class="card-body">
-                        <form id="solicitudForm" asp-action="Create" method="post">
-                            <div asp-validation-summary="All" class="text-danger"></div>
+                        <form asp-action="Create" method="post" id="formSolicitud" novalidate>
                             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                             @Html.AntiForgeryToken()
                             <div class="row">
@@ -71,34 +82,42 @@
                                 </div>
                             </div>
 
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <div class="form-group mb-3">
-                                        <label asp-for="UnidadId" class="form-label no-select">
-                                            <i class="fas fa-building text-success"></i>
-                                            @Html.DisplayNameFor(model => model.UnidadId)
-                                        </label>
-                                        <select asp-for="UnidadId" class="form-control" asp-items="Model.Unidades">
-                                            <option value="">-- Seleccione una unidad --</option>
-                                        </select>
-                                        <span asp-validation-for="UnidadId" class="text-danger"></span>
-                                    </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="DivisionId" class="form-label"></label>
+                                    <select asp-for="DivisionId"
+                                            asp-items="Model.Divisiones"
+                                            class="form-control" id="DivisionId">
+                                        <option value="">-- Seleccione división --</option>
+                                    </select>
+                                    <span asp-validation-for="DivisionId" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6" id="grupoUnidad">
+                                    <label asp-for="UnidadId" class="form-label"></label>
+                                    <select asp-for="UnidadId" class="form-control" id="UnidadId">
+                                        <option value="">-- Seleccione unidad --</option>
+
+                                        @foreach (var u in Model.Unidades)
+                                        {
+                                            var divisionId = u.DivisionId.HasValue ? u.DivisionId.Value.ToString() : "";
+                                            <option value="@u.Id" data-division="@divisionId">@u.Nombre</option>
+
+                                        }
+                                    </select>
+                                    <span asp-validation-for="UnidadId" class="text-danger"></span>
                                 </div>
                             </div>
-
-                            <input asp-for="Estado" type="hidden" value="Nueva" />
-
                             <div class="d-flex justify-content-between align-items-center mt-4">
                                 <div>
                                     <button type="submit" class="btn btn-primary btn-lg" id="btnEnviar">
                                         <i class="fas fa-paper-plane"></i>
-                                        Enviar Solicitud
+                                        <span class="btn-text">Enviar</span>
+                                        <span class="spinner-border spinner-border-sm ms-2 d-none" id="spinnerEnviar"></span>
                                     </button>
                                 </div>
                                 <div>
-                                    <a asp-action="Index" class="btn btn-outline-secondary">
-                                        <i class="fas fa-times"></i>
-                                        Cancelar
+                                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                        <i class="bi bi-x-circle"></i> Cancelar
                                     </a>
                                 </div>
                             </div>
@@ -109,157 +128,11 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-labelledby="modalConfirmacionLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalConfirmacionLabel">Confirmar Datos de la Solicitud</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h6 class="text-primary mb-3">Por favor verifique los datos antes de guardar:</h6>
-
-                            <div class="card">
-                                <div class="card-body">
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3">
-                                            <strong>Título:</strong>
-                                        </div>
-                                        <div class="col-sm-9">
-                                            <span id="modalTitulo" class="text-dark"></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3">
-                                            <strong>Descripción:</strong>
-                                        </div>
-                                        <div class="col-sm-9">
-                                            <span id="modalDescripcion" class="text-dark"></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3">
-                                            <strong>Unidad:</strong>
-                                        </div>
-                                        <div class="col-sm-9">
-                                            <span id="modalUnidad" class="text-dark"></span>
-                                        </div>
-                                    </div>
-
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3">
-                                            <strong>TipoInicdencia:</strong>
-                                        </div>
-                                        <div class="col-sm-9">
-                                            <span id="modalTipo" class="text-dark"></span>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3">
-                                            <strong>Estado</strong>
-                                        </div>
-                                        <div class="col-sm-9">
-                                            <span id="modalEstado" class="text-dark"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="btnModificar" data-bs-dismiss="modal">
-                        <i class="bi bi-pencil"></i> Modificar
-                    </button>
-                    <button type="button" class="btn btn-primary" id="btnGuardar">
-                        <i class="bi bi-check-circle"></i> Guardar Solicitud
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    @section Scripts {
         <script src="~/lib/jquery/dist/jquery.min.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
         <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
         <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-
-        <script>
-            (function () {
-                const form = document.getElementById('solicitudForm');
-                const btnGuardar = document.getElementById('btnGuardar');
-                const btnModificar = document.getElementById('btnModificar');
-
-                const modalEl = document.getElementById('modalConfirmacion');
-                const modal = new bootstrap.Modal(modalEl);
-
-                let confirmado = false; // bandera para permitir el submit real
-
-                // Contadores
-                const tituloInput = document.getElementById('Titulo');
-                const descripcionInput = document.getElementById('Descripcion');
-                const tituloCount = document.getElementById('titulo-count');
-                const descripcionCount = document.getElementById('descripcion-count');
-
-                function actualizarContadores() {
-                    if (tituloInput && tituloCount) tituloCount.textContent = tituloInput.value.length;
-                    if (descripcionInput && descripcionCount) descripcionCount.textContent = descripcionInput.value.length;
-                }
-                if (tituloInput) tituloInput.addEventListener('input', actualizarContadores);
-                if (descripcionInput) descripcionInput.addEventListener('input', actualizarContadores);
-                actualizarContadores();
-
-                // Interceptar submit para abrir modal de confirmación
-                form.addEventListener('submit', function (e) {
-                    if (confirmado) return; // si ya confirmaron, dejamos que el form envíe normal
-
-                    e.preventDefault();
-
-                    // Validación cliente (jQuery validate)
-                    const valido = $(form).valid();
-                    if (!valido) return;
-
-                    // Llenar los campos del modal
-                    const titulo = tituloInput?.value ?? '';
-                    const descripcion = descripcionInput?.value ?? '';
-
-                    const unidadSelect = document.getElementById('UnidadId');
-                    const unidadTexto = unidadSelect?.options[unidadSelect.selectedIndex]?.text || '';
-
-                    const tipoSelect = document.getElementById('TipoIncidenciaId');
-                    const tipoTexto = tipoSelect?.options[tipoSelect.selectedIndex]?.text || '';
-
-                    const estadoElemento = document.getElementById('Estado');
-                    const estadoTexto = estadoElemento?.value || 'N/A';
-
-                    document.getElementById('modalTitulo').textContent = titulo;
-                    document.getElementById('modalDescripcion').textContent = descripcion;
-                    document.getElementById('modalUnidad').textContent = unidadTexto;
-                    document.getElementById('modalTipo').textContent = tipoTexto;
-                    document.getElementById('modalEstado').textContent = estadoTexto; 
-
-                    // Mostrar modal
-                    modal.show();
-                });
-
-                // Modificar: solo cierra el modal, el usuario edita
-                btnModificar.addEventListener('click', function () {
-                    modal.hide();
-                });
-
-                // Guardar: activa bandera y envía realmente el formulario
-                btnGuardar.addEventListener('click', function () {
-                    confirmado = true;
-                    form.submit();
-                });
-            })();
-        </script>
+        <script src="~/js/tareas.js"></script><!--divisones/unidades-->
         <script>
             (function() {
             const map = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MapTipoDesc));
@@ -270,13 +143,49 @@
                 const desc = map[opt.value];
                 if (desc) {
                   opt.title = desc;           // tooltip nativo
-                  opt.dataset.desc = desc;    // útil si luego usas Select2
+                  opt.dataset.desc = desc;  
                 }
               });
 
             })();
         </script>
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('formSolicitud');
+            const btn = document.getElementById('btnEnviar');
+            const spinner = document.getElementById('spinnerEnviar');
+
+            if (!form || !btn) return;
+
+            form.addEventListener('submit', function (e) {
+                // 1) Si tienes jQuery Validate (MVC unobtrusive)
+                if (typeof $ !== 'undefined' && $.validator && $(form).data('validator')) {
+                    if (!$(form).valid()) {
+                        // ❌ Formulario inválido → NO tocamos el botón
+                        return;
+                    }
+                }
+                // 2) Si no hubiera jQuery Validate, usamos HTML5
+                else if (!form.checkValidity()) {
+                    return;
+                }
+
+                // ✅ Si llegó aquí, el formulario es VÁLIDO → animamos el botón
+                btn.disabled = true;
+                btn.classList.add('disabled');
+
+                if (spinner) {
+                    spinner.classList.remove('d-none');
+                }
+
+                const textSpan = btn.querySelector('.btn-text');
+                if (textSpan) {
+                    textSpan.textContent = 'Enviando...';
+                }
+            });
+        });
+    </script>
+
 
 </body>
 </html>

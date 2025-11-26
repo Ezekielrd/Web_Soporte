@@ -44,15 +44,6 @@ namespace DGASoporte.Controllers
                 .OrderBy(t => t.Usuario.NombreCompleto)
                 .ToListAsync();
 
-            // Cargar catálogos
-         /*   model.Estados = await _context.Estados
-                .OrderBy(e => e.Nombre)
-                .ToListAsync();
-
-            model.Prioridades = await _context.Prioridades
-                .OrderBy(p => p.Nombre)
-                .ToListAsync();*/
-
             model.Categorias = await _context.Categorias
                 .OrderBy(c => c.Nombre)
                 .ToListAsync();
@@ -71,7 +62,7 @@ namespace DGASoporte.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Privacy()
+        public async Task<IActionResult> Privacy(CancellationToken ct)
         {
             var vm = new TareaFormVM
             {
@@ -81,11 +72,13 @@ namespace DGASoporte.Controllers
                 Prioridad = Prioridad.Media  // idem
             };
 
-            await CargarCombosAsync(vm);
+            await CargarCombosAsync(vm,ct);
             return View(vm);
         }
-        private async Task CargarCombosAsync(TareaFormVM vm)
+        private async Task CargarCombosAsync(TareaFormVM vm, CancellationToken ct)
         {
+            ct.ThrowIfCancellationRequested();
+
             vm.Categorias = await _context.Categorias
                 .OrderBy(c => c.Nombre)
                 .Select(c => new SelectListItem
@@ -95,14 +88,25 @@ namespace DGASoporte.Controllers
                 })
                 .ToListAsync();
 
+            ct.ThrowIfCancellationRequested();
+
+            vm.Divisiones = await _context.Divisiones
+                 .OrderBy(d => d.Nombre)
+                 .Select(d => new SelectListItem
+                 {
+                     Value = d.Id.ToString(),
+                     Text = d.Nombre
+                 })
+                 .ToListAsync(ct);
+
+            ct.ThrowIfCancellationRequested();
+
+            // TODAS las unidades (algunas tendrán DivisionId, otras no)
             vm.Unidades = await _context.Unidades
                 .OrderBy(u => u.Nombre)
-                .Select(u => new SelectListItem
-                {
-                    Value = u.Id.ToString(),
-                    Text = u.Nombre
-                })
-                .ToListAsync();
+                .AsNoTracking()
+                .ToListAsync(ct);
+            ct.ThrowIfCancellationRequested();
 
             vm.Tecnicos = await _context.Tecnicos
                 .OrderBy(t => t.Usuario.NombreCompleto)

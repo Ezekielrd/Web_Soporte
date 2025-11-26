@@ -97,6 +97,23 @@ namespace DGASoporte.Migrations
                     b.ToTable("Comentario", (string)null);
                 });
 
+            modelBuilder.Entity("DGASoporte.Models.Division", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Divisiones");
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Nivel", b =>
                 {
                     b.Property<int>("Id")
@@ -112,6 +129,46 @@ namespace DGASoporte.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Nivel", (string)null);
+                });
+
+            modelBuilder.Entity("DGASoporte.Models.Notificacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaLeida")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Leida")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UrlDestino")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notificaciones");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Rol", b =>
@@ -147,9 +204,15 @@ namespace DGASoporte.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Archivada")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DivisionId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Estado")
                         .HasColumnType("int");
@@ -175,6 +238,8 @@ namespace DGASoporte.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DivisionId");
 
                     b.HasIndex("TipoIncidenciaId");
 
@@ -203,6 +268,12 @@ namespace DGASoporte.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DiagnosticoInicial")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("DivisionId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Estado")
                         .HasColumnType("int");
 
@@ -215,8 +286,14 @@ namespace DGASoporte.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime");
 
+                    b.Property<DateTime?>("FechaInicioDiagnostico")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("FechaLimite")
                         .HasColumnType("datetime");
+
+                    b.Property<DateTime?>("InicioContador")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Prioridad")
                         .HasColumnType("int");
@@ -229,7 +306,10 @@ namespace DGASoporte.Migrations
                     b.Property<int?>("TecnicoId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TipoServicioId")
+                    b.Property<TimeSpan>("TiempoInvertido")
+                        .HasColumnType("time");
+
+                    b.Property<int?>("TipoServicioId")
                         .HasColumnType("int");
 
                     b.Property<string>("Titulo")
@@ -239,15 +319,22 @@ namespace DGASoporte.Migrations
                     b.Property<int>("UnidadId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoriaId");
+
+                    b.HasIndex("DivisionId");
 
                     b.HasIndex("TecnicoId");
 
                     b.HasIndex("TipoServicioId");
 
                     b.HasIndex("UnidadId");
+
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Tarea", (string)null);
                 });
@@ -328,12 +415,17 @@ namespace DGASoporte.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("DivisionId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("Nombre");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DivisionId");
 
                     b.ToTable("Unidad", (string)null);
                 });
@@ -425,7 +517,7 @@ namespace DGASoporte.Migrations
             modelBuilder.Entity("DGASoporte.Models.Comentario", b =>
                 {
                     b.HasOne("DGASoporte.Models.Tarea", "Tarea")
-                        .WithMany()
+                        .WithMany("Historial")
                         .HasForeignKey("TareaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -443,6 +535,10 @@ namespace DGASoporte.Migrations
 
             modelBuilder.Entity("DGASoporte.Models.Solicitud", b =>
                 {
+                    b.HasOne("DGASoporte.Models.Division", "Division")
+                        .WithMany()
+                        .HasForeignKey("DivisionId");
+
                     b.HasOne("DGASoporte.Models.TipoIncidencia", "TipoIncidencia")
                         .WithMany()
                         .HasForeignKey("TipoIncidenciaId")
@@ -461,6 +557,8 @@ namespace DGASoporte.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Division");
+
                     b.Navigation("TipoIncidencia");
 
                     b.Navigation("Unidad");
@@ -477,6 +575,10 @@ namespace DGASoporte.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Tareas_Categoria");
 
+                    b.HasOne("DGASoporte.Models.Division", "Division")
+                        .WithMany()
+                        .HasForeignKey("DivisionId");
+
                     b.HasOne("DGASoporte.Models.Tecnico", "Tecnico")
                         .WithMany("TareasAsignadas")
                         .HasForeignKey("TecnicoId")
@@ -485,9 +587,7 @@ namespace DGASoporte.Migrations
 
                     b.HasOne("DGASoporte.Models.TipoServicio", "TipoServicio")
                         .WithMany()
-                        .HasForeignKey("TipoServicioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TipoServicioId");
 
                     b.HasOne("DGASoporte.Models.Unidad", "Unidad")
                         .WithMany("Tareas")
@@ -496,13 +596,21 @@ namespace DGASoporte.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Tarea_Unidad");
 
+                    b.HasOne("DGASoporte.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId");
+
                     b.Navigation("Categoria");
+
+                    b.Navigation("Division");
 
                     b.Navigation("Tecnico");
 
                     b.Navigation("TipoServicio");
 
                     b.Navigation("Unidad");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Tecnico", b =>
@@ -535,6 +643,15 @@ namespace DGASoporte.Migrations
                     b.Navigation("Categoria");
                 });
 
+            modelBuilder.Entity("DGASoporte.Models.Unidad", b =>
+                {
+                    b.HasOne("DGASoporte.Models.Division", "Division")
+                        .WithMany("Unidades")
+                        .HasForeignKey("DivisionId");
+
+                    b.Navigation("Division");
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Usuario", b =>
                 {
                     b.HasOne("DGASoporte.Models.Rol", "Rol")
@@ -551,6 +668,11 @@ namespace DGASoporte.Migrations
                     b.Navigation("Tareas");
                 });
 
+            modelBuilder.Entity("DGASoporte.Models.Division", b =>
+                {
+                    b.Navigation("Unidades");
+                });
+
             modelBuilder.Entity("DGASoporte.Models.Nivel", b =>
                 {
                     b.Navigation("Tecnicos");
@@ -559,6 +681,11 @@ namespace DGASoporte.Migrations
             modelBuilder.Entity("DGASoporte.Models.Rol", b =>
                 {
                     b.Navigation("Usuarios");
+                });
+
+            modelBuilder.Entity("DGASoporte.Models.Tarea", b =>
+                {
+                    b.Navigation("Historial");
                 });
 
             modelBuilder.Entity("DGASoporte.Models.Tecnico", b =>

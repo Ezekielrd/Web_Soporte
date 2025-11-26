@@ -19,50 +19,92 @@ namespace DGASoporte.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var pendientes = await _context.Solicitudes
+            var solicitudes = await _context.Solicitudes
                 .Include(s => s.Usuario)
+                .Include(s => s.Unidad)
                 .Include(s => s.TipoIncidencia)
-                .Where(s => s.Estado == EstadoS.Enviada)
-                .OrderBy(s => s.FechaCreacion)
+                .OrderBy(s => s.Estado)
                 .ToListAsync();
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                return PartialView("_tareas", pendientes); // solo el contenido
+                return PartialView("_solicitudes", solicitudes);
 
-            return View(pendientes);
+            return View(solicitudes);
         }
         [HttpGet]
-        // GET: ver detalle para evaluar
-        public async Task<IActionResult> Evaluar(int id)
+        public async Task<IActionResult> Rechazar(int id)
         {
-            var solicitud = await _context.Solicitudes
-                .Include(s => s.Usuario)
-                .FirstOrDefaultAsync(s => s.Id == id);
+            var sol = await _context.Solicitudes.FindAsync(id); // ajusta el DbSet
+            if (sol == null) return NotFound();
 
-            if (solicitud == null)
-                return NotFound();
+            ViewBag.SolicitudId = sol.Id;
+            // Se devuelve solo el contenido del formulario (para el appModal)
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_MotivoRechazo");
 
-            if (solicitud.Estado != EstadoS.Enviada)
-            {
-                TempData["Error"] = "La solicitud ya fue evaluada.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(solicitud);
+            return View("_MotivoRechazo"); // por si alguien entra directo
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Rechazar(int id, string motivoRechazo)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
+            // ✅ Validación del motivo (obligatorio)
+            if (string.IsNullOrWhiteSpace(motivoRechazo) || motivoRechazo.Trim().Length < 10)
+            {
+                var msgMotivo = "Debe indicar un motivo de rechazo con al menos 10 caracteres.";
+
+                if (isAjax)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = msgMotivo,
+                        // si quieres, puedes mandar redirect o dejarlo así para que el JS solo muestre el mensaje
+                        redirectUrl = (string?)null
+                    });
+                }
+
+                TempData["Error"] = msgMotivo;
+                return RedirectToAction(nameof(Index));
+            }
+
             var solicitud = await _context.Solicitudes
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             if (solicitud == null)
-                return NotFound();
+            {
+                var msgNotFound = "La solicitud no existe.";
+                if (isAjax)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = msgNotFound,
+                        redirectUrl = Url.Action("Index", "AdminSolicitudes")
+                    });
+                }
+
+                TempData["Error"] = msgNotFound;
+                return RedirectToAction(nameof(Index));
+            }
 
             if (solicitud.Estado != EstadoS.Enviada)
             {
-                TempData["Error"] = "La solicitud ya fue evaluada.";
+                var msg = "La solicitud ya fue evaluada.";
+
+                if (isAjax)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = msg,
+                        redirectUrl = Url.Action("Index", "AdminSolicitudes")
+                    });
+                }
+
+                TempData["Error"] = msg;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -72,13 +114,30 @@ namespace DGASoporte.Controllers
             _context.Solicitudes.Update(solicitud);
             await _context.SaveChangesAsync();
 
-            TempData["Mensaje"] = "Solicitud rechazada.";
+            var okMsg = "Solicitud rechazada.";
+            TempData["Mensaje"] = okMsg;
+
+            if (isAjax)
+            {
+                return Json(new
+                {
+                    success = true,
+                    message = okMsg,
+                    redirectUrl = Url.Action("Index", "AdminSolicitudes")
+                });
+            }
+
             return RedirectToAction(nameof(Index));
         }
+
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Aprobar(int id)
         {
+            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
             var solicitud = await _context.Solicitudes
             .Include(s => s.Usuario)
             .FirstOrDefaultAsync(s => s.Id == id);
@@ -89,7 +148,12 @@ namespace DGASoporte.Controllers
             if (solicitud.Estado != EstadoS.Enviada)
             {
                 TempData["Error"] = "La solicitud ya fue evaluada.";
-                return RedirectToAction("Pendientes", "SolicitudesAdmin");
+                if (isAjax)
+                {
+                    // ⚠️ desde el modal: solo devolvemos el card
+                    return PartialView("_solicitudes");
+                }
+                return RedirectToAction(nameof(Index));
             }
 
             var vm = new TareaFormVM
@@ -110,9 +174,23 @@ namespace DGASoporte.Controllers
             _context.Solicitudes.Update(solicitud);
             await _context.SaveChangesAsync();
 
-
             // Redirigimos al flujo de creación de tareas
             return View("~/Views/Tarea/Create.cshtml", vm);
+        }
+        public async Task<IActionResult> Details(int id)
+        {
+            var solicitud = await _context.Solicitudes
+                .Include(s => s.Usuario)
+                .Include(s => s.Unidad)
+                .Include(s => s.TipoIncidencia)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (solicitud == null) return NotFound();
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_SolicitudDetalle", solicitud);
+
+            return View(solicitud);
         }
     }
 }

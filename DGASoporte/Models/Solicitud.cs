@@ -21,17 +21,19 @@ namespace DGASoporte.Models
 
         // Relaciones (Foreign Keys)
         [Required]
-        public int UsuarioId { get; set; } //el usuario que reporta
+        public int UsuarioId { get; set; }
         public Usuario Usuario { get; set; } = default!;
+        public int? DivisionId { get; set; }
+        public Division Division { get; set; } = default!;
         [Required]
         public int UnidadId { get; set; }
-
         public Unidad Unidad { get; set; } = default!;
         [Required]
         public int TipoIncidenciaId { get; set; }
         public TipoIncidencia TipoIncidencia { get; set; } = default!;
         public EstadoS Estado { get; set; }
         public string? MotivoRechazo { get; set; }
+        public bool Archivada { get; set; } = false;
 
 
     }

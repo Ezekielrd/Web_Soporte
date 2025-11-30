@@ -23,27 +23,27 @@
                 <input type="hidden" id="EsEdicion" value="true" />
 
                 <div class="form-section grid-2">
-                    <div>
+                    <div class="cardUsuario">
                         <label asp-for="Usher" class="form-label"></label>
                         <input asp-for="Usher" class="form-control" placeholder="Ej: jdoe" required />
                         <span asp-validation-for="Usher" class="text-danger"></span>
                     </div>
-                    <div>
+                    <div class="cardUsuario">
                         <label asp-for="Email" class="form-label"></label>
                         <input asp-for="Email" class="form-control" placeholder="Ej: jdoe" required />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
-                    <div>
+                    <div class="cardUsuario">
                         <label asp-for="Codigo" class="form-label"></label>
                         <input asp-for="Codigo" class="form-control" placeholder="Ej: jdoe" required />
                         <span asp-validation-for="Codigo" class="text-danger"></span>
                     </div>
-                    <div>
+                    <div class="cardUsuario">
                         <label asp-for="NombreCompleto" class="form-label"></label>
                         <input asp-for="NombreCompleto" class="form-control" placeholder="Ej: jdoe" required />
                         <span asp-validation-for="NombreCompleto" class="text-danger"></span>
                     </div>
-                    <div>
+                    <div class="cardUsuario">
                         <label asp-for="RolId" class="form-label"></label>
                         <select asp-for="RolId" asp-items="Model.Roles" class="form-select" id="IdRol">
                             <option value="">-- Seleccione --</option>
@@ -52,7 +52,7 @@
                         <span asp-validation-for="RolId" class="text-danger"></span>
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group cardUsuario">
                         <label asp-for="Password" class="form-label"></label>
                         <div class="input-container">
                             <input asp-for="Password" class="secure-password form-control" placeholder="Dejar en blanco para mantener" />
@@ -61,7 +61,7 @@
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
                     <!--campos propios del técnico-->
-                    <div id="panelTecnico" style="display:none;">
+                    <div id="panelTecnico" style="display:none;" class="cardUsuario">
                         <label asp-for="NivelId" class="form-label"></label>
                         <select asp-for="NivelId" asp-items="Model.Niveles" class="form-select">
                             <option value="">-- Seleccione --</option>

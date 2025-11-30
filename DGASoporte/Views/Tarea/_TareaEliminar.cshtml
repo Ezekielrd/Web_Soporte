@@ -3,9 +3,9 @@
     Layout = null;
 }
 <link href="~/css/cardTarea.css" rel="stylesheet" />
-<div class="wizard-card">
-    <div class="card-body p-4 p-md-4">
-        <div class="wizard-header d-flex align-items-center">
+<div class="wizard-card-tarea">
+    <div class="card-body-tarea p-4 p-md-4">
+        <div class="wizard-header-tarea d-flex align-items-center">
             <div class="wizard-icon-circle">
                 <i class="bi bi-kanban fs-5"></i>
             </div>
@@ -40,8 +40,9 @@
         <div class="mb-3 small">
             <label class="form-label fw-semibold">Resumen</label>
             <div class="border rounded p-2 bg-light text-dark eresumen">
-                <div><strong>Categoría:</strong> @Model.CategoriaId</div>
-                <div><strong>Tipo servicio:</strong> @Model.TipoServicioId</div>
+                <div><strong>Categoría:</strong> @Model.Categoria.Nombre</div>
+                <div><strong>Categoría:</strong> @Model.Unidad.Nombre</div>
+                <div><strong>Tipo servicio:</strong> @(Model.TipoServicio?.Nombre ?? "sin TipoServicio")</div>
                 <div><strong>Estado:</strong> @Model.Estado</div>
                 <div><strong>Fecha límite:</strong> @(Model.FechaLimite?.ToString("dd/MM/yyyy") ?? "—")</div>
                 <div><strong>Tecnico:</strong> @(Model.Tecnico?.Usuario?.NombreCompleto ?? "Técnico no asignado")</div>

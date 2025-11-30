@@ -26,7 +26,8 @@ namespace DGASoporte.Models
         public Unidad Unidad { get; set; } = default!;  
         public int? TecnicoId { get; set; }
         public Tecnico Tecnico { get; set; } = default!;
-        public int? UsuarioId { get; set; }
+        [Required]
+        public int UsuarioId { get; set; }
         public Usuario Usuario { get; set; } = default!;
         public DateTime? FechaLimite { get; set; }
         public bool Archivada { get; set; } = false;
@@ -36,12 +37,26 @@ namespace DGASoporte.Models
         public EstadoT? Estado {  get; set; } = default!;
         [Required]
         public Prioridad Prioridad  { get; set; } = default!;
-        public DateTime? FechaInicioDiagnostico { get; set; }
-        public string? DiagnosticoInicial { get; set; }
         [Timestamp]
         public byte[]? RowVersion { get; set; }
         public TimeSpan TiempoInvertido { get; set; }
         public DateTime? InicioContador { get; set; }
+        public int? SolicitudId { get; set; }
+        //capos para solucion
+        public DateTime? FechaCierre { get; set; }
+        [MaxLength(1000)]
+        public string? CausaRaiz { get; set; }
+        [MaxLength(2000)]
+        public string? PasosEjecutados { get; set; }
+        [MaxLength(1500)]
+        public string? AjustesRealizados { get; set; }
+        [MaxLength(500)]
+        public string? ResultadoFinal { get; set; }
+        [MaxLength(1000)]
+        public string? Recomendaciones { get; set; }
+        public int? UsuarioValidaId { get; set; }
+        public Usuario? UsuarioValida { get; set; }
+        public DateTime? FechaValidacion { get; set; }
 
         // No mapeadas: útiles para UI
         [NotMapped]
@@ -51,7 +66,13 @@ namespace DGASoporte.Models
             string.IsNullOrWhiteSpace(Descripcion)
                 ? Titulo
                 : (Descripcion!.Length <= 120 ? Descripcion! : Descripcion!.Substring(0, 117) + "...");
+        [NotMapped]
+        public TimeSpan? TiempoResolucion =>
+            FechaCierre.HasValue
+                ? FechaCierre.Value - FechaCreacion
+                : (TimeSpan?)null;
         public ICollection<Comentario> Historial { get; set; } = new List<Comentario>();
+        public virtual ICollection<Diagnostico> Diagnosticos { get; set; } = new List<Diagnostico>();
 
     }
 }

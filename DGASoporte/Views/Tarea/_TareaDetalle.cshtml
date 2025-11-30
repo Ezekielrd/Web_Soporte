@@ -3,18 +3,21 @@
     Layout = null;
 }
 <link href="~/css/cardTarea.css" rel="stylesheet" />
-<div class="wizard-card">
-    <div class="card-body p-4 p-md-4">
-        <div class="wizard-header d-flex align-items-center">
-            <div class="wizard-icon-circle">
+
+<div class="wizard-card-tarea no-select">
+    <div class="card-body-tarea p-4 p-md-4">
+        <!-- Cabecera -->
+        <div class="wizard-header-tarea d-flex align-items-center mb-3">
+            <div class="wizard-icon-circle me-3">
                 <i class="bi bi-kanban fs-5"></i>
             </div>
             <div>
                 <h3 class="mb-0">
                     <i class="bi bi-card-text me-2"></i>
-                    Detelle de la Tarea</h3>
+                    Detalle de la Tarea
+                </h3>
                 <div class="wizard-subtitle">
-                    Inspecionar los detalles de las tareas.
+                    Inspeccionar los detalles de las tareas.
                 </div>
             </div>
             <div class="ms-auto d-none d-md-block">
@@ -23,54 +26,72 @@
                 </span>
             </div>
         </div>
-            <dl class="row mb-0">
-                <dt class="col-sm-4">@Html.DisplayNameFor(m => m.Titulo)</dt>
-                <dd class="col-sm-8">@Html.DisplayFor(m => m.Titulo)</dd>
 
-                <dt class="col-sm-4">@Html.DisplayNameFor(m => m.Descripcion)</dt>
-                <dd class="col-sm-8">@Html.DisplayFor(m => m.Descripcion)</dd>
+        <hr class="detalle-separator" />
+
+        <!-- Datos -->
+        <dl class="row detalle-dl mb-0">
+            <dt class="col-sm-4">Título de Tarea</dt>
+            <dd class="col-sm-8 fw-semibold">@Html.DisplayFor(m => m.Titulo)</dd>
+
+            <dt class="col-sm-4">Descripción de la Tarea</dt>
+            <dd class="col-sm-8">
+                <div class="detalle-descripcion-scroll">
+                    @Model.Descripcion
+                </div>
+            </dd>
 
 
-                <dt class="col-sm-4">@Html.DisplayNameFor(m => m.Prioridad)</dt>
-                <dd class="col-sm-8">@Html.DisplayFor(m => m.PrioridadNombre)</dd>
+            <dt class="col-sm-4">Prioridad</dt>
+            <dd class="col-sm-8">
+                <span class="badge-prioridad" data-prioridad="@Model.PrioridadNombre">
+                    @Model.PrioridadNombre
+                </span>
+            </dd>
 
-                <dt class="col-sm-4">@Html.DisplayNameFor(m => m.CategoriaId)</dt>
-                <dd class="col-sm-8">@Html.DisplayFor(m => m.CategoriaNombre)</dd>
+            <dt class="col-sm-4">Categoría</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(m => m.CategoriaNombre)</dd>
 
-                <dt class="col-sm-4">@Html.DisplayNameFor(m => m.TipoServicioId)</dt>
-                <dd class="col-sm-8">@Html.DisplayFor(m => m.TipoServicioNombre)</dd>
+            <dt class="col-sm-4">Tipo Servicio</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(m => m.TipoServicioNombre)</dd>
 
-                <dt class="col-sm-4">@Html.DisplayNameFor(m => m.UnidadId)</dt>
-                <dd class="col-sm-8">@Html.DisplayFor(m => m.UnidadNombre)</dd>
+            <dt class="col-sm-4">Área</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(m => m.UnidadNombre)</dd>
 
-                <dt class="col-sm-4">@Html.DisplayNameFor(m => m.TecnicoId)</dt>
-                <dd class="col-sm-8">
-                    @(Model.TecnicoId == null || Model.TecnicoId == 0
-                                        ? "Sin técnico asignado"
-                                        : Model.TecnicoNombre)
-                </dd>
+            <dt class="col-sm-4">Técnico</dt>
+            <dd class="col-sm-8">
+                @(Model.TecnicoId == null || Model.TecnicoId == 0
+                                ? "Sin técnico asignado"
+                                : Model.TecnicoNombre)
+            </dd>
 
-                <dt class="col-sm-4">@Html.DisplayNameFor(m => m.Estado)</dt>
-                <dd class="col-sm-8">@Html.DisplayFor(m => m.EstadoNombre)</dd>
+            <dt class="col-sm-4">Estado</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(m => m.EstadoNombre)</dd>
 
-                <dt class="col-sm-4">@Html.DisplayNameFor(m => m.FechaAsignacion)</dt>
-                <dd class="col-sm-8">
-                    @(Model.FechaAsignacion?.ToString("dd/MM/yyyy") ?? "—")
-                </dd>
+            <dt class="col-sm-4">Fecha Asignación</dt>
+            <dd class="col-sm-8">
+                @(Model.FechaAsignacion?.ToString("dd/MM/yyyy") ?? "—")
+            </dd>
 
-                <dt class="col-sm-4">@Html.DisplayNameFor(m => m.FechaLimite)</dt>
-                <dd class="col-sm-8">
-                    @(Model.FechaLimite?.ToString("dd/MM/yyyy") ?? "—")
-                </dd>
-            </dl>
+            <dt class="col-sm-4">Fecha Límite</dt>
+            <dd class="col-sm-8">
+                @(Model.FechaLimite?.ToString("dd/MM/yyyy") ?? "—")
+            </dd>
+        </dl>
 
-            <div class="mt-3 text-end g-5">
-                <a asp-action="EditarModal" asp-controller="Tarea" asp-route-id="@Model.Id" class="btn btn-success js-modal-link">Editar</a>
-                <button type="button"
+        <div class="mt-4 text-end">
+            <a asp-action="EditarModal"
+               asp-controller="Tarea"
+               asp-route-id="@Model.Id"
+               class="btn btn-success js-modal-link">
+                Editar
+            </a>
+
+            <button type="button"
                     class="btn btn-gradient-primary js-close-modal"
-                        data-bs-dismiss="modal">
-                    Cerrar
-                </button>
-            </div>
+                    data-bs-dismiss="modal">
+                Cerrar
+            </button>
+        </div>
     </div>
 </div>

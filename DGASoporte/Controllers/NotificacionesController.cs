@@ -1,60 +1,101 @@
 ﻿using DGASoporte.Data;
 using DGASoporte.Infraestructura;
+using DGASoporte.Servicios;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace DGASoporte.Controllers
 {
+    [Authorize]
     public class NotificacionesController : Controller
     {
+        private readonly NotificacionService _notificacionService;
         private readonly DGADbContext _context;
 
-        public NotificacionesController(DGADbContext context)
+        public NotificacionesController(NotificacionService notificacionService, DGADbContext context)
         {
+            _notificacionService = notificacionService;
             _context = context;
         }
-        // Obtener últimas N notificaciones (para el dropdown)
-        [HttpGet]
-        public async Task<IActionResult> Ultimas(int cantidad = 10)
+
+        // GET: /Notificaciones/Lista?soloNoLeidas=true
+        [HttpGet("Lista")]
+        public async Task<IActionResult> Lista()
         {
-            var userId = User.GetRequiredUserId();
+            int usuarioId = User.GetRequiredUserId();
+            if (usuarioId<=0)
+                return Unauthorized();
 
-            var notis = await _context.Notificaciones
-                .Where(n => n.UsuarioId == userId)
-                .OrderByDescending(n => n.FechaCreacion)
-                .Take(cantidad)
-                .ToListAsync();
 
-            return Json(notis.Select(n => new {
-                n.Id,
-                n.Titulo,
-                n.Mensaje,
-                n.UrlDestino,
-                Fecha = n.FechaCreacion.ToString("dd/MM/yyyy HH:mm"),
-                n.Leida
-            }));
+            var notifs = await _notificacionService
+                .ObtenerNotificacionesUsuarioAsync(usuarioId, soloNoLeidas: true);
+
+
+            return Json(notifs);
         }
 
-        // Marcar todas como leídas
         [HttpPost]
-        public async Task<IActionResult> MarcarTodasLeidas()
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarcarTodasComoLeidas()
         {
-            var userId = User.GetRequiredUserId();
+            int userId = User.GetRequiredUserId() ;
 
-            var notis = await _context.Notificaciones
+            var notisNoLeidas = await _context.Notificaciones
                 .Where(n => n.UsuarioId == userId && !n.Leida)
                 .ToListAsync();
 
-            var ahora = DateTime.Now;
-            foreach (var n in notis)
+            foreach (var n in notisNoLeidas)
             {
                 n.Leida = true;
-                n.FechaLeida = ahora;
             }
 
             await _context.SaveChangesAsync();
-            return Ok();
+
+            return RedirectToAction(nameof(Index));
+        }
+        [HttpPost("MarcarLeida")]
+        public async Task<IActionResult> MarcarLeida(int id)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr))
+                return Unauthorized();
+
+            int usuarioId = int.Parse(userIdStr);
+
+            await _notificacionService.MarcarLeidaAsync(id, usuarioId);
+
+            return Json(new { success = true });
+        }
+        [HttpGet]
+        public async Task<IActionResult> Resumen()
+        {
+            int userId = User.GetRequiredUserId();
+
+            int unreadCount = await _context.Notificaciones
+                .CountAsync(n => n.UsuarioId == userId && !n.Leida);
+
+            var ultimas = await _context.Notificaciones
+                .Where(n => n.UsuarioId == userId)
+                .OrderByDescending(n => n.FechaCreacion)
+                .Take(5)
+                .Select(n => new
+                {
+                    n.Id,
+                    n.Titulo,
+                    n.Mensaje,
+                    n.Leida,
+                    Fecha = n.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+                })
+                .ToListAsync();
+
+            return Json(new
+            {
+                unreadCount,
+                items = ultimas
+            });
         }
     }
 }

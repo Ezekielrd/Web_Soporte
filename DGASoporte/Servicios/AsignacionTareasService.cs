@@ -1,7 +1,6 @@
 ﻿namespace DGASoporte.Servicios
 {
     using DGASoporte.Data;   // tu DbContext
-    using DGASoporte.Hubs;
     using DGASoporte.Models; // Tarea, Tecnico, EstadoT, etc.
     using DGASoporte.Models.Enumeradores;
     using Microsoft.AspNetCore.SignalR;
@@ -10,15 +9,14 @@
     public class AsignacionTareasService
     {
         private readonly DGADbContext _context;
-        private readonly IHubContext<NotificacionesHub> _notificacionesHub;
+        private readonly NotificacionService _notificacionService;
 
-        public AsignacionTareasService(DGADbContext context, IHubContext<NotificacionesHub> notificacionesHub)
+        public AsignacionTareasService(DGADbContext context, NotificacionService notificacionService)
         {
             _context = context;
-            _notificacionesHub = notificacionesHub;
-
+            _notificacionService = notificacionService;
         }
-       
+
         // 🔹 Helper: recalcular disponibilidad (Disponible = true si no tiene tareas activas)
         public async Task ActualizarDisponibilidadTecnicoAsync(int tecnicoId)
         {
@@ -126,10 +124,16 @@
                 TareaId = tarea.Id,
                 TecnicoId = tarea.TecnicoId.Value,
                 Fecha = DateTime.Now,
-                Modo = "Manual",
+                Modo = "Auto",
             });
             await _context.SaveChangesAsync();
+            int usuarioDestinoId = tecnico.Id;
 
+                await _notificacionService.EnviarTareaAsignadaAsync(
+                    usuarioDestinoId,
+                    tarea.Id,
+                    tarea.Titulo
+                );
             await ActualizarDisponibilidadTecnicoAsync(tecnico.Id);
 
             return true;
@@ -166,45 +170,55 @@
         /// </summary>
         public async Task<bool> AsignarManualAsync(int tareaId, int tecnicoId)
         {
+            if (tareaId <= 0 || tecnicoId <= 0)
+                return false;
+
             var tarea = await _context.Tareas
                 .FirstOrDefaultAsync(t => t.Id == tareaId);
+
             var tecnico = await _context.Tecnicos
+                .Include(t => t.Usuario)           
                 .FirstOrDefaultAsync(t => t.Id == tecnicoId);
 
             if (tarea == null || tecnico == null)
                 return false;
 
+            if (tarea.TecnicoId.HasValue)
+            {
+                tarea.Estado = EstadoT.Escalado;
+            }
+            else
+            {
+                tarea.Estado = EstadoT.Asignado;
+            }
+
             tarea.TecnicoId = tecnico.Id;
             tarea.FechaAsignacion = DateTime.Now;
-            tarea.Estado = EstadoT.Asignado;
             tarea.FechaActualizacion = DateTime.Now;
 
             _context.Tareas.Update(tarea);
+
             _context.Asignaciones.Add(new Asignacion
             {
                 TareaId = tarea.Id,
                 TecnicoId = tarea.TecnicoId.Value,
                 Fecha = DateTime.Now,
-                Modo = "Auto",
+                Modo = "Manual", // mejor que "Auto" aquí
             });
-            var evento = new
-            {
-                tareaId = tarea.Id,
-                titulo = tarea.Titulo,
-                tecnicoId = tecnico.Id,
-                tecnicoNombre = tecnico.Usuario.NombreCompleto, // o propiedad real
-                prioridad = tarea.Prioridad // si existe
-            };
-
-            // Por ahora enviamos a TODOS los clientes.
-            await _notificacionesHub.Clients.All.SendAsync("TaskAssigned", evento);
 
             await _context.SaveChangesAsync();
+            int usuarioDestinoId = tecnico.Id;
 
+            await _notificacionService.EnviarTareaAsignadaAsync(
+                usuarioDestinoId,
+                tarea.Id,
+                tarea.Titulo
+            );
             await ActualizarDisponibilidadTecnicoAsync(tecnico.Id);
 
             return true;
         }
-    
+
+
     }
 }

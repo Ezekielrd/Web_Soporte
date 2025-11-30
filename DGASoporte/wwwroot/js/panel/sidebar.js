@@ -10,9 +10,11 @@ btnToggleSidebar?.addEventListener('click', () => {
         icon.classList.toggle('bi-chevron-double-right', isCollapsed);
     }
 });
-//CARGA DE VISTAS DINÁMICAS
+
+// === CARGA DE VISTAS DINÁMICAS ===
 const viewContainer = document.getElementById('view-container');
 const menuItems = document.querySelectorAll('.menu-item');
+const LAST_VIEW_KEY = 'adminLastView'; // 👈 clave en localStorage
 
 menuItems.forEach(item => {
     item.addEventListener('click', async (e) => {
@@ -22,8 +24,18 @@ menuItems.forEach(item => {
         item.classList.add('active');
 
         const url = item.dataset.url;
-        const view = item.dataset.view;   // 👈 usamos el data-view="Tareas"
+        const view = item.dataset.view;  // aquí tienes "Tareas", "Usuarios", etc.
+
         if (!url) return;
+
+        // Guardar último módulo seleccionado
+        if (view) {
+            try {
+                localStorage.setItem(LAST_VIEW_KEY, view);
+            } catch (ex) {
+                console.warn('No se pudo guardar la vista en localStorage', ex);
+            }
+        }
 
         try {
             viewContainer.innerHTML = `
@@ -58,7 +70,6 @@ menuItems.forEach(item => {
                 window.Solicitudes.initForm(viewContainer);
             }
 
-
         } catch (err) {
             console.error(err);
             viewContainer.innerHTML = `
@@ -71,10 +82,49 @@ menuItems.forEach(item => {
 
 document.addEventListener('DOMContentLoaded', () => {
     const viewContainer = document.getElementById('view-container');
-    const activeItem = document.querySelector('.menu-item.active'); // normalmente Tareas
+    if (!viewContainer) return;
 
-    // Solo si el contenedor está vacío y hay un item activo con URL
-    if (viewContainer && activeItem && activeItem.dataset.url && viewContainer.innerHTML.trim() === '') {
-        activeItem.click(); // dispara el mismo flujo AJAX que cuando haces clic
+    let initialItem = null;
+    let lastView = null;
+
+    // 👉 Leer la última vista guardada
+    try {
+        lastView = localStorage.getItem(LAST_VIEW_KEY);
+    } catch (ex) {
+        console.warn('No se pudo leer la vista de localStorage', ex);
+    }
+
+    if (lastView) {
+        // Buscar el menú que tenga ese data-view
+        initialItem = document.querySelector(`.menu-item[data-view="${lastView}"]`);
+    }
+
+    // Si no hay nada guardado o no encuentra el item, usa el que ya viene como .active
+    if (!initialItem) {
+        initialItem = document.querySelector('.menu-item.active');
+    }
+
+    // Último fallback: el primer menú
+    if (!initialItem) {
+        initialItem = document.querySelector('.menu-item');
+    }
+
+    // Solo dispara el click si el contenedor está vacío
+    if (initialItem && viewContainer.innerHTML.trim() === '') {
+        initialItem.click(); // 👉 carga por AJAX el módulo correcto
+    }
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            try {
+                localStorage.removeItem(LAST_VIEW_KEY);
+            } catch (ex) {
+                console.warn('No se pudo borrar adminLastView de localStorage', ex);
+            }
+
+            window.location.href = this.href;
+        });
     }
 });

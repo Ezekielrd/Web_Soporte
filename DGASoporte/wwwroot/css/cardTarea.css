@@ -1,9 +1,5 @@
-﻿body {
-    background: radial-gradient(circle at top left, #4f46e5 0, #111827 40%, #020617 100%);
-    min-height: 100vh;
-}
-
-.wizard-card {
+﻿
+.wizard-card-tarea {
     border-radius: 18px;
     overflow: hidden;
     border: 0;
@@ -13,7 +9,7 @@
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
 }
 
-.wizard-header {
+.wizard-header-tarea {
     border-bottom: 1px solid rgba(148, 163, 184, 0.2);
     padding-bottom: 1rem;
     margin-bottom: 1.5rem;
@@ -112,22 +108,22 @@
     color: #bbf7d0;
 }
 
-/* Form fields */
-.form-label {
+/* Solo dentro de modales con tema oscuro */
+.modal-dark-form .form-label {
     font-weight: 500;
     color: #e5e7eb;
 }
 
-.form-control,
-.form-select {
+.modal-dark-form .form-control,
+.modal-dark-form .form-select {
     background-color: rgba(15, 23, 42, .8);
     border-color: rgba(148, 163, 184, .5);
     color: #e5e7eb;
 }
 
-    .form-control:focus,
-    .form-select:focus,
-    .eresumen{
+    .modal-dark-form .form-control:focus,
+    .modal-dark-form .form-select:focus,
+    .modal-dark-form .eresumen {
         background-color: rgba(15, 23, 42, .98);
         border-color: #6366f1;
         box-shadow: 0 0 0 .15rem rgba(79, 70, 229, .35);
@@ -211,24 +207,46 @@
     border-color: #dc2626 !important;
     box-shadow: 0 0 0 .15rem rgba(220,38,38,.08) !important;
 }
-.resumen-card {
-    background: #0b1220; /* fondo oscuro similar al modal */
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+/* === Card de resumen final === */
+.modal-dark-form .resumen-card {
+    background: radial-gradient(circle at top, #111827 0, #020617 60%);
+    border: 1px solid rgba(148, 163, 184, .35);
+    color: #e5e7eb;
 }
 
-    .resumen-card h6 {
+    /* Etiquetas: Título, Prioridad, Descripción */
+    .modal-dark-form .resumen-card .text-muted.small {
+        color: #9ca3af !important;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    /* Texto del título y descripción */
+    .modal-dark-form .resumen-card h6,
+    .modal-dark-form .resumen-card p {
         color: #f9fafb;
     }
 
-    .resumen-card p,
-    .resumen-card .small {
-        color: #e5e7eb;
+    /* Línea separadora más suave */
+    .modal-dark-form .resumen-card hr {
+        border-color: rgba(148, 163, 184, .3);
     }
 
-    .resumen-card hr {
-        border-color: rgba(148, 163, 184, 0.35);
+    /* Fecha de vencimiento al final */
+    .modal-dark-form .resumen-card .bi-calendar-check {
+        font-size: .9rem;
+        opacity: .8;
     }
+
+    .modal-dark-form .resumen-card #resumenFechaLimiteTexto {
+        color: #9ca3af;
+    }
+
+/* Título "Revisión final" visible en oscuro */
+.modal-dark-form h5 {
+    color: #e5e7eb;
+}
+
 
 /* Si quieres suavizar aún más la badge de prioridad */
 .badge-soft {
@@ -252,3 +270,158 @@
         background: rgba(52, 211, 153, 0.18);
         color: #a7f3d0;
     }
+.no-select {
+    user-select: none;
+    cursor: default;
+}
+/* === Paso 4: Fecha vencimiento en modal oscuro === */
+.modal-dark-form .input-group-text {
+    background-color: #020617; /* un poco más claro que el fondo */
+    border-color: rgba(148, 163, 184, .6);
+    color: #e5e7eb;
+}
+
+    .modal-dark-form .input-group-text i {
+        opacity: .9;
+    }
+
+/* input date */
+.modal-dark-form input[type="date"].form-control {
+    background-color: #020617;
+    border-color: rgba(148, 163, 184, .6);
+    color: #e5e7eb;
+    font-size: .9rem;
+}
+
+    /* icono nativo del date (el que pone el navegador) */
+    .modal-dark-form input[type="date"].form-control::-webkit-calendar-picker-indicator {
+        filter: invert(1); /* lo vuelve claro */
+        opacity: .9;
+    }
+
+    /* por si tienes placeholder tipo dd/mm/aaaa */
+    .modal-dark-form input[type="date"].form-control::placeholder {
+        color: #9ca3af;
+    }
+/* Separador sutil bajo el título */
+.wizard-card-tarea .detalle-separator {
+    border-color: rgba(148, 163, 184, .3);
+    margin-top: .75rem;
+    margin-bottom: 1.25rem;
+}
+
+/* Estilo general del listado */
+.wizard-card-tarea .detalle-dl dt {
+    font-size: .85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #9ca3af;
+    margin-bottom: .25rem;
+}
+
+.wizard-card-tarea .detalle-dl dd {
+    font-size: .95rem;
+    color: #e5e7eb;
+    margin-bottom: .6rem;
+}
+/* Caja de descripción con scroll */
+.wizard-card-tarea .detalle-descripcion-scroll {
+    max-height: 160px; /* ajusta a gusto */
+    overflow-y: auto;
+    padding: .5rem .6rem;
+    border-radius: .5rem;
+    background: rgba(15, 23, 42, .7);
+    border: 1px solid rgba(148, 163, 184, .3);
+    scrollbar-width: thin;
+}
+
+    .wizard-card-tarea .detalle-descripcion-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .wizard-card-tarea .detalle-descripcion-scroll::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: rgba(148, 163, 184, .7);
+    }
+
+
+/* Badge de prioridad */
+.wizard-card-tarea .badge-prioridad {
+    display: inline-flex;
+    align-items: center;
+    padding: .15rem .7rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    background: rgba(15, 118, 110, .15);
+    border: 1px solid rgba(45, 212, 191, .6);
+    color: #a7f3d0;
+}
+
+    /* Opcional: distintos colores según prioridad */
+    .wizard-card-tarea .badge-prioridad[data-prioridad="Alta"] {
+        background: rgba(220, 38, 38, .18);
+        border-color: rgba(248, 113, 113, .9);
+        color: #fecaca;
+    }
+
+    .wizard-card-tarea .badge-prioridad[data-prioridad="Media"] {
+        background: rgba(234, 179, 8, .18);
+        border-color: rgba(250, 204, 21, .9);
+        color: #fef9c3;
+    }
+
+    .wizard-card-tarea .badge-prioridad[data-prioridad="Baja"] {
+        background: rgba(22, 163, 74, .18);
+        border-color: rgba(74, 222, 128, .9);
+        color: #dcfce7;
+    }
+
+
+/* Botón eliminar */
+.btn-danger {
+    border-radius: .75rem;
+    font-weight: 600;
+}
+
+/* Botón cancelar en tema oscuro */
+.btn-outline-light {
+    border-radius: .75rem;
+    border-color: rgba(148, 163, 184, .6);
+    color: #e5e7eb;
+}
+
+    .btn-outline-light:hover {
+        background: rgba(148, 163, 184, .15);
+    }
+  white-space: pre-wrap; /* respeta saltos de línea si los hay */
+}
+/* Estado "peligro" para la tarjeta de eliminar */
+.wizard-card-tarea-danger {
+    background: #050816;
+    border-radius: 24px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, .65);
+    border: 1px solid rgba(239, 71, 111, .35);
+}
+
+/* Icono circular rojo suave */
+.wizard-icon-circle-danger {
+    background: rgba(239, 71, 111, .15);
+    color: #ff6b81;
+}
+/* Estado "peligro" para la tarjeta de eliminar */
+.wizard-card-tarea-danger {
+    background: #050816;
+    border-radius: 24px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, .65);
+    border: 1px solid rgba(239, 71, 111, .35);
+}
+
+/* Icono circular rojo suave */
+.wizard-icon-circle-danger {
+    background: rgba(239, 71, 111, .15);
+    color: #ff6b81;
+}

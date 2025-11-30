@@ -79,11 +79,14 @@
             // Categoría / TipoServicio
             var ddlCategoria = root.querySelector('#CategoriaServicioId') || root.querySelector('#CategoriaId');
             var ddlTipoServicio = root.querySelector('#TipoServicioId');
-            var ID_CATEGORIA_GENERAL = '5'; // ⚠️ AJUSTA AL ID REAL DE TU CATEGORÍA GENERAL
+            var ID_CATEGORIA_GENERAL = '5';
 
             // División / Unidad
             var ddlDivision = root.querySelector('#DivisionId');
             var ddlUnidad = root.querySelector('#UnidadId');
+
+            // Usuario (hidden)
+            var hiddenUsuario = root.querySelector('#UsuarioId');
 
             inputs.forEach(function (input) {
 
@@ -98,14 +101,20 @@
                     input.name === 'DivisionId' ||
                     (input.name && input.name.endsWith('.DivisionId')));
 
-                // --- IGNORAR si está deshabilitado / oculto (pero NO TipoServicio ni División,
-                // que tienen reglas especiales más abajo)
-                if (!isTipoServicio && !isDivision && input.disabled) {
+                var isUsuario = hiddenUsuario && (
+                    input === hiddenUsuario ||
+                    input.id === 'UsuarioId' ||
+                    input.name === 'UsuarioId' ||
+                    (input.name && input.name.endsWith('.UsuarioId'))
+                );
+
+                // IGNORAR si está deshabilitado/oculto, excepto TipoServicio, División y UsuarioId
+                if (!isTipoServicio && !isDivision && !isUsuario && input.disabled) {
                     clearError(input);
                     return;
                 }
 
-                if (!isTipoServicio && !isDivision && input.offsetParent === null) {
+                if (!isTipoServicio && !isDivision && !isUsuario && input.offsetParent === null) {
                     clearError(input);
                     return;
                 }
@@ -118,12 +127,26 @@
                     return;
                 }
 
-                // ====================================================
-                // 🔥 REGLA ESPECIAL DE TIPO SERVICIO
-                // ====================================================
-                if (isTipoServicio) {
+                // ===========================
+                // USUARIO SOLICITANTE (hidden)
+                // ===========================
+                if (isUsuario) {
+                    var msgUsuario = requeridoMsg || 'Debe elegir el usuario';
+                    var valU = input.value;
 
-                    // Si no existe el select de categoría, lo validamos como campo normal requerido
+                    if (!valU || valU.trim() === '' || valU === '0') {
+                        valid = false;
+                        setError(input, msgUsuario);
+                    } else {
+                        clearError(input);
+                    }
+                    return;
+                }
+
+                // ===========================
+                // TIPO SERVICIO (regla especial)
+                // ===========================
+                if (isTipoServicio) {
                     if (!ddlCategoria) {
                         var valTS = input.value;
                         if (!valTS || valTS.trim() === '') {
@@ -137,7 +160,6 @@
 
                     var catVal = ddlCategoria.value;
 
-                    // 1) SIN categoría seleccionada → deshabilitamos TipoServicio, sin verde ni rojo
                     if (!catVal) {
                         ddlTipoServicio.disabled = true;
                         ddlTipoServicio.classList.remove('is-invalid', 'is-valid');
@@ -154,7 +176,6 @@
                         return;
                     }
 
-                    // 2) Categoría GENERAL → TipoServicio NO requerido (se suele ocultar)
                     if (catVal === ID_CATEGORIA_GENERAL) {
                         ddlTipoServicio.disabled = true;
                         ddlTipoServicio.classList.remove('is-invalid', 'is-valid');
@@ -171,7 +192,6 @@
                         return;
                     }
 
-                    // 3) Categoría seleccionada y NO general → TipoServicio ES obligatorio
                     ddlTipoServicio.disabled = false;
 
                     if (!ddlTipoServicio.value || ddlTipoServicio.value === '') {
@@ -184,12 +204,10 @@
                     }
                 }
 
-                // ====================================================
-                // 🔥 REGLA ESPECIAL DE DIVISIÓN vs UNIDAD
-                // ====================================================
+                // ===========================
+                // DIVISIÓN vs UNIDAD (especial)
+                // ===========================
                 if (isDivision) {
-
-                    // Si no tenemos Unidad en la vista, tratar como required normal
                     if (!ddlUnidad) {
                         var divValSimple = input.value;
                         if (!divValSimple || divValSimple.trim() === '') {
@@ -201,28 +219,21 @@
                         return;
                     }
 
-                    // Unidad seleccionada (si hay)
                     var unidadOpt = ddlUnidad.options[ddlUnidad.selectedIndex] || null;
                     var unidadTieneDivision = unidadOpt && unidadOpt.dataset
                         ? (unidadOpt.dataset.division || '').toString()
                         : '';
 
-                    // CASO A: hay Unidad seleccionada y NO tiene division (data-division vacío)
-                    // → División NO es obligatoria
                     if (unidadOpt && !unidadTieneDivision) {
                         clearError(input);
                         return;
                     }
 
-                    // CASO B: no hay unidad seleccionada aún
-                    // Dejas que la Unidad (que es [Required]) sea la que frene,
-                    // podemos no exigir división todavía.
                     if (!unidadOpt || !ddlUnidad.value) {
                         clearError(input);
                         return;
                     }
 
-                    // CASO C: Unidad seleccionada SÍ tiene division → División OBLIGATORIA
                     var divVal = input.value;
                     if (!divVal || divVal.trim() === '') {
                         valid = false;
@@ -233,9 +244,9 @@
                     return;
                 }
 
-                // ====================================================
-                // 🔥 VALIDACIÓN NORMAL PARA EL RESTO DE CAMPOS
-                // ====================================================
+                // ===========================
+                // VALIDACIÓN NORMAL
+                // ===========================
                 var valor = input.value;
                 if (!valor || valor.trim() === '') {
                     valid = false;
@@ -247,6 +258,7 @@
 
             return valid;
         }
+
 
 
 
@@ -376,19 +388,16 @@
                 if (contentType.includes('application/json')) {
                     const result = await response.json();
                     if (result.success) {
-                        // cerrar modal si existe
                         if (window.appModal) {
                             window.appModal.hide();
                         }
 
-                        // recargar el módulo de tareas
                         const tareasLink = document.querySelector('.menu-item[data-view="Tareas"]');
                         if (tareasLink) {
                             tareasLink.click();
                         }
                         return;
                     } else {
-                        // mostrar mensaje de error si viene en el JSON
                         if (result.message) {
                             alert(result.message);
                         }
@@ -396,19 +405,20 @@
                     }
                 }
 
-                // Si por alguna razón no es JSON, tratamos como HTML (errores de validación)
+                // HTML con errores de validación
                 const html = await response.text();
                 const container = window.appModalBody || document.getElementById('appModalBody');
 
                 if (container) {
                     container.innerHTML = html;
 
-                    // re-inicializamos todo lo que ya tienes
+                    // 🔁 Re-inicializamos todo lo de la parcial
                     initTareaWizard(container);
                     initTareaAjaxForm(container);
                     initTareaCTS(container);
                     initTareaTipoServicio(container);
                     initDivisionUnidad(container);
+                    initAutocompleteUsuarios(container); // 👈 AQUÍ
 
                     if (window.jQuery && $.validator && $.validator.unobtrusive) {
                         $.validator.unobtrusive.parse(container);
@@ -419,6 +429,7 @@
             }
         });
     }
+
 
     function initTareaCTS(root) {
         root = root || document;
@@ -522,8 +533,6 @@
         ddlCategoria.addEventListener('change', actualizarTipoServicio);
     }
 
-
-
     function initTareaTipoServicio(root) {
         root = root || document;
 
@@ -554,28 +563,43 @@
 
         console.log('[Tareas] initTareaTipoServicio OK, select y mapa encontrados', { map });
 
+        // 👉 1) Poner title en cada <option>
+        Array.from(sel.options).forEach(opt => {
+            const val = opt.value;
+            if (!val) {
+                opt.title = 'Seleccione un tipo de servicio';
+            } else if (map[val]) {
+                opt.title = map[val]; // descripción
+            }
+        });
+
+        // 👉 2) Mantener también el title del <select> para cuando esté cerrado
         function actualizarTitle() {
             const value = sel.value;
             if (!value) {
                 sel.title = 'Seleccione un tipo de servicio';
-                console.log('[Tareas] actualizando title -> placeholder');
                 return;
             }
 
             const desc = map[value] || '';
             sel.title = desc;
-            console.log('[Tareas] actualizando title ->', { value, desc });
         }
 
         sel.addEventListener('change', actualizarTitle);
-        actualizarTitle(); // valor inicial (placeholder)
+        actualizarTitle(); // valor inicial
     }
+
 
     async function initTareaDeleteForm(root) {
         root = root || document;
 
         const form = root.querySelector('form[data-ajax-delete-tarea="true"]');
-        if (!form) return;
+        if (!form) {
+            console.log('[Tareas] No se encontró form[data-ajax-delete-tarea="true"] en', root);
+            return;
+        }
+
+        console.log('[Tareas] initTareaDeleteForm: enganchando submit en', form);
 
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -589,23 +613,22 @@
                 const response = await fetch(url, {
                     method: 'POST',
                     body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    // cerrar modal
                     if (window.appModal) {
                         window.appModal.hide();
                     }
 
+                    // aquí tu js global ya hace tareasLink.click()
                     const tareasLink = document.querySelector('.menu-item[data-view="Tareas"]');
                     if (tareasLink) {
-                        tareasLink.click(); // recarga la vista de tareas en el panel
+                        tareasLink.click();
                     }
+
                     return;
                 } else {
                     alert(result.message || 'No se pudo eliminar la tarea.');
@@ -616,6 +639,8 @@
             }
         });
     }
+
+
 
     function initTareaDataTable(root) {
         root = root || document;
@@ -756,7 +781,10 @@
             ddlUnidad.querySelectorAll('option[data-division]')
         );
 
-        function actualizarUnidades() {
+        // 🔹 Guardamos la unidad que viene seleccionada del servidor (si hay)
+        const unidadInicial = ddlUnidad.value; // ej. "5" cuando viene de la solicitud
+
+        function actualizarUnidades(keepSelected) {
             const divisionId = ddlDivision.value;
 
             // Limpia el select y deja solo la opción por defecto
@@ -768,13 +796,12 @@
             let opcionesFiltradas;
 
             if (!divisionId) {
-                // 🔹 SIN división seleccionada:
-                // solo unidades SIN división (data-division vacío)
+                // SIN división seleccionada: solo unidades SIN división
                 opcionesFiltradas = todasOpcionesUnidad.filter(
-                    opt => !opt.dataset.division // "" → falsy
+                    opt => !opt.dataset.division
                 );
             } else {
-                // 🔹 Con división: solo unidades que pertenezcan a esa división
+                // Con división: solo unidades de esa división
                 opcionesFiltradas = todasOpcionesUnidad.filter(
                     opt => opt.dataset.division === divisionId
                 );
@@ -785,15 +812,24 @@
             });
 
             ddlUnidad.disabled = opcionesFiltradas.length === 0;
-            ddlUnidad.value = "";
+
+            if (keepSelected && unidadInicial) {
+                // 🔹 Primer carga: intenta dejar la unidad que venía seleccionada
+                ddlUnidad.value = unidadInicial;
+                // si no existe en el filtro actual, se quedará en ""
+            } else {
+                // Cambios normales de división: limpia selección
+                ddlUnidad.value = "";
+            }
         }
 
-        // Al cargar la parcial
-        actualizarUnidades();
+        // Al cargar la parcial → respetar la unidad que vino del servidor
+        actualizarUnidades(true);
 
-        // Cada vez que cambie la división
-        ddlDivision.addEventListener('change', actualizarUnidades);
+        // Cada vez que cambie la división → ya NO respetamos la anterior
+        ddlDivision.addEventListener('change', () => actualizarUnidades(false));
     }
+
     function initSelectTecnicos(root) {
         root = root || document;
 
@@ -832,6 +868,127 @@
         });
     }
 
+    function initAutocompleteUsuarios(root) {
+        root = root || document;
+
+        // Contenedor que tenga el atributo data-usuarios-url
+        const container = root.querySelector('[data-usuarios-url]');
+        if (!container) return;
+
+        const input = container.querySelector('#usuarioBuscador');
+        const hidden = container.querySelector('#UsuarioId');
+        const lista = container.querySelector('#usuarioResultados');
+
+        if (!input || !hidden || !lista) return;
+
+        const searchUrl = container.getAttribute('data-usuarios-url');
+        if (!searchUrl) return;
+
+        let currentController = null;
+        let debounceTimer = null;
+
+        function limpiarLista() {
+            lista.innerHTML = '';
+            lista.classList.add('d-none');
+        }
+
+        input.addEventListener('input', function () {
+            const q = this.value.trim();
+
+            // limpiar selección anterior
+            hidden.value = '';
+            limpiarLista();
+
+            if (q.length < 3) {
+                // mínimo 3 caracteres para buscar
+                return;
+            }
+
+            // debounce para no disparar muchas peticiones
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
+
+            debounceTimer = setTimeout(async () => {
+                // cancelar petición anterior si sigue viva
+                if (currentController) {
+                    currentController.abort();
+                }
+
+                currentController = new AbortController();
+
+                try {
+                    const resp = await fetch(searchUrl + '?term=' + encodeURIComponent(q), {
+                        method: 'GET',
+                        signal: currentController.signal,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (!resp.ok) {
+                        limpiarLista();
+                        return;
+                    }
+
+                    const data = await resp.json();
+                    lista.innerHTML = '';
+
+                    if (!data || !data.length) {
+                        limpiarLista();
+                        return;
+                    }
+
+                    data.forEach(u => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'list-group-item list-group-item-action';
+                        btn.textContent = u.nombre;
+                        btn.dataset.id = u.id;
+                        lista.appendChild(btn);
+                    });
+
+                    lista.classList.remove('d-none');
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                    console.error('Error buscando usuarios', err);
+                    limpiarLista();
+                }
+            }, 300); // 300ms de debounce
+        });
+
+        // click en una sugerencia
+        lista.addEventListener('click', function (e) {
+            const btn = e.target.closest('button.list-group-item');
+            if (!btn) return;
+
+            const id = btn.dataset.id;
+            const nombre = btn.textContent;
+
+            hidden.value = id;
+            input.value = nombre;
+
+            limpiarLista();
+
+            // limpiar error si estaba
+            hidden.classList.remove('is-invalid', 'is-valid');
+            const span = root.querySelector('[data-valmsg-for="UsuarioId"]');
+            if (span) {
+                span.classList.remove('field-validation-error');
+                span.classList.add('field-validation-valid');
+                span.textContent = '';
+            }
+        });
+
+
+        // si borran el texto, se limpia el hidden
+        input.addEventListener('blur', function () {
+            if (!this.value.trim()) {
+                hidden.value = '';
+                limpiarLista();
+            }
+        });
+    }
+
+
 
     // === Inicializador "tipo usuarios.js" ===
     function initTareaForm(root) {
@@ -845,6 +1002,7 @@
         initTareaDataTable(root);
         initDivisionUnidad(root);
         initSelectTecnicos(root);
+        initAutocompleteUsuarios(root); 
 
         if (window.jQuery && $.validator && $.validator.unobtrusive) {
             $.validator.unobtrusive.parse(root);

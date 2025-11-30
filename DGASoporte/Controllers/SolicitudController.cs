@@ -1,8 +1,8 @@
 ﻿using DGASoporte.Data;
-using DGASoporte.Hubs;
 using DGASoporte.Infraestructura;
 using DGASoporte.Models;
 using DGASoporte.Models.Enumeradores;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
@@ -12,55 +12,31 @@ using System.Security.Claims;
 
 namespace DGASoporte.Controllers
 {
+    [Authorize(Roles = "Cliente")]
     public class SolicitudController : Controller
     {
         private readonly DGADbContext _context;
-        private readonly ILogger<SolicitudController> _logger;
-        private readonly IHubContext<NotificacionesHub> _notificacionesHub;
 
-
-        public SolicitudController(DGADbContext context, ILogger<SolicitudController> logger, IHubContext<NotificacionesHub> notificacionesHub)
+        public SolicitudController(DGADbContext context, ILogger<SolicitudController> logger)
         {
             _context = context;
-            _logger = logger;
-            _notificacionesHub = notificacionesHub;
         }
         // GET: Solicitudes
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? estado, string? search, int? tipoId)
+        public async Task<IActionResult> Index()
         {
             int solicitanteId = User.GetRequiredUserId();
-
+            var hoy = DateTime.Today;
+            var hace30dias = hoy.AddDays(-30);
             var solicitudes = await _context.Solicitudes
                 .Where(s=>s.UsuarioId==solicitanteId)
                 .Include(s => s.Usuario)
                 .Include(s => s.Unidad)
                 .Include(s => s.TipoIncidencia)
+                .Where(t => !t.Archivada && t.FechaCreacion >= hace30dias)
                 .OrderByDescending(s => s.FechaCreacion)
                 .ToListAsync();
-
-            // Aplicar filtros
-            if (!string.IsNullOrEmpty(estado) && Enum.TryParse<EstadoS>(estado, out var estadoEnum))
-            {
-                solicitudes = solicitudes.Where(s => s.Estado == estadoEnum).ToList();
-            }
-
-            if (tipoId.HasValue)
-            {
-                solicitudes = solicitudes.Where(s => s.TipoIncidenciaId == tipoId.Value).ToList();
-            }
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                solicitudes = solicitudes.Where(s =>
-                    s.Titulo.Contains(search) ||
-                    s.Descripcion.Contains(search) ||
-                    s.Usuario.NombreCompleto.Contains(search) ||
-                    s.Unidad.Nombre.Contains(search) ||
-                    s.TipoIncidencia.Nombre.Contains(search)
-                ).ToList();
-            }
 
             // Calcular estadísticas
             ViewBag.TotalSolicitudes = solicitudes.Count;
@@ -88,10 +64,6 @@ namespace DGASoporte.Controllers
 
             ViewBag.Estados = estadosLista;
 
-            ViewBag.CurrentEstado = estado;
-            ViewBag.CurrentSearch = search;
-            ViewBag.CurrentTipo = tipoId;
-
             return View(solicitudes);
         }
 
@@ -110,9 +82,22 @@ namespace DGASoporte.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SolicitudVM vm, CancellationToken ct)
         {
-            //datos que no viene desde el form
-            ModelState.Remove(nameof(vm.UsuarioId));
-            ModelState.Remove(nameof(vm.Estado));
+            bool existeArea = await _context.Unidades.AnyAsync(a => a.Id == vm.UnidadId, ct);
+            if (!existeArea)
+                ModelState.AddModelError(nameof(vm.UnidadId), "El área seleccionada no existe.");
+
+            bool existeTipoIncidencia = await _context.TipoIncidencias.AnyAsync(c => c.Id == vm.TipoIncidenciaId, ct);
+            if (!existeTipoIncidencia)
+                ModelState.AddModelError(nameof(vm.TipoIncidenciaId), "La incidecia seleccionada no existe.");
+
+            if (vm.UnidadId > 0)
+            {
+                var unidad = await _context.Unidades.FindAsync(vm.UnidadId);
+                if (unidad != null && unidad.DivisionId != null && vm.DivisionId == null)
+                {
+                    ModelState.AddModelError(nameof(vm.DivisionId), "Debe elegir la división correspondiente.");
+                }
+            }
 
             if (!ModelState.IsValid)
             {
@@ -129,28 +114,15 @@ namespace DGASoporte.Controllers
                 UnidadId = vm.UnidadId,
                 TipoIncidenciaId = vm.TipoIncidenciaId,
                 UsuarioId = User.GetRequiredUserId(),
-                Estado = EstadoS.Enviada
+                Estado = EstadoS.Enviada,
+                DivisionId = vm.DivisionId
             };
 
             _context.Solicitudes.Add(entidad);
 
-            var noti = new Notificacion
-            {
-                UsuarioId = User.GetRequiredUserId(),
-                Tipo = "SolicitudInicidencia",
-                Titulo = "Nueva solicitud de soporte",
-                Mensaje = $"{User.GetUserName} - {vm.Titulo}",
-                UrlDestino = $"/Home/Index",
-                FechaCreacion = DateTime.Now,
-                Leida = false
-            };
-
-            _context.Notificaciones.Add(noti);
             await _context.SaveChangesAsync();
             // Enviar a todos los admins conectados
-            await _notificacionesHub
-                .Clients.Group("admins")
-                .SendAsync("SolicitudCreada", noti);
+           
 
             TempData["ok"] = "Solicitud registrada con éxito.";
             return RedirectToAction(nameof(Index));
@@ -195,6 +167,23 @@ namespace DGASoporte.Controllers
                 t => t.Id,
                 t => t.Descripcion ?? string.Empty
             );
-        }      
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Archivar(int id)
+        {
+            var solicitud = await _context.Solicitudes.FindAsync(id);
+            if (solicitud == null)
+                return NotFound();
+
+            // Marcar como archivada
+            solicitud.Archivada = true;
+
+            await _context.SaveChangesAsync();
+
+            // Vuelves a la lista
+            return RedirectToAction(nameof(Index));
+        }
+
     }
 }

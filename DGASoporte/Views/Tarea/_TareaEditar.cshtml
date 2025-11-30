@@ -1,12 +1,20 @@
 ﻿@using DGASoporte.Models.Enumeradores
 @model TareaFormVM
+@using System.Text.Json
+
+@{
+    // Mapeo id/nombre para JS
+    var usuariosJson = JsonSerializer.Serialize(
+        Model.Usuarios.Select(u => new { id = u.Value, nombre = u.Text })
+    );
+}
 @{
     Layout = null; // importante: que no meta el layout dentro del modal
 }
 <link href="~/css/cardTarea.css" rel="stylesheet" />
-<div class="wizard-card">
-    <div class="card-body p-4 p-md-4">
-        <div class="wizard-header d-flex align-items-center">
+<div class="wizard-card-tarea no-select">
+    <div class="card-body-tarea p-4 p-md-4">
+        <div class="wizard-header-tarea d-flex align-items-center">
             <div class="wizard-icon-circle">
                 <i class="bi bi-kanban fs-5"></i>
             </div>
@@ -31,11 +39,11 @@
             </div>
             <div class="stepper-item" data-step-indicator="2">
                 <div class="step-counter">2</div>
-                <div class="step-name">ASIGNACIÓN</div>
+                <div class="step-name">DETALLES</div>
             </div>
             <div class="stepper-item" data-step-indicator="3">
                 <div class="step-counter">3</div>
-                <div class="step-name">FECHAS</div>
+                <div class="step-name">ASIGNACION</div>
             </div>
             <div class="stepper-item" data-step-indicator="4">
                 <div class="step-counter">4</div>
@@ -49,18 +57,20 @@
 
             <input asp-for="Id" type="hidden" />
             <input asp-for="RowVersion" type="hidden" />
-            <input asp-for="FechaCreacion" type="hidden" />
+            <input asp-for="SolicitudId" type="hidden" />
 
             <!-- PASO 1 -->
             <div class="form-step active" data-step="1">
-                <div class="row g-3">
+                <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label asp-for="CategoriaId" class="form-label"></label>
-                        <select asp-for="CategoriaId" asp-items="Model.Categorias" class="form-select" id="CategoriaId">
-                            <option value="">-- Seleccione Categoria --</option>
+                        <select asp-for="CategoriaId" asp-items="Model.Categorias"
+                                class="form-select" id="CategoriaServicioId">
+                            <option value="">-- Seleccione categoría --</option>
                         </select>
                         <span asp-validation-for="CategoriaId" class="text-danger"></span>
                     </div>
+
                     <div class="col-md-6" id="grupoTipoServicio">
                         <label asp-for="TipoServicioId" class="form-label"></label>
                         <select asp-for="TipoServicioId" class="form-select" id="TipoServicioId">
@@ -75,6 +85,7 @@
                             }
                         </select>
                         <span asp-validation-for="TipoServicioId" class="text-danger"></span>
+                        <p>primero elegir categoria</p>
                     </div>
                 </div>
                 <div class="mb-3">
@@ -82,16 +93,44 @@
                     <input asp-for="Titulo" class="form-control" />
                     <span asp-validation-for="Titulo" class="text-danger"></span>
                 </div>
+            </div>
 
+            <!-- PASO 2 -->
+            <div class="form-step" data-step="2">
                 <div class="mb-3">
                     <label asp-for="Descripcion" class="form-label"></label>
                     <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
                     <span asp-validation-for="Descripcion" class="text-danger"></span>
                 </div>
-            </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="DivisionId" class="form-label"></label>
+                        <select asp-for="DivisionId"
+                                asp-items="Model.Divisiones"
+                                class="form-select" id="DivisionId">
+                            <option value="">-- Seleccione división --</option>
+                        </select>
+                        <span asp-validation-for="DivisionId" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6" id="grupoUnidad">
+                        <label asp-for="UnidadId" class="form-label"></label>
+                        <select asp-for="UnidadId" class="form-select" id="UnidadId">
+                            <option value="">-- Seleccione unidad --</option>
 
-            <!-- PASO 2 -->
-            <div class="form-step" data-step="2">
+                            @foreach (var u in Model.Unidades)
+                            {
+                                var divisionId = u.DivisionId.HasValue ? u.DivisionId.Value.ToString() : "";
+                                <option value="@u.Id" data-division="@divisionId">@u.Nombre</option>
+
+                            }
+                        </select>
+                        <span asp-validation-for="UnidadId" class="text-danger"></span>
+                        <p>si no elige division solo apareceran unidades sin division</p>
+                    </div>
+                </div>
+            </div>
+            <!-- PASO 3 -->
+            <div class="form-step" data-step="3">
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label asp-for="Prioridad" class="form-label"></label>
@@ -100,67 +139,91 @@
                         </select>
                         <span asp-validation-for="Prioridad" class="text-danger"></span>
                     </div>
-                    <div class="col-md-6" id="grupoUnidad">
-                        <label asp-for="UnidadId" class="form-label"></label>
-                        <select asp-for="UnidadId" class="form-select" id="UnidadId">
-                            <option value="">-- Seleccione unidad --</option>
 
-                            @* Cada unidad lleva data-division con su DivisionId (o vacío si no tiene) *@
-                            @foreach (var u in Model.Unidades)
-                            {
-                                var divisionId = u.DivisionId.HasValue ? u.DivisionId.Value.ToString() : "";
-                                <option value="@u.Id"
-                                        data-division="@divisionId">
-                                    @u.Nombre
-                                </option>
-                            }
-                        </select>
-                        <span asp-validation-for="UnidadId" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="TecnicoId" class="form-label">Técnico (opcional)</label>
-                        <select asp-for="TecnicoId" asp-items="Model.Tecnicos" class="form-select">
-                            <option value="">-- Sin asignar --</option>
-                        </select>
-                        <span asp-validation-for="TecnicoId" class="text-danger"></span>
-                    </div>
+                    @if (Model.SolicitudId.HasValue)
+                    {
+                        <input asp-for="UsuarioId" type="hidden" />
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Usuario solicitante</label>
+                            <input class="form-control" value="@Model.UsuarioNombre" disabled />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Usuario</label>
+
+                            <!-- 🔎 Barra de búsqueda con autocompletado -->
+                            <input type="text"
+                                   id="usuarioBuscador"
+                                   class="form-control mb-2"
+                                   placeholder="Escriba el nombre del usuario"
+                                   list="usuariosList" />
+
+                            <!-- Sugerencias que se muestran mientras escribe -->
+                            <datalist id="usuariosList">
+                                @foreach (var u in Model.Usuarios)
+                                {
+                                    <option value="@u.Text"></option>
+                                }
+                            </datalist>
+
+                            <!-- Aquí se guarda realmente el Id que se enviará al POST -->
+                            <input asp-for="UsuarioId" type="hidden" id="UsuarioId" />
+                            <span asp-validation-for="UsuarioId" class="text-danger"></span>
+                        </div>
+                    }
                 </div>
-            </div>
 
-            <!-- PASO 3 -->
-            <div class="form-step" data-step="3">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label asp-for="FechaLimite" class="form-label"></label>
-                        <input asp-for="FechaLimite" type="date" class="form-control" />
-                        <span asp-validation-for="FechaLimite" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="FechaAsignacion" class="form-label"></label>
-                        <input asp-for="FechaAsignacion" class="form-control" type="date" />
-                        <span asp-validation-for="FechaAsignacion" class="text-danger"></span>
-                    </div>
-                </div>
             </div>
-
             <!-- PASO 4 -->
             <div class="form-step" data-step="4">
+                <div class="row g-3">
+                    <!-- Fecha vencimiento -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FechaLimite" class="form-label">Fecha vencimiento (opcional)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">
+                                <i class="bi bi-calendar-event"></i>
+                            </span>
+                            <input asp-for="FechaLimite" type="date" class="form-control" />
+                        </div>
+                        <span asp-validation-for="FechaLimite" class="text-danger small"></span>
+                    </div>                  
+                </div>
                 <h5 class="mb-3">
                     <i class="bi bi-clipboard2-check me-2"></i> Revisión final
                 </h5>
-                <div class="border rounded-3 p-3 mb-3">
-                    <div class="d-flex justify-content-between mb-2">
+
+                <!-- Card de resumen -->
+                <div class="resumen-card rounded-3 p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
                         <div>
-                            <div class="text-muted small">Título</div>
-                            <div id="resumenTitulo" class="fw-semibold"></div>
+                            <div class="text-uppercase text-muted small fw-semibold mb-1">Título</div>
+                            <h6 id="resumenTitulo" class="mb-0"></h6>
                         </div>
-                        <span class="badge-soft" id="resumenPrioridad"></span>
+
+                        <div class="text-end">
+                            <div class="text-uppercase text-muted small fw-semibold mb-1">Prioridad</div>
+                            <span class="badge-soft rounded-pill px-3 py-1" id="resumenPrioridad"></span>
+                        </div>
                     </div>
-                    <hr class="border-secondary-subtle" />
-                    <div class="small text-muted mb-1">Descripción</div>
-                    <div id="resumenDescripcion" class="small"></div>
+
+                    <hr class="my-3">
+
+                    <div class="mb-2">
+                        <div class="text-uppercase text-muted small fw-semibold mb-1">Descripción</div>
+                        <p id="resumenDescripcion" class="mb-0 small"></p>
+                    </div>
+
+                    <div class="mt-3 d-flex align-items-center small text-muted gap-2">
+                        <i class="bi bi-calendar-check me-1"></i>
+                        <span id="resumenFechaLimiteTexto">Sin fecha de vencimiento</span>
+                    </div>
                 </div>
             </div>
+
 
             <!-- BOTONES -->
             <div class="d-flex justify-content-between mt-4">

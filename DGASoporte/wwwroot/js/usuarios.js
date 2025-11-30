@@ -204,7 +204,7 @@
         }
 
         const dt = $tabla.DataTable({
-            searching: false,
+            searching: true,
             stripeClasses: [],  
             paging: true,
             info: true,

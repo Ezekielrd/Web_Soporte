@@ -12,35 +12,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
-   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet"
           integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
           crossorigin="anonymous">
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <link href="~/css/Tecnicos.css" rel="stylesheet"asp-append-version="true" />
+
+    <!-- Estilos propios -->
+    <link href="~/css/Tecnicos.css" rel="stylesheet" asp-append-version="true" />
 </head>
 <body>
     @if (TempData["Alert"] != null)
     {
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <div class="alert alert-warning alert-dismissible fade show m-3" role="alert">
             <strong>Alerta:</strong> @TempData["Alert"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
+
     <div class="main-container">
         <!-- Header -->
         <div class="header-section">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-                    <h1><i class="bi bi-list-check"></i> Mis Tareas Asignadas</h1>
-                    <p>Gestiona y organiza tus tareas de soporte técnico</p>
+                    <h1 class="mb-1">
+                        <i class="bi bi-list-check me-2"></i>
+                        Mis Solicitudes
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Gestiona y organiza tus solicitudes de soporte técnico
+                    </p>
                 </div>
-                <div>
-                    <span class="badge bg-primary" style="font-size: 1rem; padding: 0.5rem 1rem;">
-                        <i class="bi bi-calendar-event"></i> @DateTime.Now.ToString("dd/MM/yyyy")
+
+                <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end header-actions">
+                    <span class="badge bg-primary d-inline-flex align-items-center header-date-badge"
+                          style="font-size: 1rem; padding: 0.5rem 1rem;">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        @DateTime.Now.ToString("dd/MM/yyyy")
                     </span>
+
+                    <div class="notification-wrapper position-relative">
+                        <button id="btnNotificaciones"
+                                type="button"
+                                class="btn btn-link nav-link position-relative p-0">
+                            <i class="bi bi-bell fs-5"></i>
+                            <span id="notifBadge"
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                                0
+                            </span>
+                        </button>
+
+                        <!-- Panel flotante -->
+                        <div id="notifPanel"
+                             class="card shadow border-0 position-absolute end-0 mt-2 d-none"
+                             style="width: 340px; z-index: 1050;">
+                            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                                <div>
+                                    <i class="bi bi-bell me-1"></i>
+                                    <span>Notificaciones</span>
+                                </div>
+                                <button type="button"
+                                        class="btn-close btn-close-sm"
+                                        aria-label="Cerrar"
+                                        id="btnCerrarNotif"></button>
+                            </div>
+                            <div class="list-group list-group-flush small" id="notifList">
+                                <div class="list-group-item text-muted text-center py-3" id="notifPlaceholder">
+                                    Cargando...
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <form id="formMarcarLeidas"
+                                      method="post"
+                                      asp-controller="Notificaciones"
+                                      asp-action="MarcarTodasComoLeidas">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-link btn-sm text-decoration-none">
+                                        Marcar todas como leídas
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="@Url.Action("Logout", "Cuenta")"
+                       id="btnLogout"
+                       class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-2 logout-btn">
+                        <span class="logout-icon-wrapper d-inline-flex align-items-center justify-content-center">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </span>
+                        <span class="logout-text">Cerrar sesión</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -49,19 +114,19 @@
         <div class="stats-cards">
             <div class="stat-card">
                 <h3 style="color: var(--primary-color);" id="totalTareas">0</h3>
-                <p><i class="bi bi-list-ul"></i> Total de Tareas</p>
+                <p><i class="bi bi-list-ul me-1"></i> Total de Tareas</p>
             </div>
             <div class="stat-card">
                 <h3 style="color: var(--danger-color);" id="tareasVencidas">0</h3>
-                <p><i class="bi bi-exclamation-triangle"></i> Tareas Vencidas</p>
+                <p><i class="bi bi-exclamation-triangle me-1"></i> Tareas Vencidas</p>
             </div>
             <div class="stat-card">
                 <h3 style="color: var(--warning-color);" id="tareasPendientes">0</h3>
-                <p><i class="bi bi-clock-history"></i> Pendientes</p>
+                <p><i class="bi bi-clock-history me-1"></i> Pendientes</p>
             </div>
             <div class="stat-card">
                 <h3 style="color: var(--success-color);" id="tareasCompletadas">0</h3>
-                <p><i class="bi bi-check-circle"></i> Completadas</p>
+                <p><i class="bi bi-check-circle me-1"></i> Completadas</p>
             </div>
         </div>
 
@@ -71,7 +136,10 @@
                 <div class="col-md-4">
                     <div class="search-box">
                         <i class="bi bi-search"></i>
-                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar tareas...">
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control"
+                               placeholder="Buscar tareas por título...">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -80,6 +148,7 @@
                         <option value="pendiente">Pendiente</option>
                         <option value="proceso">En Proceso</option>
                         <option value="completado">Completado</option>
+                        <option value="asignado">Asignado</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -92,24 +161,25 @@
                 </div>
                 <div class="col-md-2">
                     <select id="sortBy" class="form-select sort-dropdown">
-                        <option value="fecha">Fecha Límite</option>
+                        <option value="fecha">Fecha Límite / Creación</option>
                         <option value="prioridad">Prioridad</option>
                         <option value="titulo">Título</option>
                     </select>
                 </div>
             </div>
-            <div class="mt-3">
+
+            <div class="mt-3 d-flex flex-wrap gap-2">
                 <button class="filter-btn active" data-filter="all">
-                    <i class="bi bi-grid-3x3"></i> Todas
+                    <i class="bi bi-grid-3x3-gap me-1"></i> Últimos 30 días
                 </button>
                 <button class="filter-btn" data-filter="vencidas">
-                    <i class="bi bi-exclamation-circle"></i> Vencidas
+                    <i class="bi bi-exclamation-circle me-1"></i> Vencidas
                 </button>
                 <button class="filter-btn" data-filter="hoy">
-                    <i class="bi bi-calendar-check"></i> Vencen Hoy
+                    <i class="bi bi-calendar-check me-1"></i> Hoy
                 </button>
                 <button class="filter-btn" data-filter="semana">
-                    <i class="bi bi-calendar-week"></i> Esta Semana
+                    <i class="bi bi-calendar-week me-1"></i> Próximos 7 días
                 </button>
             </div>
         </div>
@@ -120,31 +190,42 @@
             {
                 foreach (var tarea in Model)
                 {
-                   
-                        // Si Estado es null, usamos Pendiente como valor por defecto
-                        var estadoValor = tarea.Estado ?? EstadoT.EnEspara;
+                    // Estado por defecto si es null
+                    var estadoValor = tarea.Estado ?? EstadoT.EnEspera;
 
-                        // Para la clase CSS -> todo minúscula: pendiente, enproceso, resuelta, asignado
-                        var estadoClass = estadoValor.ToString().ToLower();
+                    // Clave usada en data-estado y filtros JS
+                    var estadoKey = estadoValor switch
+                    {
+                        EstadoT.EnEspera => "pendiente",
+                        EstadoT.EnProceso => "proceso",
+                        EstadoT.Resuelta => "completado",
+                        EstadoT.Asignado => "asignado",
+                        _ => "pendiente"
+                    };
 
-                        // Texto que se mostrará en el badge
-                        var estadoTexto = estadoValor switch
-                        {
-                            EstadoT.EnEspara => "Pendiente",
-                            EstadoT.EnProceso => "En proceso",
-                            EstadoT.Resuelta => "Resuelta",
-                            EstadoT.Asignado => "Asignado",
-                            _ => estadoValor.ToString()
-                        };
-                                      
+                    // Texto visible en el badge
+                    var estadoTexto = estadoValor switch
+                    {
+                        EstadoT.EnEspera => "Pendiente",
+                        EstadoT.EnProceso => "En proceso",
+                        EstadoT.Resuelta => "Resuelta",
+                        EstadoT.Asignado => "Asignado",
+                        _ => estadoValor.ToString()
+                    };
+
                     var prioridadClass = tarea.Prioridad.ToString().ToLower() ?? "baja";
                     var vencidaClass = tarea.Vencida ? "vencida" : "";
-
+                    var fechaLimiteAttr = tarea.FechaLimite?.ToString("yyyy-MM-dd");
+                    var fechaCreacionAttr = tarea.FechaCreacion.ToString("yyyy-MM-dd");
+                    var tituloLower = (tarea.Titulo ?? string.Empty).ToLower();
+                    var tieneLimite = tarea.FechaLimite.HasValue;
                     <div class="task-card priority-@prioridadClass @vencidaClass"
-                         data-estado="@estadoClass"
+                         data-estado="@estadoKey"
                          data-prioridad="@prioridadClass"
-                         data-fecha="@tarea.FechaLimite?.ToString("yyyy-MM-dd")"
-                         data-titulo="@tarea.Titulo.ToLower()">
+                         data-fecha="@fechaLimiteAttr"
+                         data-fcreacion="@fechaCreacionAttr"
+                         data-tiene-limite="@(tieneLimite ? "1" : "0")"
+                         data-titulo="@tituloLower">
 
                         <div class="task-header">
                             <div class="task-title">
@@ -154,15 +235,15 @@
 
                         <div class="task-badges">
                             <span class="badge badge-priority-@prioridadClass">
-                                <i class="bi bi-flag-fill"></i> @tarea.Prioridad
+                                <i class="bi bi-flag-fill me-1"></i> @tarea.Prioridad
                             </span>
-                            <span class="badge badge-estado-@estadoClass">
-                                <i class="bi bi-circle-fill"></i> @estadoTexto
+                            <span class="badge badge-estado-@estadoKey">
+                                <i class="bi bi-circle-fill me-1"></i> @estadoTexto
                             </span>
                             @if (tarea.Vencida)
                             {
                                 <span class="badge badge-vencida">
-                                    <i class="bi bi-exclamation-triangle-fill"></i> VENCIDA
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> VENCIDA
                                 </span>
                             }
                         </div>
@@ -175,89 +256,112 @@
                             @if (tarea.Categoria != null)
                             {
                                 <div class="task-meta-item">
-                                    <i class="bi bi-tag"></i>
+                                    <i class="bi bi-tag me-1"></i>
                                     <span>@tarea.Categoria.Nombre</span>
                                 </div>
                             }
                             @if (tarea.Unidad != null)
                             {
                                 <div class="task-meta-item">
-                                    <i class="bi bi-building"></i>
+                                    <i class="bi bi-building me-1"></i>
                                     <span>@tarea.Unidad.Nombre</span>
                                 </div>
                             }
-                            <div class="task-meta-item">
-                                <i class="bi bi-calendar-event"></i>
-                                <span>Creada: @tarea.FechaCreacion.ToString("dd/MM/yyyy")</span>
-                            </div>
-                            <div class="task-meta-item">
-                                <i class="bi bi-alarm"></i>
-                                <span>Límite: @tarea.FechaLimite?.ToString("dd/MM/yyyy HH:mm")</span>
-                            </div>
-                        </div>
+                    <div class="task-meta-item">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        <span>Creada: @tarea.FechaCreacion.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="task-meta-item">
+                        <i class="bi bi-alarm me-1"></i>
+                        <span>
+                            Límite:
+                            @(tarea.FechaLimite.HasValue
+                                                        ? tarea.FechaLimite.Value.ToString("dd/MM/yyyy HH:mm")
+                                                        : "Sin fecha")
+                        </span>
+                    </div>
+                </div>
 
                         <div class="task-footer">
                             <div>
-                                @{
-                                    // Solución si tarea.FechaLimite puede ser nulo
-                                    var fechaLimiteSinHora = tarea.FechaLimite?.Date ?? DateTime.Now.Date;
-                                    var diasRestantes = (fechaLimiteSinHora - DateTime.Now.Date).Days;
-                                    var textoTiempo = "";
-                                    var colorTiempo = "";
+                        @{
+                                    var hoy = DateTime.Now.Date;
+                                    var textoTiempo = "Sin fecha límite";
+                                    var colorTiempo = "text-muted";
 
-                                    if (tarea.Vencida)
+                                    if (tarea.FechaLimite.HasValue)
                                     {
-                                        textoTiempo = $"Vencida hace {Math.Abs(diasRestantes)} día{(Math.Abs(diasRestantes) != 1 ? "s" : "")}";
-                                        colorTiempo = "text-danger";
-                                    }
-                                    else if (diasRestantes == 0)
-                                    {
-                                        textoTiempo = "Vence hoy";
-                                        colorTiempo = "text-warning";
-                                    }
-                                    else if (diasRestantes == 1)
-                                    {
-                                        textoTiempo = "Vence mañana";
-                                        colorTiempo = "text-warning";
-                                    }
-                                    else
-                                    {
-                                        textoTiempo = $"Faltan {diasRestantes} días";
-                                        colorTiempo = diasRestantes <= 3 ? "text-warning" : "text-success";
+                                        var fechaLimiteSinHora = tarea.FechaLimite.Value.Date;
+                                        var diasRestantes = (fechaLimiteSinHora - hoy).Days;
+
+                                        if (tarea.Vencida)
+                                        {
+                                            textoTiempo = $"Vencida hace {Math.Abs(diasRestantes)} día{(Math.Abs(diasRestantes) != 1 ? "s" : "")}";
+                                            colorTiempo = "text-danger";
+                                        }
+                                        else if (diasRestantes == 0)
+                                        {
+                                            textoTiempo = "Vence hoy";
+                                            colorTiempo = "text-warning";
+                                        }
+                                        else if (diasRestantes == 1)
+                                        {
+                                            textoTiempo = "Vence mañana";
+                                            colorTiempo = "text-warning";
+                                        }
+                                        else
+                                        {
+                                            textoTiempo = $"Faltan {diasRestantes} días";
+                                            colorTiempo = diasRestantes <= 3 ? "text-warning" : "text-success";
+                                        }
                                     }
                                 }
                                 <small class="@colorTiempo fw-bold">
-                                    <i class="bi bi-hourglass-split"></i> @textoTiempo
+                                    <i class="bi bi-hourglass-split me-1"></i> @textoTiempo
                                 </small>
                             </div>
+
                             <div class="task-actions">
-                                <a class="btn-action btn-view" asp-controller="Tecnico" asp-action="Detalle" asp-route-id="@tarea.Id">
-                                    <i class="bi bi-eye"></i> Ver Detalle
+                                <a class="btn-action btn-view"
+                                   asp-controller="Tecnico"
+                                   asp-action="Detalle"
+                                   asp-route-id="@tarea.Id">
+                                    <i class="bi bi-eye me-1"></i> Ver Detalle
                                 </a>
                             </div>
                         </div>
+
                     </div>
                 }
             }
             else
             {
-                <div class="empty-state" style="grid-column: 1/-1;">
-                    <i class="bi bi-inbox"></i>
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <i class="bi bi-inbox mb-2"></i>
                     <h3>No hay tareas asignadas</h3>
-                    <p>Actualmente no tienes tareas asignadas</p>
+                    <p class="mb-0">Actualmente no tienes tareas asignadas.</p>
                 </div>
             }
         </div>
 
-        <!-- Empty state for filtered results -->
+        <!-- Empty state para filtros -->
         <div class="empty-state" id="emptyFilterState" style="display: none;">
-            <i class="bi bi-filter-circle"></i>
+            <i class="bi bi-filter-circle mb-2"></i>
             <h3>No se encontraron tareas</h3>
-            <p>Intenta ajustar los filtros de búsqueda</p>
+            <p class="mb-0">Intenta ajustar los filtros de búsqueda.</p>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Librerías -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="~/lib/sweetalert2/dist/sweetalert2.css" />
+    <script src="~/lib/sweetalert2/dist/sweetalert2.js"></script>
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/notificaciones.js" asp-append-version="true"></script>
+    <script src="~/js/cliente/campana.js"></script>
+
+    <!-- Lógica de filtros, orden y estadísticas -->
     <script>
         // Elementos del DOM
         const searchInput = document.getElementById('searchInput');
@@ -270,7 +374,7 @@
 
         let currentQuickFilter = 'all';
 
-        // Calcular estadísticas
+        // Calcular estadísticas (sobre tarjetas visibles)
         function calcularEstadisticas() {
             const tarjetas = document.querySelectorAll('.task-card');
             let total = 0;
@@ -295,27 +399,40 @@
 
         // Filtrar tareas
         function filtrarTareas() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const estadoFilter = filterEstado.value.toLowerCase();
-            const prioridadFilter = filterPrioridad.value.toLowerCase();
+            const searchTerm = (searchInput.value || '').toLowerCase();
+            const estadoFilter = (filterEstado.value || '').toLowerCase();
+            const prioridadFilter = (filterPrioridad.value || '').toLowerCase();
             const tarjetas = document.querySelectorAll('.task-card');
+
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
             const finSemana = new Date(hoy);
-            finSemana.setDate(hoy.getDate() + 7);
+            finSemana.setDate(hoy.getDate() + 7); // próximos 7 días
 
             let visibleCount = 0;
 
             tarjetas.forEach(card => {
-                const titulo = card.dataset.titulo;
-                const estado = card.dataset.estado;
-                const prioridad = card.dataset.prioridad;
-                const fechaLimite = new Date(card.dataset.fecha);
-                const esVencida = card.classList.contains('vencida');
+                const titulo = card.dataset.titulo || '';
+                const estado = card.dataset.estado || '';
+                const prioridad = card.dataset.prioridad || '';
+
+                const fechaLimiteAttr    = card.dataset.fecha;       // puede ser null
+                const fechaCreacionAttr  = card.dataset.fcreacion;   // siempre debería venir
+
+                const fechaLimite   = fechaLimiteAttr   ? new Date(fechaLimiteAttr)   : null;
+                const fechaCreacion = fechaCreacionAttr ? new Date(fechaCreacionAttr) : null;
+
+                const esVencida   = card.classList.contains('vencida');
+                const tieneLimite = card.dataset.tieneLimite === "1";
+
+                // Fecha base:
+                // - si tiene límite -> se usa límite
+                // - si no -> fecha de creación
+                const fechaBase = fechaLimite || fechaCreacion;
 
                 let mostrar = true;
 
-                // Filtro de búsqueda
+                // Filtro de búsqueda (título)
                 if (searchTerm && !titulo.includes(searchTerm)) {
                     mostrar = false;
                 }
@@ -330,22 +447,49 @@
                     mostrar = false;
                 }
 
-                // Filtro rápido
-                if (currentQuickFilter === 'vencidas' && !esVencida) {
-                    mostrar = false;
-                } else if (currentQuickFilter === 'hoy' && fechaLimite.getTime() !== hoy.getTime()) {
-                    mostrar = false;
-                } else if (currentQuickFilter === 'semana' && (fechaLimite < hoy || fechaLimite > finSemana)) {
-                    mostrar = false;
+                // Filtros rápidos
+                if (currentQuickFilter === 'vencidas') {
+                    // Solo tiene sentido para tareas con fecha límite
+                    if (!tieneLimite || !esVencida) {
+                        mostrar = false;
+                    }
+                } else if (currentQuickFilter === 'hoy') {
+                    if (!fechaBase) {
+                        mostrar = false;
+                    } else {
+                        const base = new Date(fechaBase);
+                        base.setHours(0, 0, 0, 0);
+
+                        if (base.getTime() !== hoy.getTime()) {
+                            mostrar = false;
+                        }
+                    }
+                } else if (currentQuickFilter === 'semana') {
+                    if (!fechaBase) {
+                        mostrar = false;
+                    } else {
+                        const base = new Date(fechaBase);
+                        base.setHours(0, 0, 0, 0);
+
+                        if (base < hoy || base > finSemana) {
+                            mostrar = false;
+                        }
+                    }
                 }
+                // Si currentQuickFilter === 'all' no se aplica filtro adicional
 
                 card.style.display = mostrar ? 'block' : 'none';
                 if (mostrar) visibleCount++;
             });
 
-            // Mostrar mensaje si no hay resultados
-            emptyFilterState.style.display = visibleCount === 0 ? 'block' : 'none';
-            tasksContainer.style.display = visibleCount === 0 ? 'none' : 'grid';
+            // Empty state
+            if (visibleCount === 0) {
+                emptyFilterState.style.display = 'block';
+                tasksContainer.style.display = 'none';
+            } else {
+                emptyFilterState.style.display = 'none';
+                tasksContainer.style.display = 'grid';
+            }
 
             calcularEstadisticas();
         }
@@ -357,81 +501,56 @@
 
             tarjetas.sort((a, b) => {
                 if (criterio === 'fecha') {
-                    return new Date(a.dataset.fecha) - new Date(b.dataset.fecha);
+                    // Usamos fechaBase: límite si hay, si no creación
+                    const faLimite   = a.dataset.fecha ? new Date(a.dataset.fecha) : null;
+                    const faCreacion = a.dataset.fcreacion ? new Date(a.dataset.fcreacion) : null;
+                    const fbLimite   = b.dataset.fecha ? new Date(b.dataset.fecha) : null;
+                    const fbCreacion = b.dataset.fcreacion ? new Date(b.dataset.fcreacion) : null;
+
+                    const fa = faLimite || faCreacion;
+                    const fb = fbLimite || fbCreacion;
+
+                    if (!fa && !fb) return 0;
+                    if (!fa) return 1;  // sin fecha al final
+                    if (!fb) return -1;
+
+                    return fa - fb;
                 } else if (criterio === 'prioridad') {
                     const prioridades = { 'alta': 1, 'media': 2, 'baja': 3 };
-                    return prioridades[a.dataset.prioridad] - prioridades[b.dataset.prioridad];
+                    return (prioridades[a.dataset.prioridad] || 4) -
+                           (prioridades[b.dataset.prioridad] || 4);
                 } else if (criterio === 'titulo') {
-                    return a.dataset.titulo.localeCompare(b.dataset.titulo);
+                    return (a.dataset.titulo || '').localeCompare(b.dataset.titulo || '');
                 }
             });
 
             tarjetas.forEach(card => tasksContainer.appendChild(card));
         }
 
-        // Event listeners
+        // Ver detalle (por si quisieras usarlo vía JS)
+        function verDetalle(id) {
+            window.location.href = `/Tecnico/Detalle/${id}`;
+        }
+
+        // Eventos
+        document.addEventListener('DOMContentLoaded', function () {
+            filtrarTareas();   // aplica filtros iniciales (all)
+            ordenarTareas();   // orden inicial
+        });
+
         searchInput.addEventListener('input', filtrarTareas);
         filterEstado.addEventListener('change', filtrarTareas);
         filterPrioridad.addEventListener('change', filtrarTareas);
         sortBy.addEventListener('change', ordenarTareas);
 
         filterBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 filterBtns.forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentQuickFilter = this.dataset.filter;
                 filtrarTareas();
             });
         });
-
-        // Función para ver detalle
-        function verDetalle(id) {
-            // Aquí puedes implementar la navegación al detalle
-            window.location.href = `/Tecnico/Detalle/${id}`;
-        }
-
-        // Inicializar estadísticas al cargar
-        document.addEventListener('DOMContentLoaded', function() {
-            calcularEstadisticas();
-        });
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-    <script>
-        (function () {
-            // Crear conexión con el Hub
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/hubs/notificaciones") // ruta que pusimos en MapHub
-                .withAutomaticReconnect()
-                .build();
-
-            // Evento que el servidor va a invocar: "TaskAssigned"
-            connection.on("TaskAssigned", function (evento) {
-                // 'evento' es el objeto que enviemos desde el servidor
-                // Ejemplo: { tareaId, titulo, tecnicoNombre, prioridad }
-
-                console.log("Evento TaskAssigned recibido:", evento);
-
-                // Si tienes SweetAlert2:
-                if (window.Swal) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Nueva tarea asignada',
-                        text: `${evento.titulo} (Prioridad: ${evento.prioridad ?? 'Normal'})`,
-                        timer: 8000,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    });
-                } else {
-                    alert(`Nueva tarea asignada: ${evento.titulo}`);
-                }
-
-                // Aquí luego podemos actualizar un contador de tareas en el navbar, etc.
-            });
-
-            connection.start()
-                .then(() => console.log("Conectado a SignalR Notificaciones"))
-                .catch(err => console.error("Error al conectar SignalR:", err));
-        })();
     </script>
 </body>
 </html>

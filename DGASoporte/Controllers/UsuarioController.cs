@@ -1,6 +1,7 @@
 ﻿using DGASoporte.Data;
 using DGASoporte.Models;
 using DGASoporte.Seguridad;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace DGASoporte.Controllers
 {
+    [Authorize(Roles = "Admin")]  
     public class UsuarioController : Controller
     {
         private readonly DGADbContext _context;
@@ -20,25 +22,19 @@ namespace DGASoporte.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? q)
+        public async Task<IActionResult> Index()
         {
            
-            var buscar = _context.Usuarios
-                .AsNoTracking()
-                .Where(u => string.IsNullOrWhiteSpace(q) || EF.Functions.Like(u.Usher, $"%{q}%"));
-            var usuarios = await buscar
+           
+            var usuarios = await _context.Usuarios
                 .Include(u => u.Rol)
                 .OrderBy(u => u.Usher)
                 .ToListAsync();
 
-            ViewBag.Q = q ?? "";
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("_usuarios", usuarios);
-            }
+            return PartialView("_usuarios", usuarios);
+           
 
-            return View(usuarios);
         }
         // GET: Usuarios/Details/5
         public async Task<IActionResult> Details(int id, CancellationToken ct)
@@ -46,7 +42,7 @@ namespace DGASoporte.Controllers
             if (id <= 0)
             {
                 TempData["Alert"] = "El Identificador no es Válido";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = "El Identificador no es válido." });
             }
             var vm = await _context.Usuarios
            .AsNoTracking()
@@ -67,12 +63,9 @@ namespace DGASoporte.Controllers
 
             if (vm is null) return NotFound();
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("_UsuarioDetalle", vm);
-            }
+            return PartialView("_UsuarioDetalle", vm);
+            
 
-            return View(vm);
         }
 
         // GET: Usuarios/Create
@@ -84,19 +77,15 @@ namespace DGASoporte.Controllers
                 vm.RolId = rolId;
             }
             await CargarCombosAsync(vm, ct);
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("_UsuarioCrear", vm);
-            }
-            return View(vm);
+            
+            return PartialView("_UsuarioCrear", vm);
+            
         }
         // POST: Usuarios/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UsuarioVM vm, CancellationToken ct)
         {
-            // ¿La petición viene desde el modal (fetch)?
-            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
 
             // ---- VALIDACIONES DE DUPLICADOS ----
             if (await _context.Usuarios.AnyAsync(u => u.Email == vm.Email, ct))
@@ -119,15 +108,7 @@ namespace DGASoporte.Controllers
             if (!ModelState.IsValid)
             {
                 await CargarCombosAsync(vm, ct);
-
-                if (isAjax)
-                {
-                    // ⚠️ desde el modal: solo devolvemos el card
-                    return PartialView("_UsuarioCrear", vm);
-                }
-
-                // navegación normal: vista completa
-                return View(vm);
+                return PartialView("_UsuarioCrear", vm);              
             }
 
             // ---- GUARDADO ----
@@ -167,13 +148,7 @@ namespace DGASoporte.Controllers
                 await tx.CommitAsync(ct);
                 TempData["Ok"] = "Usuario creado correctamente.";
 
-                if (isAjax)
-                {
-                    return Json(new { success = true });
-                }
-
-                // navegación normal
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
@@ -183,14 +158,8 @@ namespace DGASoporte.Controllers
                     $"Error inesperado: {ex.GetBaseException().Message}");
 
                 await CargarCombosAsync(vm, ct);
+                return PartialView("_UsuarioCrear", vm);
 
-                if (isAjax)
-                {
-                    // volvemos a pintar el card dentro del modal con el error
-                    return PartialView("_UsuarioCrear", vm);
-                }
-
-                return View(vm);
             }
         }
 
@@ -201,7 +170,7 @@ namespace DGASoporte.Controllers
             if (id <= 0)
             {
                 TempData["Alert"] = "El Identificador no es Válido";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = "El Identificador no es válido." });
             }
 
             var usuario = await _context.Usuarios
@@ -229,11 +198,7 @@ namespace DGASoporte.Controllers
             };
 
             await CargarCombosAsync(vm, ct);
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("_UsuarioEditar", vm);
-            }
-            return View(vm);
+            return PartialView("_UsuarioEditar", vm);
         }
 
         // POST: Usuarios/Edit/5
@@ -244,10 +209,8 @@ namespace DGASoporte.Controllers
             if (id != vm.Id)
             {
                 TempData["Alert"] = "El Identificador no es válido.";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = "El Identificador no es válido." });
             }
-
-            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
 
             // Cargar usuario base (queda trackeado)
             var usuario = await _context.Usuarios
@@ -283,15 +246,7 @@ namespace DGASoporte.Controllers
             if (!ModelState.IsValid)
             {
                 await CargarCombosAsync(vm, ct);
-
-                if (isAjax)
-                {
-                    // partial para el modal
-                    return PartialView("_UsuarioEditar", vm);
-                }
-
-                // vista completa 
-                return View(vm);
+                return PartialView("_UsuarioEditar", vm);
             }
 
             using var tx = await _context.Database.BeginTransactionAsync(ct);
@@ -348,13 +303,7 @@ namespace DGASoporte.Controllers
                 await tx.CommitAsync(ct);
                 TempData["Ok"] = "Usuario actualizado correctamente.";
 
-                if (isAjax)
-                {
-                    return Json(new { success = true });
-                }
-
-                // navegación normal
-                return RedirectToAction(nameof(Index));
+                 return Json(new { success = true });
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -362,13 +311,8 @@ namespace DGASoporte.Controllers
                 ModelState.AddModelError("", "El registro fue modificado por otro usuario. Recarga e inténtalo de nuevo.");
                 await CargarCombosAsync(vm, ct);
 
-                if (isAjax)
-                {
-                    // volver a pintar el formulario de edición en el modal con los errores
-                    return PartialView("_UsuarioEditar", vm);
-                }
+                 return PartialView("_UsuarioEditar", vm);
 
-                return View(vm);
             }
             catch (Exception ex)
             {
@@ -376,17 +320,11 @@ namespace DGASoporte.Controllers
                 ModelState.AddModelError("", $"Error inesperado: {ex.GetBaseException().Message}");
                 await CargarCombosAsync(vm, ct);
 
-                if (isAjax)
-                {
-                    // volver a pintar el formulario de edición en el modal con los errores
-                    return PartialView("_UsuarioEditar", vm);
-                }
+                return PartialView("_UsuarioEditar", vm);
 
-                return View(vm);
             }
 
         }
-
 
         // GET: /Usuarios/Delete/5
         [HttpGet]
@@ -395,7 +333,7 @@ namespace DGASoporte.Controllers
             if (id <= 0)
             {            
                     TempData["Alert"] = "El Identificador no es Válido.";
-                    return RedirectToAction(nameof(Index));             
+                return Json(new { success = false, message = "El Identificador no es válido." });
             }
             var tec = await _context.Tecnicos
                 .Include(u => u.Nivel)
@@ -421,28 +359,19 @@ namespace DGASoporte.Controllers
 
             if (vm is null) return NotFound();
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("_UsuarioEliminar", vm);
-            }
+            return PartialView("_UsuarioEliminar", vm);
 
-            return View(vm);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken ct)
         {
-            bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
-
             // Validar el ID
             if (id <= 0)
             {
-                if (isAjax)
-                    return Json(new { success = false, message = "El Identificador no es Válido." });
-
                 TempData["Alert"] = "El Identificador no es Válido.";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = "El Identificador no es Válido." });
             }
 
             try
@@ -453,41 +382,32 @@ namespace DGASoporte.Controllers
 
                 if (usuario == null)
                 {
-                    if (isAjax)
-                        return Json(new { success = false, message = "Usuario no encontrado." });
-
-                    return NotFound();
+                     return Json(new { success = false, message = "Usuario no encontrado." });
                 }
 
                 // Eliminar el usuario. EF Core se encarga de la herencia (Usuario/Tecnico).
                 _context.Usuarios.Remove(usuario);
                 await _context.SaveChangesAsync(ct);
 
-                if (isAjax)
-                    return Json(new { success = true, message = "Usuario eliminado correctamente" });
-
                 TempData["Ok"] = "Usuario eliminado correctamente";
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = true, message = "Usuario eliminado correctamente" });
+
             }
             catch (DbUpdateException ex)
             {
                 var errMsg = $"No se pudo eliminar: {ex.GetBaseException().Message}";
 
-                if (isAjax)
-                    return Json(new { success = false, message = errMsg });
-
                 TempData["Error"] = errMsg;
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = errMsg });
+
             }
             catch (Exception ex)
             {
                 var errMsg = $"Error inesperado: {ex.GetBaseException().Message}";
 
-                if (isAjax)
-                    return Json(new { success = false, message = errMsg });
-
                 TempData["Error"] = errMsg;
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = false, message = errMsg });
+
             }
         }
 

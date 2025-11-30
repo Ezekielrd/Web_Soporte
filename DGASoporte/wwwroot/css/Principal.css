@@ -7,33 +7,8 @@
     --dark-color: #1f2937;
     --sidebar-width: 280px;
 }
-/* Top Bar */
-.top-bar {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
 
-    .top-bar h1 {
-        color: var(--dark-color);
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin: 0;
-    }
-
-.top-bar-actions {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
-.btn-new-task {
+.btn-new-tarea {
     background: #0b0f5b;
     color: white;
     border: none;
@@ -47,21 +22,21 @@
     gap: 0.5rem;
 }
 
-    .btn-new-task:hover {
+    .btn-new-tarea:hover {
         background: #171d8e;
         transform: translate(-12px,-10px);
         box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
     }
 
 /* Dashboard Stats */
-.dashboard-stats {
+.dashboard-stats-tareas {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
 
-.stat-box {
+.stat-box-tareas {
     background: white;
     border-radius: 15px;
     padding: 1.5rem;
@@ -70,7 +45,7 @@
     overflow: hidden;
 }
 
-    .stat-box::before {
+    .stat-box-tareas::before {
         content: '';
         position: absolute;
         top: 0;
@@ -80,63 +55,63 @@
         background: var(--primary-color);
     }
 
-    .stat-box.success::before {
+    .stat-box-tareas.success::before {
         background: var(--success-color);
     }
 
-    .stat-box.warning::before {
+    .stat-box-tareas.warning::before {
         background: var(--warning-color);
     }
 
-    .stat-box.danger::before {
+    .stat-box-tareas.danger::before {
         background: var(--danger-color);
     }
 
-    .stat-box.info::before {
+    .stat-box-tareas.info::before {
         background: var(--info-color);
     }
 
-.stat-content {
+.stat-content-tareas {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.stat-info h3 {
+.stat-info-tareas h3 {
     font-size: 2.2rem;
     font-weight: 700;
     color: var(--dark-color);
     margin-bottom: 0.5rem;
 }
 
-.stat-info p {
+.stat-info-tareas p {
     color: #6b7280;
     font-size: 0.9rem;
     margin: 0;
 }
 
-.stat-icon {
+.stat-icon-tareas {
     font-size: 3rem;
     opacity: 0.2;
 }
 
-.stat-box.primary .stat-icon {
+.stat-box-tareas.primary .stat-icon-tareas {
     color: var(--primary-color);
 }
 
-.stat-box.success .stat-icon {
+.stat-box-tareas.success .stat-icon-tareas {
     color: var(--success-color);
 }
 
-.stat-box.warning .stat-icon {
+.stat-box-tareas.warning .stat-icon-tareas {
     color: var(--warning-color);
 }
 
-.stat-box.danger .stat-icon {
+.stat-box-tareas.danger .stat-icon-tareas {
     color: var(--danger-color);
 }
 
-.stat-box.info .stat-icon {
+.stat-box-tareas.info .stat-icon-tareas {
     color: var(--info-color);
 }
 
@@ -473,8 +448,8 @@
     }
 
     .btn-action.edit:hover {
-        color: var(--info-color);
-        background: #dbeafe;
+        color: #e4e400;
+        background: #ffffcd;
     }
 
     .btn-action.assign:hover {
@@ -657,13 +632,4 @@
     .empty-state i {
         font-size: 4rem;
         margin-bottom: 1rem;
-    }
-.btn-primary {
-    background: #0b0f5b;
-    color: #fff;
-    border-radius: 10px;
-}
-    .btn-primary:hover {
-        background: #171d8e;
-        transform: translateY(-5px)
     }

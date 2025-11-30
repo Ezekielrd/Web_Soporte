@@ -22,7 +22,6 @@ namespace DGASoporte.Models
 
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
         public bool Leida { get; set; } = false;
-        public DateTime? FechaLeida { get; set; }
     }
 
 }

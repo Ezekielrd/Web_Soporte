@@ -4,6 +4,8 @@ using DGASoporte.Infraestructura;
 using DGASoporte.Servicios;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +17,8 @@ builder.Services.AddDbContext<DGADbContext>(options =>
     options.UseSqlServer(connectionString));
 
 // Add services to the container.
-// Servicios propios
-builder.Services.AddScoped<IAutentificacionServicio, AutentificacionServicio>();
+builder.Services.AddScoped<NotificacionService>();
+
 builder.Services.AddControllersWithViews();
 
 //el mecanismo principal para manejar sesiones de usuarios será la autenticación basada en cookies.
@@ -42,20 +44,19 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
+RotativaConfiguration.Setup(app.Environment.WebRootPath, "Rotativa");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.MapHub<NotificacionesHub>("/hubs/notificaciones");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Cuenta}/{action=Login}/{id?}");
 
-
+app.MapHub<NotificacionesHub>("/hub/notificaciones");
 
 app.Run();

@@ -47,5 +47,9 @@ namespace DGASoporte.Models
         public DateTime CreadoEn { get; set; } = DateTime.UtcNow;
         public DateTime? ActualizadoEn { get; set; }
         public DateTime? UltimoIngreso { get; set; }
+        public ICollection<Tarea> Tareas { get; set; } = new List<Tarea>();
+        public ICollection<Notificacion> Notificaciones { get; set; } = new List<Notificacion>();
+
+
     }
 }

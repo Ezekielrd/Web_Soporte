@@ -1,6 +1,7 @@
 using DGASoporte.Data;
 using DGASoporte.Models;
 using DGASoporte.Models.Enumeradores;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using System.Dynamic;
 
 namespace DGASoporte.Controllers
 {
+    [Authorize(Roles = "Admin")]  
     public class HomeController : Controller
     {
         private readonly DGADbContext _context;
@@ -61,20 +63,6 @@ namespace DGASoporte.Controllers
 
             return View();
         }
-
-        public async Task<IActionResult> Privacy(CancellationToken ct)
-        {
-            var vm = new TareaFormVM
-            {
-                FechaCreacion = DateTime.Now,
-                FechaLimite = DateTime.Now.AddDays(7),
-                Estado = EstadoT.EnEspara,  // ajusta valor por defecto si quieres
-                Prioridad = Prioridad.Media  // idem
-            };
-
-            await CargarCombosAsync(vm,ct);
-            return View(vm);
-        }
         private async Task CargarCombosAsync(TareaFormVM vm, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
@@ -117,24 +105,6 @@ namespace DGASoporte.Controllers
                 })
                 .ToListAsync();
         }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
-        public async Task<IActionResult> TestConexion()
-        {
-            bool canConnect = await _context.Database.CanConnectAsync();
-
-            if (canConnect)
-            {
-                return Content("Conexión a la base de datos exitosa.");
-            }
-            else
-            {
-                return Content("No se pudo conectar a la base de datos.");
-            }
-        }
+       
     }
 }

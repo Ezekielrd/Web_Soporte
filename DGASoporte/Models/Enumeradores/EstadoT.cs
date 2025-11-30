@@ -11,7 +11,7 @@ namespace DGASoporte.Models.Enumeradores
         [Display(Name = "En Proceso")]
         EnProceso = 3,
         [Display(Name = "En Espera")]
-        EnEspara = 4,
+        EnEspera = 4,
         [Display(Name = "Resuelta")]
         Resuelta = 5,
         [Display(Name = "ReAbierta")]

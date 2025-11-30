@@ -14,50 +14,50 @@
 <link href="~/css/Principal.css" rel="stylesheet" asp-append-version="true" />
 
 <!-- Stats -->
-<div class="dashboard-stats no-select">
-    <div class="stat-box primary">
-        <div class="stat-content">
-            <div class="stat-info">
+<div class="dashboard-stats-tareas no-select">
+    <div class="stat-box-tareas primary">
+        <div class="stat-content-tareas">
+            <div class="stat-info-tareas">
                 <h3 id="totalTasks">@tareas.Count()</h3>
                 <p>Total de Tareas</p>
             </div>
-            <i class="bi bi-list-check stat-icon"></i>
+            <i class="bi bi-list-check stat-icon-tareas"></i>
         </div>
     </div>
-    <div class="stat-box danger">
-        <div class="stat-content">
-            <div class="stat-info">
+    <div class="stat-box-tareas danger">
+        <div class="stat-content-tareas">
+            <div class="stat-info-tareas">
                 <h3 id="overdueTasks">@tareas.Count(t => t.Vencida)</h3>
                 <p>Tareas Vencidas</p>
             </div>
-            <i class="bi bi-exclamation-triangle stat-icon"></i>
+            <i class="bi bi-exclamation-triangle stat-icon-tareas"></i>
         </div>
     </div>
-    <div class="stat-box warning">
-        <div class="stat-content">
-            <div class="stat-info">
+    <div class="stat-box-tareas warning">
+        <div class="stat-content-tareas">
+            <div class="stat-info-tareas">
                 <h3 id="pendingTasks">@tareas.Count(t => t.Estado?.ToString().ToLower() == "EnProceso")</h3>
                 <p>Pendientes</p>
             </div>
-            <i class="bi bi-clock-history stat-icon"></i>
+            <i class="bi bi-clock-history stat-icon-tareas"></i>
         </div>
     </div>
-    <div class="stat-box success">
-        <div class="stat-content">
-            <div class="stat-info">
+    <div class="stat-box-tareas success">
+        <div class="stat-content-tareas">
+            <div class="stat-info-tareas">
                 <h3 id="completedTasks">@tareas.Count(t => t.Estado?.ToString().ToLower() == "Cerrado")</h3>
                 <p>Completadas</p>
             </div>
-            <i class="bi bi-check-circle stat-icon"></i>
+            <i class="bi bi-check-circle stat-icon-tareas"></i>
         </div>
     </div>
-    <div class="stat-box info">
-        <div class="stat-content">
-            <div class="stat-info">
+    <div class="stat-box-tareas info">
+        <div class="stat-content-tareas">
+            <div class="stat-info-tareas">
                 <h3 id="activeTechs">@tecnicos.Count()</h3>
                 <p>Técnicos Activos</p>
             </div>
-            <i class="bi bi-person-badge stat-icon"></i>
+            <i class="bi bi-person-badge stat-icon-tareas"></i>
         </div>
     </div>
 </div>
@@ -66,7 +66,7 @@
 <div class="technicians-panel no-select">
     <div class="panel-header">
         <h2><i class="bi bi-people"></i> Técnicos Disponibles</h2>
-        <a href="@Url.Action("Create", "Usuario", new { rolId = 2 })" class="btn-new-task js-modal-link" style="font-size:.85rem;padding:.5rem 1rem">
+        <a href="@Url.Action("Create", "Usuario", new { rolId = 2 })" class="btn-new-tarea js-modal-link" style="font-size:.85rem;padding:.5rem 1rem">
             <i class="bi bi-person-plus"></i> Agregar Técnico
         </a>
     </div>
@@ -174,7 +174,7 @@
         </div>
     </div>
 
-    <div class="quick-filters">
+    <div class="quick-filters no-select">
         <button class="quick-filter-btn active" data-filter="all" type="button">Todas</button>
         <button class="quick-filter-btn" data-filter="vencidas" type="button">Vencidas</button>
         <button class="quick-filter-btn" data-filter="sin-asignar" type="button">Sin Asignar</button>
@@ -190,7 +190,7 @@
         <h2><i class="bi bi-table"></i> Gestión de Tareas</h2>
         <div>
             <a href="@Url.Action("Create", "Tarea")"
-               class="btn btn-primary btn-sm js-modal-link">
+               class="btn-new-tarea js-modal-link">
                 <i class="bi-check2-square"></i> Nueva Tarea
             </a>
         </div>
@@ -279,11 +279,22 @@
                                        asp-action="Edit" asp-controller="Tarea" asp-route-id="@tarea.Id">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a class="btn-action assign js-modal-link"
-                                       title="Asignar"
-                                       asp-action="Asignar" asp-controller="Tarea" asp-route-id="@tarea.Id">
-                                        <i class="bi bi-person-plus"></i>
-                                    </a>
+                                    @if(!tarea.TecnicoId.HasValue)
+                                    {
+                                        <a class="btn-action assign js-modal-link"
+                                           title="Asignar"
+                                           asp-action="Asignar" asp-controller="Tarea" asp-route-id="@tarea.Id">
+                                            <i class="bi bi-person-plus"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a class="btn-action assign js-modal-link"
+                                           title="ReAsignar"
+                                           asp-action="Asignar" asp-controller="Tarea" asp-route-id="@tarea.Id">
+                                            <i class="bi bi-person-plus"></i>
+                                        </a>
+                                    }
                                     <a class="btn-action delete js-modal-link"
                                        title="Eliminar"
                                        asp-action="Delete" asp-controller="Tarea" asp-route-id="@tarea.Id">

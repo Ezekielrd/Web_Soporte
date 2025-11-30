@@ -15,12 +15,21 @@
         document.getElementById('modalTipo').textContent = btn.dataset.tipo || '';
         document.getElementById('modalEstado').textContent = btn.dataset.estado || '';
 
-        // Título y subtítulo del modal en modo detalle
         const label = document.getElementById('modalConfirmacionLabel');
         const subtitulo = document.getElementById('modalSubtitulo');
         if (label) label.textContent = 'Detalle de la Solicitud';
         if (subtitulo) subtitulo.textContent = 'Información de la solicitud seleccionada:';
 
         modal.show();
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const params = new URLSearchParams(window.location.search);
+        const solicitudId = params.get('solicitudId');
+
+        if (solicitudId) {
+            // Abrimos directamente el modal al entrar desde la notificación
+            abrirDetalleSolicitud(solicitudId);
+        }
     });
 });

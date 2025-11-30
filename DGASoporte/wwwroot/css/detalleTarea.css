@@ -1,15 +1,89 @@
-﻿.animate-fade {
-    animation: fadeIn .6s ease-in-out;
+﻿
+/* Ajustes suaves solo para detalle */
+.detalle-main-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    padding: 1.5rem 1.75rem;
+    margin-top: 1.25rem;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+.detalle-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem 1rem;
+    font-size: .88rem;
+}
+
+.detalle-meta-item {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    color: #4b5563;
+}
+
+.detalle-descripcion {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1rem 1rem;
+    font-size: .9rem;
+    color: #374151;
+    border: 1px dashed #d1d5db;
+}
+
+.historial-card {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.25rem;
+}
+
+.timeline {
+    border-left: 2px solid #e2e8f0;
+    margin-left: .5rem;
+    padding-left: 1.25rem;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 1rem;
+    padding-bottom: .5rem;
+}
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -1.06rem;
+        top: .4rem;
+        width: .7rem;
+        height: .7rem;
+        border-radius: 999px;
+        background: white;
+        border: 2px solid #3b82f6;
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: .8rem;
+    color: #6b7280;
+}
+
+.timeline-body {
+    font-size: .9rem;
+    margin-top: .2rem;
+}
+
+.btn-back {
+    border-radius: 999px;
+}
+
+@media (max-width: 768px) {
+    .detalle-meta-grid {
+        grid-template-columns: 1fr;
     }
 }
+

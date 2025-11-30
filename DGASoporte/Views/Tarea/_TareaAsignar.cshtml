@@ -10,13 +10,17 @@
     <h2 class="mb-4" style="font-size: 1.5rem; color: #007bff;">Asignar Tarea</h2>
 
     <div class="row mb-3">
-        <div class="col-6">
+        <div class="col-4">
             <strong>Tarea:</strong>
             <div class="text-muted">@Model.Tarea.Titulo</div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
             <strong>Prioridad:</strong>
             <div class="text-muted">@Model.Tarea.Prioridad.ToString()</div>
+        </div>
+        <div class="col-4">
+            <strong>Unidad:</strong>
+            <div class="text-muted">@Model.Tarea.Unidad.Nombre</div>
         </div>
     </div>
 
@@ -38,23 +42,25 @@
         </div>
 
         <div class="mb-3">
-            <label for="tecnicoSelect" class="form-label">
-                <i class="bi bi-person"></i> Técnico
+            <label asp-for="TecnicoId" class="form-label">
+                <i class="bi bi-person"></i> @Html.DisplayNameFor(m => m.TecnicoId)
             </label>
-            <select id="tecnicoSelect" class="form-select filter-input" name="tecnicoId">
-                <option value="">Todos los técnicos</option>
+
+            <select asp-for="TecnicoId" class="form-select filter-input" id="tecnicoSelect">
+                <option value="" selected disabled>Seleccione un técnico</option>
                 @foreach (var t in Model.Tecnicos)
                 {
-                    var cant = t.TareasAsignadas.Count(ta => ta.Estado == EstadoT.EnProceso);
+                    var cant = t.TareasAsignadas.Count();
                     <option value="@t.Id"
                             data-cant="@cant"
                             data-nivel="@t.Nivel?.Id">
-                        @t.Usuario.NombreCompleto (@cant sin cerrar)
+                        @t.Usuario.NombreCompleto (@cant Tareas Asig)
                     </option>
                 }
             </select>
-            <span id="tecnicoBadge" class="badge-custom mt-2 d-inline-block"></span>
+            <span asp-validation-for="TecnicoId" class="text-danger"></span>
         </div>
+
 
         <div class="d-flex justify-content-end gap-2 mt-4">
             <button type="button" class="btn btn-secondary js-close-modal" data-bs-dismiss="modal">

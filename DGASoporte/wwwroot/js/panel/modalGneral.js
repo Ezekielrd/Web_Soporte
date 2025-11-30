@@ -33,15 +33,9 @@ document.addEventListener('click', async (e) => {
             window.Usuarios.initForm(appModalBody);
         }
 
-        if (appModalBody.querySelector('#wizardForm') &&
-            window.Tareas && typeof window.Tareas.initForm === 'function') {
+        if (window.Tareas && typeof window.Tareas.initForm === 'function') {
             window.Tareas.initForm(appModalBody);
         }
-        // Inicializar AJAX para formularios de tareas
-        if (window.Tareas && typeof window.Tareas.initAjaxForm === 'function') {
-            window.Tareas.initAjaxForm(appModalBody);
-        }
-
 
         // Inicializar comportamiento del formulario de SOLICITUDES si aplica
         if (window.Solicitudes && typeof window.Solicitudes.initForm === 'function') {

@@ -5,6 +5,16 @@
     {
       "library": "bootstrap-icons@1.11.3",
       "destination": "wwwroot/lib/bootstrap-icons"
+    },
+    {
+      "provider": "unpkg",
+      "library": "@microsoft/signalr@10.0.0",
+      "destination": "wwwroot/lib/signalr"
+    },
+    {
+      "provider": "unpkg",
+      "library": "sweetalert2@latest",
+      "destination": "wwwroot/lib/sweetalert2/"
     }
   ]
 }

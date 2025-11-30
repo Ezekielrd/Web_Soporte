@@ -10,11 +10,11 @@ namespace DGASoporte.Models
         [Key]
         public int Id { get; set; }
 
-        // Datos Reportados por el Usuario
         [Display(Name = "Titulo de la Incidencia")]
         [Required(ErrorMessage = "El Título es Obligatorio.")]
         [StringLength(100)]
         public string Titulo { get; set; } = string.Empty;
+
         [Display(Name = "Descricpcion de la Incidencia")]
         [Required(ErrorMessage = "La descripción es obligatoria.")]
         public string Descripcion { get; set; } = string.Empty;
@@ -22,32 +22,26 @@ namespace DGASoporte.Models
         [DataType(DataType.DateTime)]
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
-        // Relaciones (Foreign Keys)
         [Required]
         public int UsuarioId { get; set; } 
         public string? UsuarioNombre { get; set; } = default!;
 
         [Display(Name = "Area  de Procedencia")]
         [Required(ErrorMessage = "La Unidad es obligatoria.")]
-
         public int UnidadId { get; set; }
 
-        public string? UnidadNombre { get; set; } = default!;
         [Display(Name = "Division de Procedencia")]
         public int? DivisionId { get; set; }
-        public string? DivisionNombre { get; init; }
 
         [Required(ErrorMessage = "El TipoIncidencia es obligatoria.")]
         [Display(Name = "Tipo de Incidencia")]
-
         public int TipoIncidenciaId { get; set; }
-
-        public string? TipoIncidenciaNombre { get; set; } = default!;
         public IEnumerable<SelectListItem> TipoIncidencias { get; set; } = [];
         public Dictionary<int, string> MapTipoDesc { get; set; } = new();
-        [Required]
-        public EstadoS Estado { get; set; }
+        [Display(Name = "Esdtdos")]
+        public EstadoS? Estado { get; set; }
         public string? MotivoRechazo { get; set; }
+        public DateTime? FechaActualizacion { get; set; }
 
         public IEnumerable<SelectListItem> Divisiones { get; set; } = Enumerable.Empty<SelectListItem>();
         public List<Unidad> Unidades { get; set; } = new();

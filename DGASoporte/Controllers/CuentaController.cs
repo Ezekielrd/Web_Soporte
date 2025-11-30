@@ -11,6 +11,7 @@ using System.Security.Claims;
 
 namespace DGASoporte.Controllers
 {
+    [AllowAnonymous]
     public class CuentaController : Controller
     {
         private readonly DGADbContext _context;
@@ -24,7 +25,6 @@ namespace DGASoporte.Controllers
 
         // GET: /Cuenta/Login
         [HttpGet]
-        [AllowAnonymous]
         public IActionResult Login(string? returnUrl = null)
         {
             return View(new LoginVM { ReturnUrl = returnUrl });
@@ -32,7 +32,6 @@ namespace DGASoporte.Controllers
 
         // POST: /Cuenta/Login
         [HttpPost]
-        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginVM vm, string? returnUrl = null)
         {
@@ -124,6 +123,7 @@ namespace DGASoporte.Controllers
 
         // GET: /Cuenta/Logout
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -132,7 +132,6 @@ namespace DGASoporte.Controllers
 
         // GET: /Cuenta/Denied
         [HttpGet]
-        [AllowAnonymous]
         public IActionResult Denied()
         {
             return View();
@@ -149,62 +148,6 @@ namespace DGASoporte.Controllers
                 "cliente" => RedirectToAction("Index", "Solicitud"),
                 _ => RedirectToAction("Index", "Home")
             };
-        }
-
-        // ========= Método semilla para Admin =========
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> SeedAdmin()
-        {
-            var rolAdmin = await _context.Roles.FirstOrDefaultAsync(r => r.Nombre == "Admin");
-            if (rolAdmin == null)
-            {
-                rolAdmin = new Rol { Nombre = "Admin"};
-                _context.Roles.Add(rolAdmin);
-                await _context.SaveChangesAsync();
-            }
-
-            var usher = "admi";
-            var email = "admin@demo.com";
-
-            var usuario = await _context.Usuarios
-                .Include(u => u.Rol)
-                .FirstOrDefaultAsync(u =>
-                    u.Usher.ToLower() == usher.ToLower() || u.Email.ToLower() == email.ToLower());
-
-            var passPlano = "Admin123*";
-            var (hash, salt) = PasswordHasher.Hash(passPlano);
-
-            if (usuario == null)
-            {
-                usuario = new Usuario
-                {
-                    Usher = usher,
-                    Email = email,
-                    NombreCompleto = "Administrador del sistema",
-                    Codigo = "ADM-001",
-                    Activo = true,
-                    PasswordHash = hash,
-                    PasswordSalt = salt,
-                    RolId = rolAdmin.Id,
-                    Bloqueado = false
-                };
-                _context.Usuarios.Add(usuario);
-            }
-            else
-            {
-                usuario.PasswordHash = hash;
-                usuario.PasswordSalt = salt;
-                usuario.Activo = true;
-                usuario.RolId = rolAdmin.Id;
-                usuario.Bloqueado = false;
-            }
-
-            await _context.SaveChangesAsync();
-
-            // ✅ verificación directa en memoria
-            var okMem = PasswordHasher.Verificar(passPlano, hash, salt);
-            return Content($"Admin listo (Usher={usuario.Usher}). Verificación hasher: {okMem}");
         }
     }
 }

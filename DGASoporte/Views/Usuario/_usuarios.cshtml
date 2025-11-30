@@ -1,8 +1,6 @@
 ﻿@model IEnumerable<DGASoporte.Models.Usuario>
-@{
-    string q = (string)(ViewBag.Q ?? "");
-}
-<link href="~/css/Usuarios.css" rel="stylesheet" />
+
+<link href="~/css/Usuarios.css" rel="stylesheet" asp-append-version="true"/>
 
 <div class="container-fluid">
     @if (TempData["Ok"] != null)
@@ -33,17 +31,10 @@
         <h3 class="mb-0 no-select">Usuarios</h3>
         <a asp-action="Create"
            asp-controller="Usuario"
-           class="btn btn-success btn-sm js-modal-link">
+           class=" no-select js-modal-link" id="btn-success-usuario">
             <i class="bi bi-plus-circle"></i> Nuevo Usuario
         </a>
     </div>
-    <form method="get" class="d-flex align-items-center gap-2 mb-3">
-        <div class="input-group input-group-sm busqueda-compacta">
-            <input name="q" class="form-control" placeholder="Buscar por nombre..." value="@q" />
-            <button class="btn btn-primary" type="submit">Buscar</button>
-        </div>
-        <a class="btn btn-outline-secondary btn-sm" asp-action="Index">Limpiar</a>
-    </form>
     <!-- Tabla -->
     <div class="table-responsive">
         <table class="table table-striped" id="tablaUsuarios">

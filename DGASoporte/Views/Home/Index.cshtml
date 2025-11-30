@@ -8,7 +8,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Panel Administrador</title>
-    <link href="~/css/librerias/sweetalert2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
           rel="stylesheet"
           integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
@@ -79,6 +78,17 @@
                             0
                         </span>
                     </button>
+                    <div class="d-flex justify-content-end">
+                        <a href="@Url.Action("Logout", "Cuenta")"
+                           id="btnLogout"
+                           class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-2 logout-btn">
+                            <span class="logout-icon-wrapper d-inline-flex align-items-center justify-content-center">
+                                <i class="bi bi-box-arrow-right"></i>
+                            </span>
+                            <span class="logout-text">Cerrar sesión</span>
+                        </a>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -91,7 +101,7 @@
     <!--modal-->
     <div class="modal fade" id="appModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content border-0 bg-transparent p-0">
+            <div class="modal-content border-0 bg-transparent p-0 modal-dark-form">
                 <!-- Bootstrap necesita esta capa con .modal-body para el scroll -->
                 <div class="modal-body p-0" id="appModalBody">
                     <!-- aquí se inyecta el <div class="usuario-card"> ... -->
@@ -126,56 +136,7 @@
         <script src="~/js/panel/sidebar.js"></script>
         <script src="~/js/panel/modalGneral.js"></script>
          <script src="~/js/panel/reloj.js"></script>
-    <script>
-        (function () {
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/hubs/notificaciones")
-                .withAutomaticReconnect()
-                .build();
-
-            connection.start()
-                .then(() => console.log("Conectado a SignalR Notificaciones (ADMIN)"))
-                .catch(err => console.error("Error SignalR ADMIN:", err));
-
-            const badge = document.getElementById("badge-solicitudes");
-
-            // Evento que llega cuando un cliente crea una solicitud
-            connection.on("SolicitudCreada", function (evento) {
-                console.log("Nueva solicitud recibida:", evento);
-
-                // 1) Toast
-                if (window.Swal) {
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'info',
-                        title: 'Nueva solicitud de soporte',
-                        text: `${evento.clienteNombre} - ${evento.asunto}`,
-                        showConfirmButton: false,
-                        timer: 8000,
-                        timerProgressBar: true
-                    });
-                }
-
-                // 2) Numerito sobre la campana
-                if (!badge) return;
-                let actual = parseInt(badge.textContent || "0");
-                actual++;
-                badge.textContent = actual;
-                badge.style.display = "inline-block";
-            });
-
-            // (opcional) click en campana por ahora solo limpia el badge
-            const btnNoti = document.getElementById("btnNotificaciones");
-            if (btnNoti && badge) {
-                btnNoti.addEventListener("click", function () {
-                    // aquí luego podemos abrir historial, por ahora reiniciamos contador
-                    badge.textContent = "0";
-                    badge.style.display = "none";
-                });
-            }
-        })();
-    </script>
+   
     <script src="~/js/solicitudes.js"></script>
     <script src="~/js/tareas.js"></script>
     <script src="~/js/usuarios.js"></script>

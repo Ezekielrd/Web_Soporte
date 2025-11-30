@@ -1,0 +1,199 @@
+﻿@model ReporteIncidenciaVM
+
+@{
+    ViewData["Title"] = "Reporte de solución";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+          crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+</head>
+<body>
+    <div class="container-fluid px-4 mt-4">
+        <!-- CABECERA -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body d-flex flex-column flex-md-row align-items-start align-items-md-center">
+                <div class="me-auto">
+                    <a asp-action="Detalle" asp-route-id="@Model.Id" class="btn btn-link text-decoration-none px-0 mb-2">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+
+                    <h3 class="mb-1">
+                        <i class="bi bi-file-earmark-text me-2"></i>
+                        Reporte de solución
+                    </h3>
+                    <div class="text-muted">
+                        Tarea #@Model.Id — @Model.Titulo
+                    </div>
+                    <div class="text-muted small">
+                        Creada el @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+                        @if (Model.FechaCierre.HasValue)
+                        {
+                            <span> — marcada como resuelta el @Model.FechaCierre.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="text-end mt-3 mt-md-0">
+                    <div class="mb-1">
+                        <span class="badge rounded-pill bg-primary me-1">
+                            @Model.Estado
+                        </span>
+                        <span class="badge rounded-pill bg-success">
+                            @Model.Prioridad
+                        </span>
+                    </div>
+                    <div class="small text-muted">Tiempo invertido</div>
+                    <div class="fw-semibold">@Model.TiempoInvertidoTexto</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MENSAJES -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- CUERPO PRINCIPAL -->
+        <div class="row g-4">
+            <!-- Columna izquierda: info general -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-0">
+                        <h6 class="mb-0 text-muted text-uppercase">
+                            <i class="bi bi-info-circle me-2"></i>Resumen de la tarea
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="text-muted small mb-1">Descripción del usuario</div>
+                            <div class="border rounded-3 p-2 bg-light">
+                                @Model.DescripcionUsuario
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="text-muted small mb-1">Solicitante</div>
+                            <div class="fw-semibold">@Model.Solicitante</div>
+                        </div>
+
+                        <div class="row g-3 mb-2">
+                            <div class="col-12">
+                                <div class="text-muted small mb-1">Unidad</div>
+                                <div>@Model.Unidad</div>
+                            </div>
+                            <div class="col-12">
+                                <div class="text-muted small mb-1">División</div>
+                                <div>@(Model.Division ?? "No especificada")</div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-2">
+                            <div class="text-muted small mb-1">Categoría</div>
+                            <div>@Model.Categoria</div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="text-muted small mb-1">Tipo de servicio</div>
+                            <div>@(Model.TipoServicio ?? "No especificado")</div>
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-2">
+                            <div class="text-muted small mb-1">Técnico asignado</div>
+                            <div>@Model.TecnicoAsignado</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna derecha: formulario de solución -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 text-muted text-uppercase">
+                            <i class="bi bi-tools me-2"></i>Detalle de la solución
+                        </h6>
+                        <small class="text-muted">Complete los campos para registrar la solución de la incidencia.</small>
+                    </div>
+
+                    <form asp-action="ReporteSolucion" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                            <div class="mb-3">
+                                <label asp-for="CausaRaiz" class="form-label">Causa raíz (opcional)</label>
+                                <textarea asp-for="CausaRaiz" class="form-control" rows="2" placeholder="Ejemplo: Fallo por sobrecalentamiento debido a ventilación obstruida."></textarea>
+                                <span asp-validation-for="CausaRaiz" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="PasosEjecutados" class="form-label">Pasos ejecutados por el técnico</label>
+                                <textarea asp-for="PasosEjecutados" class="form-control" rows="3" placeholder="Detalle los pasos que realizó para atender la incidencia."></textarea>
+                                <span asp-validation-for="PasosEjecutados" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="AjustesRealizados" class="form-label">Reemplazos / configuraciones / ajustes</label>
+                                <textarea asp-for="AjustesRealizados" class="form-control" rows="3" placeholder="Especifique cambios de piezas, configuraciones aplicadas, ajustes en software o hardware, etc."></textarea>
+                                <span asp-validation-for="AjustesRealizados" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Evidencias" class="form-label">Evidencias de la intervención (opcional)</label>
+                                <textarea asp-for="Evidencias" class="form-control" rows="2" placeholder="Ejemplo: Capturas de pantalla, pruebas realizadas, códigos de error observados, etc."></textarea>
+                                <span asp-validation-for="Evidencias" class="text-danger"></span>
+                            </div>
+
+                            <hr />
+
+                            <div class="mb-3">
+                                <label asp-for="ResultadoFinal" class="form-label">Resultado final</label>
+                                <textarea asp-for="ResultadoFinal" class="form-control" rows="2" placeholder="Describa el estado final del servicio o sistema después de la intervención."></textarea>
+                                <span asp-validation-for="ResultadoFinal" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Recomendaciones" class="form-label">Recomendaciones (opcional)</label>
+                                <textarea asp-for="Recomendaciones" class="form-control" rows="2" placeholder="Buenas prácticas o acciones sugeridas para evitar recurrencia."></textarea>
+                                <span asp-validation-for="Recomendaciones" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
+                            <a asp-action="Detalle" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Volver al detalle
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save me-1"></i> Guardar reporte de solución
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

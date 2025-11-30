@@ -31,10 +31,11 @@ namespace DGASoporte.Models
         [Required]
         public int TipoIncidenciaId { get; set; }
         public TipoIncidencia TipoIncidencia { get; set; } = default!;
-        public EstadoS Estado { get; set; }
+        [Required]
+        public EstadoS? Estado { get; set; }
         public string? MotivoRechazo { get; set; }
         public bool Archivada { get; set; } = false;
-
+        public DateTime? FechaActualizacion { get; set; }
 
     }
 }

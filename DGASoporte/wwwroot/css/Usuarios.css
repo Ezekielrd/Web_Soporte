@@ -1,22 +1,9 @@
-﻿/* Fondo global solo para esta vista */
-body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    background-color: #F8F9FA;
-}
-main, .container, .container-fluid {
-    background: transparent;
-}
+﻿
 /*encabezado*/
 h3 {
     color: #01337a;
     font-weight: 800;
     letter-spacing: .2px;
-}
-/* Ancho fijo reutilizable para el buscador */
-.busqueda-compacta {
-    max-width: 260px;
 }
 .table-responsive {
     width: 100%;
@@ -92,6 +79,15 @@ h3 {
 .acciones-usuario {
     gap: 0.25rem 0.5rem; /* vertical | horizontal */
 }
-.btn-success {
+#btn-success-usuario {
     border-radius: 10px;
+    background-color: #42d500;
+    color: #fff;
+    font-weight: 500;
+    padding: 10px 17px;
+}
+
+#btn-success-usuario:hover {
+    background-color: #38b900;
+    color: #fff;
 }

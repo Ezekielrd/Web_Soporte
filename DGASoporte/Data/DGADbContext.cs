@@ -22,9 +22,7 @@ namespace DGASoporte.Data
         public DbSet<Asignacion> Asignaciones { get; set; } = default!;
         public DbSet<Notificacion> Notificaciones { get; set; } = default!;
         public DbSet<Division> Divisiones { get; set; } = default!;
-
-
-
+        public DbSet<Diagnostico> Diagnosticos { get; set; } = default!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -104,32 +102,55 @@ namespace DGASoporte.Data
             // Tarea + inversas explícitas (opción A)
             modelBuilder.Entity<Tarea>(e =>
             {
+                e.ToTable("Tarea");
+
                 e.HasKey(t => t.Id);
 
-                e.Property(t => t.FechaCreacion).HasColumnType("datetime");
-                e.Property(t => t.FechaLimite).HasColumnType("datetime").IsRequired(false);
+                e.Property(t => t.FechaCreacion)
+                 .HasColumnType("datetime");
 
+                e.Property(t => t.FechaLimite)
+                 .HasColumnType("datetime")
+                 .IsRequired(false);
+
+                // 🔹 Solicitante (UsuarioId) -> Usuario.Tareas
+                e.HasOne(t => t.Usuario)
+                 .WithMany(u => u.Tareas)                 // ✅ usa la colección real
+                 .HasForeignKey(t => t.UsuarioId)
+                 .OnDelete(DeleteBehavior.Restrict)
+                 .HasConstraintName("FK_Tarea_UsuarioSolicitante");
+
+                // 🔹 Usuario que valida (UsuarioValidaId) -> sin colección inversa
+                e.HasOne(t => t.UsuarioValida)
+                 .WithMany()                              // no hay Usuario.TareasValidadas
+                 .HasForeignKey(t => t.UsuarioValidaId)
+                 .OnDelete(DeleteBehavior.Restrict)
+                 .HasConstraintName("FK_Tarea_UsuarioValida");
+
+                // 🔹 Técnico asignado
                 e.HasOne(t => t.Tecnico)
-                 .WithMany(te => te.TareasAsignadas) // inversa en Tecnico
+                 .WithMany(te => te.TareasAsignadas)      // colección en Tecnico
                  .HasForeignKey(t => t.TecnicoId)
                  .IsRequired(false)
                  .OnDelete(DeleteBehavior.Restrict)
                  .HasConstraintName("FK_Tarea_TecnicoAsignado");
 
+                // 🔹 Categoria
                 e.HasOne(t => t.Categoria)
-                 .WithMany(c => c.Tareas)   // inversa en Categoria
+                 .WithMany(c => c.Tareas)
                  .HasForeignKey(t => t.CategoriaId)
-                 .IsRequired(true)
+                 .IsRequired()
                  .OnDelete(DeleteBehavior.Restrict)
-                 .HasConstraintName("FK_Tareas_Categoria");
+                 .HasConstraintName("FK_Tarea_Categoria");
 
+                // 🔹 Unidad
                 e.HasOne(t => t.Unidad)
-                 .WithMany(u => u.Tareas)   // inversa en Unidad
+                 .WithMany(u => u.Tareas)
                  .HasForeignKey(t => t.UnidadId)
                  .OnDelete(DeleteBehavior.Restrict)
                  .HasConstraintName("FK_Tarea_Unidad");
 
-
+                // (si quieres, aquí también puedes configurar Division, TipoServicio, etc.)
             });
         }
     }

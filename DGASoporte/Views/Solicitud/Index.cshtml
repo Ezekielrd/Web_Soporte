@@ -14,11 +14,76 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
     <link href="~/css/solicitudesC.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
     <div class="container-fluid px-4 no-select">
-        <h1 class="mb-4 mt-3">Lista de Solicitudes</h1>
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="mb-1">
+                        <i class="bi bi-list-check me-2"></i>
+                        Mis Solicitudes
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Gestiona y organiza tus solicitudes de soporte técnico
+                    </p>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end header-actions">
+                    <span class="badge bg-primary d-inline-flex align-items-center header-date-badge"
+                          style="font-size: 1rem; padding: 0.5rem 1rem;">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        @DateTime.Now.ToString("dd/MM/yyyy")
+                    </span>
+
+                    <div class="notification-wrapper position-relative">
+                        <button class="btn btn-outline-secondary btn-sm position-relative"
+                                id="btnNotificaciones"
+                                type="button">
+                            <i class="bi bi-bell"></i>
+                            <span id="badge-solicitudes"
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                  style="font-size:.65rem; display:none;">
+                                0
+                            </span>
+                        </button>
+
+                        <div id="panelNotificaciones" class="notif-dropdown shadow-sm">
+                            <div class="notif-header d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-bell me-1"></i> Notificaciones</span>
+                                <button type="button"
+                                        id="btnCerrarNotif"
+                                        class="btn btn-sm btn-link text-decoration-none text-muted">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                            <div id="notifList" class="notif-list">
+                                <div class="notif-empty text-muted small text-center py-3">
+                                    No tienes notificaciones aún.
+                                </div>
+                            </div>
+                            <div class="notif-footer">
+                                <button type="button"
+                                        id="btnMarcarLeidas"
+                                        class="btn btn-sm btn-light w-100">
+                                    Marcar todas como leídas
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="@Url.Action("Logout", "Cuenta")"
+                       id="btnLogout"
+                       class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-2 logout-btn">
+                        <span class="logout-icon-wrapper d-inline-flex align-items-center justify-content-center">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </span>
+                        <span class="logout-text">Cerrar sesión</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
 
         <!-- Tarjetas de Estadísticas -->
         <div class="row g-3 mb-4 tarjetas">
@@ -248,9 +313,11 @@
                                                 <button type="button"
                                                         class="btn btn-outline-primary btn-accion btn-sm js-detalle-solicitud"
                                                         title="Ver detalle"
+                                                        data-solicitud-id="@solicitud.Id"
                                                         data-titulo="@solicitud.Titulo"
                                                         data-descripcion="@solicitud.Descripcion"
                                                         data-unidad="@solicitud.Unidad?.Nombre"
+                                                        data-Division="@solicitud.Division?.Nombre"
                                                         data-tipo="@solicitud.TipoIncidencia?.Nombre"
                                                         data-estado="@solicitud.Estado.ToString()">
                                                     <i class="bi bi-eye"></i>
@@ -345,8 +412,8 @@
                                                 <span id="modalEstado" class="text-dark"></span>
                                             </div>
                                         </div>
-                                    </div> <!-- card-body -->
-                                </div> <!-- card -->
+                                    </div> 
+                                </div> 
                             </div>
                         </div>
                     </div>
@@ -363,7 +430,6 @@
     </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/cliente/modal.js"></script>
     <!--datatable-->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -372,7 +438,200 @@
           href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" />
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
     <script src="~/js/cliente/filtrosCl.js"></script>
+
+    <link rel="stylesheet" href="~/lib/sweetalert2/dist/sweetalert2.css" />
+    <script src="~/lib/sweetalert2/dist/sweetalert2.js"></script>
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/notificaciones.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            const solicitudId = params.get('solicitudId');  // viene de /Solicitudes?solicitudId=17
+
+            if (!solicitudId) return;
+
+            // función que busca el botón y dispara el click
+            const abrirDesdeNotificacion = () => {
+                const btn = document.querySelector(
+                    `.js-detalle-solicitud[data-solicitud-id="${solicitudId}"]`
+                );
+
+                if (btn) {
+                    btn.click(); // reutiliza tu JS global que abre el modal
+                } else {
+                    console.warn("No se encontró el botón de detalle para la solicitud", solicitudId);
+                }
+            };
+
+            // Si usas DataTables (renderiza después), damos un pequeño margen
+            if (window.jQuery && $.fn.DataTable) {
+                setTimeout(abrirDesdeNotificacion, 400);
+            } else {
+                abrirDesdeNotificacion();
+            }
+        });
+    </script>
+    <script>
+        (function () {
+            const btnBell   = document.getElementById('btnNotificaciones');
+            const panel     = document.getElementById('panelNotificaciones');
+            const badge     = document.getElementById('badge-solicitudes');
+            const list      = document.getElementById('notifList');
+            const btnClose  = document.getElementById('btnCerrarNotif');
+            const btnRead   = document.getElementById('btnMarcarLeidas');
+
+            if (!btnBell || !panel) return;
+
+            let unreadCount = 0;
+
+            function actualizarBadge() {
+                if (!badge) return;
+                badge.textContent = unreadCount;
+                badge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+            }
+
+            function togglePanel(show) {
+                if (show === undefined) {
+                    show = panel.style.display !== 'block';
+                }
+                panel.style.display = show ? 'block' : 'none';
+            }
+
+            btnBell.addEventListener('click', function (e) {
+                e.stopPropagation();
+                togglePanel();
+            });
+
+            btnClose?.addEventListener('click', function (e) {
+                e.stopPropagation();
+                togglePanel(false);
+            });
+
+            btnRead?.addEventListener('click', async function () {
+                // 🔹 Lado UI
+                unreadCount = 0;
+                actualizarBadge();
+                list.querySelectorAll('.notif-item.unread').forEach(el => {
+                    el.classList.remove('unread');
+                });
+
+                // 🔹 Lado servidor (marcar en BD)
+                try {
+                    await fetch('/Notificaciones/MarcarTodasLeidas', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                            // Si usas antiforgery:
+                            // 'RequestVerificationToken': token
+                        }
+                    });
+                } catch (err) {
+                    console.error('Error marcando notificaciones como leídas', err);
+                }
+            });
+
+            // Cerrar al hacer click fuera
+            document.addEventListener('click', function (e) {
+                if (!panel.contains(e.target) && !btnBell.contains(e.target)) {
+                    togglePanel(false);
+                }
+            });
+
+            // 🔹 Función: agregar una notificación a la lista
+                    function formatearFecha(fecha) {
+            try {
+                const f = new Date(fecha);
+                return f.toLocaleString('es-NI', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch {
+                return "Ahora";
+            }
+        }
+
+        function agregarNotif(notif) {
+            if (!list) return;
+
+            const empty = list.querySelector('.notif-empty');
+            if (empty) empty.remove();
+
+            const titulo  = notif.titulo  || notif.Titulo  || 'Notificación';
+            const mensaje = notif.mensaje || notif.Mensaje || '';
+            const url     = notif.urlDestino || notif.UrlDestino || notif.url || notif.Url || null;
+            const fecha   = notif.fechaCreacion || notif.FechaCreacion;
+            const leida   = notif.leida ?? notif.Leida ?? false;
+
+            const item = document.createElement('div');
+            item.className = 'notif-item';
+            if (!leida) {
+                item.classList.add('unread');
+                unreadCount++;
+                actualizarBadge();
+            }
+
+            item.innerHTML = `
+                <div class="notif-item-title">${titulo}</div>
+                <div class="notif-item-text">${mensaje}</div>
+                <div class="notif-item-meta">
+                    <i class="bi bi-clock me-1"></i> ${formatearFecha(fecha)}
+                </div>
+            `;
+
+            item.addEventListener('click', function () {
+                item.classList.remove('unread');
+                if (!leida && unreadCount > 0) {
+                    unreadCount--;
+                    actualizarBadge();
+                }
+
+                if (url) window.location.href = url;
+            });
+
+            list.prepend(item);
+        }
+
+
+            // 🔹 Cargar notificaciones iniciales desde el servidor
+                   async function cargarIniciales() {
+            try {
+                const resp = await fetch('/Notificaciones/Lista', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!resp.ok) return;
+
+                const data = await resp.json();
+                if (!Array.isArray(data) || data.length === 0) return;
+
+                // limpiar mensaje vacío
+                const empty = list.querySelector('.notif-empty');
+                if (empty) empty.remove();
+
+                unreadCount = 0;
+
+                data.forEach(n => agregarNotif(n));
+                actualizarBadge();
+            } catch (err) {
+                console.error('Error cargando notificaciones iniciales', err);
+            }
+        }
+
+
+            // Exponer para usar desde notificaciones.js (SignalR)
+            window.appNotificaciones = window.appNotificaciones || {};
+            window.appNotificaciones.agregar = agregarNotif;
+
+            // Cargar al entrar
+            cargarIniciales();
+        })();
+    </script>
 </body>
 </html>
+
 

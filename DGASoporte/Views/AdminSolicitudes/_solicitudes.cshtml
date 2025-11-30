@@ -30,6 +30,7 @@
                         <th>Título</th>
                         <th>Usuario</th>
                         <th>Unidad</th>
+                        <th>Division</th>
                         <th>Tipo</th>
                         <th>Fecha</th>
                         <th>Estado</th>
@@ -43,6 +44,7 @@
                             <td class="text-truncate" style="max-width:180px;" title="@s.Titulo">@s.Titulo</td>
                             <td>@s.Usuario.NombreCompleto</td>
                             <td>@s.Unidad.Nombre</td>
+                            <td>@(s.Division?.Nombre ?? "-")</td>
                             <td>@s.TipoIncidencia.Nombre</td>
                             <td>@s.FechaCreacion.ToString("g")</td>
                             <td>
@@ -58,22 +60,31 @@
                                 }
                                 <span class="badge bg-@badge estado-badge">@s.Estado</span>
                             </td>
-                            <td class="text-end d-flex gap-2">
-                                <a class="btn btn-sm btn-outline-primary js-modal-link" asp-action="Details" asp-route-id="@s.Id" title="Ver"><i class="bi bi-eye"></i></a>
-                                <form asp-action="Aprobar" method="post">
-                                    <input type="hidden" name="id" value="@s.Id" />
-                                    <button type="submit" class="btn btn-sm btn-outline-success d-inline" title="Aprobar">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                    </button>
-                                    @Html.AntiForgeryToken()
-                                </form>
-                                <a href="@Url.Action("Rechazar", "AdminSolicitudes", new { id = s.Id })"
-                                   class="btn btn-sm btn-outline-danger js-modal-link"
-                                   data-title="Rechazar solicitud" title="Rechazar">
-                                    <i class="bi bi-x-circle-fill"></i>
-                                </a>
-
+                            <td class="text-end text-nowrap">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a class="btn btn-sm btn-outline-primary js-modal-link"
+                                       asp-action="Details"
+                                       asp-route-id="@s.Id">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    @if (s.Estado==EstadoS.Enviada)
+                                    {
+                                        <a asp-controller="Tarea" asp-action="Create"
+                                           asp-route-solicitudId="@s.Id"
+                                           class="btn btn-outline-success btn-sm js-modal-link"
+                                           data-modal="true">
+                                            <i class="bi bi-check-circle"></i> Aprobar
+                                        </a>                                     
+                                        <a href="@Url.Action("Rechazar", "AdminSolicitudes", new { id = s.Id })"
+                                           class="btn btn-sm btn-outline-danger btn-sm js-modal-link"
+                                           data-title="Rechazar solicitud">
+                                            <i class="bi bi-x-circle-fill"></i> Rechazar
+                                        </a>
+                                    }
+                                   
+                                </div>
                             </td>
+
                         </tr>
                     }
                 </tbody>

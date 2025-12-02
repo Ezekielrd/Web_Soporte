@@ -21,7 +21,5 @@ namespace DGASoporte.Models
         [Display(Name = "Recordarme")]
         public bool RememberMe { get; set; } = false;
 
-        // Para redirigir después de iniciar sesión
-        public string? ReturnUrl { get; set; }
     }
 }

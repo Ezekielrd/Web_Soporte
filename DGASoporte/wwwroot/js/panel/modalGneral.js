@@ -1,6 +1,4 @@
-﻿// ================== MODAL GENÉRICO ==================
-
-// variables globales para que usuarios.js / tareas.js puedan usarlas
+﻿// variables globales para que usuarios.js / tareas.js puedan usarlas
 window.appModalElement = document.getElementById('appModal');
 window.appModalBody = document.getElementById('appModalBody');
 window.appModal = appModalElement ? new bootstrap.Modal(appModalElement) : null;

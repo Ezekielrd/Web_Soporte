@@ -1,4 +1,6 @@
-﻿namespace DGASoporte.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace DGASoporte.Models
 {
     public class ReporteIncidenciaVM
     {
@@ -27,13 +29,14 @@
         public string? ProblemaDetectado { get; set; }  // puedes usar Diagnostico o repetir la descripción técnica
 
         // 📌 Solución - campos que agregamos a Tarea
-        public string? CausaRaiz { get; set; }
-        public string? PasosEjecutados { get; set; }
+        [Required(ErrorMessage = "Ingrese su la cuasa raiz de la incidcnia")]
+        public string CausaRaiz { get; set; } =string.Empty;
+        [Required(ErrorMessage = "Ingrese las acciones ejecutadas")]
+        public string PasosEjecutados { get; set; } = string.Empty;
         public string? AjustesRealizados { get; set; }
-        public string? Evidencias { get; set; }
-
         // 📌 Resultado final
-        public string? ResultadoFinal { get; set; }
+        [Required(ErrorMessage = "Ingrese el resultado final")]
+        public string ResultadoFinal { get; set; } = string.Empty;
 
         // 📌 Recomendaciones
         public string? Recomendaciones { get; set; }
@@ -42,6 +45,10 @@
         public string? UsuarioValida { get; set; }
         public DateTime? FechaValidacion { get; set; }
         public string TiempoInvertidoTexto { get; set; } = "00 h 00 m";
+        public bool TieneReporte { get; set; }
+        public bool EsPendiente { get; set; }
+        [Required(ErrorMessage = "Ingrese el motivo.")]
+        public string MotivoPendiente { get; set; }= string.Empty;
 
     }
 }

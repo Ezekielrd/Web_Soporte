@@ -51,7 +51,6 @@
                                 @{
                                     var badge = s.Estado switch
                                     {
-                                        EstadoS.EnEspera => "warning",
                                         EstadoS.Enviada => "info",
                                         EstadoS.Aprobada => "success",
                                         EstadoS.Rechazada => "danger",
@@ -62,7 +61,7 @@
                             </td>
                             <td class="text-end text-nowrap">
                                 <div class="d-flex justify-content-end gap-2">
-                                    <a class="btn btn-sm btn-outline-primary js-modal-link"
+                                    <a class="btn btn-sm btn-outline-primary js-modal-link" data-solicitud-id="@s.Id"
                                        asp-action="Details"
                                        asp-route-id="@s.Id">
                                         <i class="bi bi-eye"></i> Ver

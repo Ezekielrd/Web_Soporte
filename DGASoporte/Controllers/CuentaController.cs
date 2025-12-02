@@ -25,15 +25,15 @@ namespace DGASoporte.Controllers
 
         // GET: /Cuenta/Login
         [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
+        public IActionResult Login()
         {
-            return View(new LoginVM { ReturnUrl = returnUrl });
+            return View(new LoginVM());
         }
 
         // POST: /Cuenta/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginVM vm, string? returnUrl = null)
+        public async Task<IActionResult> Login(LoginVM vm)
         {
 
             var entrada = (vm.UserNameOrEmail ?? "").Trim().ToLowerInvariant();
@@ -111,11 +111,6 @@ namespace DGASoporte.Controllers
             };
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, props);
-
-            // Redirección segura
-            var destino = returnUrl ?? vm.ReturnUrl;
-            if (!string.IsNullOrWhiteSpace(destino) && Url.IsLocalUrl(destino))
-                return Redirect(destino);
 
             // Redirige según el rol
             return RedirectByRole(usuario.Rol?.Nombre);

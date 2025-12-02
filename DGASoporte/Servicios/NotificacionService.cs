@@ -16,7 +16,7 @@ namespace DGASoporte.Servicios
 
         public NotificacionService(
             DGADbContext ctx,
-            IHubContext<NotificacionesHub> hub)
+            IHubContext<NotificacionesHub> hub) 
         {
             _ctx = ctx;
             _hub = hub;
@@ -24,27 +24,26 @@ namespace DGASoporte.Servicios
         public async Task EnviarResultadoSolicitudAsync(
     int usuarioDestinoId,
     int solicitudId,
+    string solicitudTitulo,
     bool aprobada)
         {
-            string titulo;
-            string mensaje;
-            string icono;
+            string titulo, mensaje, icono;
 
             if (aprobada)
             {
                 titulo = "Solicitud aprobada";
-                mensaje = $"Tu solicitud #{solicitudId} ha sido aprobada.";
+                mensaje = $"Tu solicitud: {solicitudTitulo} ha sido aprobada.";
                 icono = "success";
             }
             else
             {
                 titulo = "Solicitud rechazada";
-                mensaje = $"Tu solicitud #{solicitudId} ha sido rechazada.";
+                mensaje = $"Tu solicitud: {solicitudTitulo} ha sido rechazada.";
                 icono = "warning";
             }
 
-            // El solicitante verá su solicitud en el Index con el modal de detalle
-            string urlDestino = $"/Solicitudes?solicitudId={solicitudId}";
+            // 👇 URL donde YA tienes el modal de detalle funcionando
+            string urlDestinoReal = $"/Solicitud/Index?solicitudId={solicitudId}";
 
             var notificacion = new Notificacion
             {
@@ -52,7 +51,7 @@ namespace DGASoporte.Servicios
                 Tipo = "ResultadoSolicitud",
                 Titulo = titulo,
                 Mensaje = mensaje,
-                UrlDestino = urlDestino,
+                UrlDestino = urlDestinoReal,   // se usará en /Notificaciones/Abrir
                 FechaCreacion = DateTime.Now,
                 Leida = false
             };
@@ -60,15 +59,18 @@ namespace DGASoporte.Servicios
             _ctx.Notificaciones.Add(notificacion);
             await _ctx.SaveChangesAsync();
 
+            // 👇 Link que verá el usuario en la alerta y la campana
+            string urlWrapper = $"/Notificaciones/Abrir/{notificacion.Id}";
+
             await _hub.Clients
                 .User(usuarioDestinoId.ToString())
                 .SendAsync("ReceiveNotification", new
                 {
                     Titulo = titulo,
                     Mensaje = mensaje,
-                    Tipo = "ResultadoSolicitud", // categoría
-                    Icono = icono,                // para Swal
-                    Url = urlDestino
+                    Tipo = "ResultadoSolicitud",
+                    Icono = icono,
+                    Url = urlWrapper       // <- OJO: usamos el wrapper, no UrlDestinoReal
                 });
         }
 
@@ -78,11 +80,10 @@ namespace DGASoporte.Servicios
             string tituloTarea)
         {
             string titulo = "Nueva tarea asignada";
-            string mensaje = $"Se te ha asignado la tarea #{tareaId}: {tituloTarea}";
+            string mensaje = $"Se te ha asignado la tarea: {tituloTarea}";
 
-            // Vista COMPLETA de detalle de tarea del técnico
-            // Ajusta la ruta si tu acción/controlador usan otro nombre
-            string urlDestino = $"/Tareas/Detalles/{tareaId}";
+            // Vista de detalle de tarea del técnico
+            string urlDestino = $"/Tecnico/Detalle/{tareaId}";
 
             var notificacion = new Notificacion
             {
@@ -98,6 +99,8 @@ namespace DGASoporte.Servicios
             _ctx.Notificaciones.Add(notificacion);
             await _ctx.SaveChangesAsync();
 
+            string urlWrapper = $"/Notificaciones/Abrir/{notificacion.Id}";
+
             await _hub.Clients
                 .User(usuarioDestinoId.ToString())
                 .SendAsync("ReceiveNotification", new
@@ -106,8 +109,115 @@ namespace DGASoporte.Servicios
                     Mensaje = mensaje,
                     Tipo = "TareaAsignada", // categoría
                     Icono = "info",           // para Swal
-                    Url = urlDestino
+                    Url = urlWrapper
                 });
+        }
+        public async Task EnviarSolicitudCreadaAdminAsync(int solicitudId, string tituloSolicitud,int usuarioSolicitanteId)
+        {
+            //obtener admin
+            var adminIds = await _ctx.Usuarios
+                .Where(u => u.RolId==1)  
+                .Select(u => u.Id)
+                .ToListAsync();
+
+            if (!adminIds.Any())
+                return;
+
+            //Texto de la notificación
+            string titulo = "Nueva solicitud de soporte";
+            string mensaje = $"Se ha creado la solicitud: {tituloSolicitud}";
+
+            //URL donde se ven las solicitud (lista + modal)
+            string urlDestino = $"/Home/Index?view=Solicitudes&solicitudId={solicitudId}";
+
+            foreach (var adminId in adminIds)
+            {
+                var notificacion = new Notificacion
+                {
+                    UsuarioId = adminId,                
+                    Tipo = "SolicitudCreadaAdmin",
+                    Titulo = titulo,
+                    Mensaje = mensaje,
+                    UrlDestino = urlDestino,
+                    FechaCreacion = DateTime.Now,
+                    Leida = false
+                };
+
+                _ctx.Notificaciones.Add(notificacion);
+                await _ctx.SaveChangesAsync();
+
+                string urlWrapper = $"/Notificaciones/Abrir/{notificacion.Id}";
+
+                await _hub.Clients
+                    .User(adminId.ToString())
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        Titulo = titulo,
+                        Mensaje = mensaje,
+                        Tipo = "SolicitudCreadaAdmin",
+                        Icono = "info",
+                        Url = urlWrapper
+                    });
+            }
+        }
+        public async Task EnviarTareaFinalizadaAsync(int tareaId,string tituloTarea,bool resuelta)
+        {
+            string titulo;
+            string mensaje;
+            string icono;
+
+            var adminIds = await _ctx.Usuarios
+               .Where(u => u.RolId == 1)
+               .Select(u => u.Id)
+               .ToListAsync();
+
+            if (!adminIds.Any())
+                return;
+
+            if (resuelta)
+            {
+                titulo = "Tarea resuelta";
+                mensaje = $"La tarea: {tituloTarea} ha sido marcada como resuelta.";
+                icono = "success";
+            }
+            else
+            {
+                titulo = "Tarea finalizada con observaciones";
+                mensaje = $"La tarea: {tituloTarea} ha sido finalizada, pero requiere revisión adicional.";
+                icono = "warning";
+            }
+
+            string urlDestinoReal = $"/Home/Index?view=Tareas&tareaId={tareaId}";
+
+            foreach (var adminId in adminIds)
+            {
+                var notificacion = new Notificacion
+                {
+                    UsuarioId = adminId,
+                    Tipo = "TareaFinalizada",
+                    Titulo = titulo,
+                    Mensaje = mensaje,
+                    UrlDestino = urlDestinoReal,
+                    FechaCreacion = DateTime.Now,
+                    Leida = false
+                };
+
+                _ctx.Notificaciones.Add(notificacion);
+                await _ctx.SaveChangesAsync();
+
+                string urlWrapper = $"/Notificaciones/Abrir/{notificacion.Id}";
+
+                await _hub.Clients
+                    .User(adminId.ToString())
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        Titulo = titulo,
+                        Mensaje = mensaje,
+                        Tipo = "TareaFinalizada",
+                        Icono = icono,
+                        Url = urlWrapper
+                    });
+            }
         }
 
         public async Task<List<Notificacion>> ObtenerNotificacionesUsuarioAsync(

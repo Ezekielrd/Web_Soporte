@@ -69,6 +69,14 @@ menuItems.forEach(item => {
             if (view === 'Solicitudes' && window.Solicitudes && typeof window.Solicitudes.initForm === 'function') {
                 window.Solicitudes.initForm(viewContainer);
             }
+            if (view === 'Solicitudes' && typeof window.onSolicitudesViewLoaded === 'function') {
+                console.log('✅ sidebar: vista Solicitudes cargada, llamando onSolicitudesViewLoaded()');
+                window.onSolicitudesViewLoaded();
+            }
+            if (view === 'Tareas' && typeof window.onTareasViewLoaded === 'function') {
+                console.log('✅ sidebar: vista Tareas cargada, llamando onTareasViewLoaded()');
+                window.onTareasViewLoaded();
+            }
 
         } catch (err) {
             console.error(err);

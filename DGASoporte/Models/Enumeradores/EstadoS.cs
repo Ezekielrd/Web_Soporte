@@ -10,7 +10,5 @@ namespace DGASoporte.Models.Enumeradores
         Aprobada = 2,
         [Display(Name = "Rechazada")]
         Rechazada = 3,
-        [Display(Name = "En Revision")]
-        EnEspera = 4,
     }
 }

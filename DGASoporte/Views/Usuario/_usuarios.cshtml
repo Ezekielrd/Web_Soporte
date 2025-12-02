@@ -74,18 +74,9 @@
                                     <i class="bi bi-pencil-square"></i> Editar
                                 </a>
 
-                                <form asp-action="ToggleBloqueo" asp-route-id="@u.Id" method="post" class="d-inline">
+                                <form asp-action="ToggleBloqueo"asp-controller="Usuario" asp-route-id="@u.Id" method="post" class="d-inline">
                                     <button class="btn btn-sm btn-outline-secondary" type="submit">
                                         <i class="bi @(bloqueado ? "bi-unlock" : "bi-lock")"></i> @(bloqueado ? "Desbloquear" : "Bloquear")
-                                    </button>
-                                    @Html.AntiForgeryToken()
-                                </form>
-
-                                <!-- Reset pass rápido con prompt -->
-                                <form asp-action="ResetPassword" asp-route-id="@u.Id" method="post" class="d-inline resetPwdForm">
-                                    <input type="hidden" name="newPassword" />
-                                    <button type="button" class="btn btn-sm btn-outline-dark" onclick="openResetModal(this)" data-bs-toggle="modal" data-bs-target="#passwordResetModal">
-                                        <i class="bi bi-key"></i> Reset pass
                                     </button>
                                     @Html.AntiForgeryToken()
                                 </form>

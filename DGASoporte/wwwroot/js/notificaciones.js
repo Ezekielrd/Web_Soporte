@@ -14,22 +14,16 @@
     connection.on("ReceiveNotification", function (payload) {
         console.log('📩 Notificación recibida via SignalR:', payload);
 
-        // Datos básicos
         const titulo = payload.Titulo || payload.titulo || 'Notificación';
         const mensaje = payload.Mensaje || payload.mensaje || '';
-        const tipoEvento = payload.Tipo || payload.tipo || '';    // "ResultadoSolicitud" / "TareaAsignada" / otros
-        let icono = payload.Icono || payload.icono || '';    // icono Swal
-        const destinoUrl = payload.Url || payload.url || null;  // URL generada en C#
+        const tipoEvento = payload.Tipo || payload.tipo || '';    
+        let icono = payload.Icono || payload.icono || 'info';
+        const destinoUrl = payload.Url || payload.url || null;
 
-        // Si no viene icono, damos uno por defecto según el tipo de evento
         if (!icono) {
-            if (tipoEvento === 'ResultadoSolicitud') {
-                icono = 'success'; // o 'warning' si quieres diferenciar en el servicio
-            } else if (tipoEvento === 'TareaAsignada') {
-                icono = 'info';
-            } else {
-                icono = 'info';
-            }
+            if (tipoEvento === 'ResultadoSolicitud') icono = 'success';
+            else if (tipoEvento === 'TareaAsignada') icono = 'info';
+            else icono = 'info';
         }
 
         Swal.fire({
@@ -43,30 +37,47 @@
             showConfirmButton: !!destinoUrl,
             confirmButtonText: destinoUrl ? 'Ver detalle' : 'Aceptar'
         }).then(result => {
-            // 1) Si el usuario pulsó "Ver detalle" y hay URL, vamos allí
+            const path = window.location.pathname.toLowerCase();
+            console.log('🔎 Post-Swal. tipoEvento=', tipoEvento, ' path=', path, ' result=', result);
+
+            // 1) Si el usuario pulsa "Ver detalle" → ir al wrapper /Notificaciones/Abrir/{id}
             if (destinoUrl && result.isConfirmed) {
                 window.location.href = destinoUrl;
                 return;
             }
 
-            // 2) Comportamiento extra SOLO para ciertos tipos de notificación
+            // 2) Actualizar la campanita (contador + lista) si existe la función
+            if (typeof window.reloadNotificacionesResumen === 'function') {
+                console.log('🔄 Refrescando campanita...');
+                window.reloadNotificacionesResumen();
+            }
 
-            // 🔹 TAREA ASIGNADA → refrescar lista de tareas si el técnico está en esa vista
+            // 3) Recargar la página de lista según el tipo de evento y la ruta actual
             if (tipoEvento === 'TareaAsignada') {
-                const path = window.location.pathname.toLowerCase();
-
-                // Ajusta '/tareas' si la ruta de la lista de tareas del técnico es otra
-                if (path.startsWith('/tareas')) {
+                if (path.includes('/tecnico')) {       // 👈 aquí usamos /Tecnico
+                    console.log('🔁 Recargando página de tareas (Tecnico/Index)...');
                     window.location.reload();
                 }
             }
 
-            // 🔹 Resultado de SOLICITUD → aquí NO tocamos nada
-            //     - El flujo sigue siendo que la URL apunte a:
-            //       "/Solicitudes?solicitudId=XYZ"
-            //     - Y el JS de la vista Index de Solicitudes se encarga de abrir el modal.
+            // 🔹 RESULTADO SOLICITUD → lista está en /Solicitud/Index
+            if (tipoEvento === 'ResultadoSolicitud') {
+                if (path.includes('/solicitud')) {     // 👈 aquí usamos /Solicitud
+                    console.log('🔁 Recargando página de solicitudes (Solicitud/Index)...');
+                    window.location.reload();
+                }
+            }
+            if (tipoEvento === 'SolicitudCreadaAdmin' && path.includes('/adminsolicitudes')) {
+                console.log('🔁 Recargando lista de solicitudes del admin...');
+                window.location.reload();
+            }
+            if (tipoEvento === 'TareaFinalizada' && path.includes('/tarea')) {
+                    console.log('🔁 Tarea finalizada, podrías recargar o actualizar aquí si lo necesitas');
+                    window.location.reload(); // si quieres recargar
+            }
         });
     });
+
 
     async function startConnection() {
         try {

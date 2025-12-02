@@ -265,6 +265,8 @@ namespace DGASoporte.Controllers
             };
 
             Tecnico? tecnico = null;
+            bool asignadaATecnico = false;   
+
 
             if (vm.TecnicoId.HasValue)
             {
@@ -284,18 +286,7 @@ namespace DGASoporte.Controllers
                 entidad.Estado = EstadoT.Asignado;
                 tecnico.Disponible = false;
 
-                _context.Asignaciones.Add(new Asignacion
-                {
-                    TareaId = entidad.Id,
-                    TecnicoId = tecnico.Id,
-                    Fecha = DateTime.Now,
-                    Modo = "Manual",
-                });
-                    await _notificacionService.EnviarTareaAsignadaAsync(
-                       tecnico.Id,
-                       entidad.Id,
-                       entidad.Titulo
-                   );
+                asignadaATecnico = true;
             }
             else
             {
@@ -309,14 +300,41 @@ namespace DGASoporte.Controllers
             {
                 _context.Solicitudes.Update(solicitud);
             }
+            //Si hay técnico, creamos la asignación DESPUÉS de agregar la tarea
+            if (asignadaATecnico && tecnico != null)
+            {
+                _context.Asignaciones.Add(new Asignacion
+                {
+                    // aquí ya puedes usar la entidad (EF se encarga del Id al guardar)
+                    TareaId = entidad.Id,          // mejor usar navegación que TareaId = 0
+                    TecnicoId = tecnico.Id,
+                    Fecha = DateTime.Now,
+                    Modo = "Manual",
+                });
+            }
 
             try
             {
-                await _context.SaveChangesAsync(ct);               
+                await _context.SaveChangesAsync(ct);
+                if (asignadaATecnico && tecnico != null)
+                {
+                    await _notificacionService.EnviarTareaAsignadaAsync(
+                        tecnico.Id,   
+                        entidad.Id,          
+                        entidad.Titulo
+                    );
+                }
 
+                if (solicitud != null)
+                {
+                    await _notificacionService.EnviarResultadoSolicitudAsync(
+                        solicitud.UsuarioId,
+                        solicitud.Id,
+                        solicitud.Titulo,
+                        true   // aprobada
+                    );
+                }
                 TempData["Success"] = "La tarea fue creada correctamente.";
-
-                // Para AJAX: devolvemos JSON
                 return Json(new { success = true });
             }
             catch (DbUpdateException ex)

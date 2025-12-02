@@ -35,11 +35,84 @@
           crossorigin="anonymous">
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
-    <link href="~/css/Tecnicos.css" rel="stylesheet" asp-append-version="true" />
-    <link href="~/css/detalleTarea.css" rel="stylesheet" />
+    <link href="~/css/detalleTarea.css" rel="stylesheet"asp-append-version="true" />
 </head>
 <body>
     <div class="main-container">
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="mb-1">
+                        <i class="bi bi-list-check me-2"></i>
+                        Mis Tareas
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Gestiona y organiza tus Tareas
+                    </p>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end header-actions">
+                    <span class="badge bg-primary d-inline-flex align-items-center header-date-badge"
+                          style="font-size: 1rem; padding: 0.5rem 1rem;">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        @DateTime.Now.ToString("dd/MM/yyyy")
+                    </span>
+
+                    <div class="notification-wrapper position-relative">
+                        <button id="btnNotificaciones"
+                                type="button"
+                                class="btn btn-link nav-link position-relative p-0">
+                            <i class="bi bi-bell fs-5"></i>
+                            <span id="notifBadge"
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                                0
+                            </span>
+                        </button>
+
+                        <!-- Panel flotante -->
+                        <div id="notifPanel"
+                             class="card shadow border-0 position-absolute end-0 mt-2 d-none"
+                             style="width: 340px; z-index: 1050;">
+                            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                                <div>
+                                    <i class="bi bi-bell me-1"></i>
+                                    <span>Notificaciones</span>
+                                </div>
+                                <button type="button"
+                                        class="btn-close btn-close-sm"
+                                        aria-label="Cerrar"
+                                        id="btnCerrarNotif"></button>
+                            </div>
+                            <div class="list-group list-group-flush small" id="notifList">
+                                <div class="list-group-item text-muted text-center py-3" id="notifPlaceholder">
+                                    Cargando...
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <form id="formMarcarLeidas"
+                                      method="post"
+                                      asp-controller="Notificaciones"
+                                      asp-action="MarcarTodasComoLeidas">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-link btn-sm text-decoration-none">
+                                        Marcar todas como leídas
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="@Url.Action("Logout", "Cuenta")"
+                       id="btnLogout"
+                       class="btn btn-outline-danger btn-sm d-inline-flex align-items-center gap-2 logout-btn">
+                        <span class="logout-icon-wrapper d-inline-flex align-items-center justify-content-center">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </span>
+                        <span class="logout-text">Cerrar sesión</span>
+                    </a>
+                </div>
+            </div>
+        </div>
         <!-- Header tipo tarjeta (como en Index) -->
         <div class="header-section mb-3">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
@@ -235,76 +308,120 @@
                             <div>@Model.FechaLimite.Value.ToString("dd/MM/yyyy HH:mm")</div>
                         </div>
                     }
-                    <div class="mt-4">                       
+                    <div class="mt-4">
+
+                        @* 👉 Estado: ASIGNADO — botón de diagnóstico *@
                         @if (Model.Estado == EstadoT.Asignado && Model.TecnicoId != null)
                         {
-                            <button type="button"
-                                    class="btn btn-primary btn-sm btn-back"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalDiagnostico">
-                                <i class="bi bi-stethoscope me-1"></i> Realizar Diagnóstico
-                            </button>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button"
+                                        class="btn btn-primary btn-sm btn-back"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalDiagnostico">
+                                    <i class="bi bi-stethoscope me-1"></i> Realizar Diagnóstico
+                                </button>
+                            </div>
                         }
+
+                        @* 👉 Estado: EN PROCESO (contador activo) — Pausar + Finalizar/En espera *@
                         @if (Model.Estado == EstadoT.EnProceso && Model.ContadorActivo)
                         {
-                            <button type="button"
-                                    class="btn btn-outline-warning btn-sm"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalPausa">
-                                <i class="bi bi-pause-circle me-1"></i> Pausar tiempo
-                            </button>
-                            <form asp-action="Finalizar" asp-route-id="@Model.Id" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-
-                                <button type="submit" name="resultado" value="Resuelta" class="btn btn-danger me-2">
-                                    <i class="bi bi-flag-fill me-1"></i> Finalizar como resuelta
+                            <div class="d-flex gap-2 flex-wrap mt-2">
+                                <button type="button"
+                                        class="btn btn-outline-warning btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalPausa">
+                                    <i class="bi bi-pause-circle me-1"></i> Pausar tiempo
                                 </button>
 
-                                <button type="submit" name="resultado" value="EnEspera" class="btn btn-outline-warning">
-                                    <i class="bi bi-pause-circle me-1"></i> Dejar en espera
-                                </button>
-                            </form>
+                                <form asp-action="Finalizar" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 flex-wrap">
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            name="resultado"
+                                            value="Resuelta"
+                                            class="btn btn-danger btn-sm">
+                                        <i class="bi bi-flag-fill me-1"></i> Finalizar como resuelta
+                                    </button>
+
+                                    <button type="submit"
+                                            name="resultado"
+                                            value="EnEspera"
+                                            class="btn btn-outline-warning btn-sm">
+                                        <i class="bi bi-pause-circle me-1"></i> Dejar en espera
+                                    </button>
+                                </form>
+                            </div>
                         }
-                        <!-- Botón Reanudar (solo si está Pausado) -->
+
+                        @* 👉 Estado: PAUSADO — Reanudar + Finalizar/En espera *@
                         @if (Model.Estado == EstadoT.Pausado)
                         {
-                            <form asp-controller="Tecnico"
-                                  asp-action="ReanudarTarea"
-                                  method="post"
-                                  class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="TareaId" value="@Model.Id" />
-                                <button type="submit"
-                                        class="btn btn-outline-success btn-sm">
-                                    <i class="bi bi-play-circle me-1"></i> Reanudar tiempo
-                                </button>
-                            </form>
-                            <form asp-action="Finalizar" asp-route-id="@Model.Id" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
+                            <div class="d-flex gap-2 flex-wrap mt-2">
+                                <form asp-controller="Tecnico"
+                                      asp-action="ReanudarTarea"
+                                      method="post"
+                                      class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="TareaId" value="@Model.Id" />
+                                    <button type="submit"
+                                            class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-play-circle me-1"></i> Reanudar tiempo
+                                    </button>
+                                </form>
 
-                                <button type="submit" name="resultado" value="Resuelta" class="btn btn-danger me-2">
-                                    <i class="bi bi-flag-fill me-1"></i> Finalizar como resuelta
-                                </button>
+                                <form asp-action="Finalizar" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 flex-wrap">
+                                    @Html.AntiForgeryToken()
 
-                                <button type="submit" name="resultado" value="EnEspera" class="btn btn-outline-warning">
-                                    <i class="bi bi-pause-circle me-1"></i> Dejar en espera
-                                </button>
-                            </form>
+                                    <button type="submit"
+                                            name="resultado"
+                                            value="Resuelta"
+                                            class="btn btn-danger btn-sm">
+                                        <i class="bi bi-flag-fill me-1"></i> Finalizar como resuelta
+                                    </button>
+
+                                    <button type="submit"
+                                            name="resultado"
+                                            value="EnEspera"
+                                            class="btn btn-outline-warning btn-sm">
+                                        <i class="bi bi-pause-circle me-1"></i> Dejar en espera
+                                    </button>
+                                </form>
+                            </div>
                         }
-                        @if (Model.Estado == EstadoT.Resuelta)
+
+                        @* 👉 Botones de reporte (cuando ya está resuelta / en espera) *@
+                        @if ((Model.Estado == EstadoT.Resuelta || Model.Estado == EstadoT.EnEspera) || Model.TieneReporte)
                         {
-                            <a asp-action="ReporteIncidencia"
-                               asp-route-id="@Model.Id"
-                               class="btn btn-outline-primary me-2">
-                                <i class="bi bi-eye"></i> Ver reporte de solución
-                            </a>
+                            <div class="d-flex gap-2 flex-wrap mt-3">
+                                @if (Model.Estado == EstadoT.Resuelta || Model.Estado == EstadoT.EnEspera)
+                                {
+                                    <a asp-action="ReporteSolucion"
+                                       asp-route-id="@Model.Id"
+                                       class="btn @(Model.TieneReporte ? "btn-outline-primary" : "btn-primary") btn-sm">
+                                        <i class="bi @(Model.TieneReporte ? "bi-pencil-square" : "bi-file-earmark-plus") me-1"></i>
+                                        @(Model.TieneReporte ? "Editar reporte" : "Crear reporte")
+                                    </a>
+                                }
 
-                            <a asp-action="ReporteIncidenciaPdf"
-                               asp-route-id="@Model.Id"
-                               class="btn btn-outline-dark">
-                                <i class="bi bi-filetype-pdf"></i> Descargar PDF
-                            </a>
+                                @if (Model.TieneReporte)
+                                {
+                                    <a asp-action="ReporteIncidencia"
+                                       asp-route-id="@Model.Id"
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye me-1"></i> Ver reporte de solución
+                                    </a>
+
+                                    <a asp-action="ReporteIncidenciaPdf"
+                                       asp-route-id="@Model.Id"
+                                       class="btn btn-outline-dark btn-sm">
+                                        <i class="bi bi-filetype-pdf me-1"></i> Descargar PDF
+                                    </a>
+                                }
+                            </div>
                         }
+
+                        @* 👉 Bloque de comentarios técnicos (En proceso) *@
                         @if (Model.Estado == EstadoT.EnProceso)
                         {
                             <div class="historial-card mt-4">
@@ -343,6 +460,7 @@
                         }
 
                     </div>
+
 
                 </div>
             </div>
@@ -585,6 +703,11 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <link rel="stylesheet" href="~/lib/sweetalert2/dist/sweetalert2.css" />
+    <script src="~/lib/sweetalert2/dist/sweetalert2.js"></script>
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/cliente/campana.js"></script>
+    <script src="~/js/notificaciones.js"></script>
     <script>
         (function () {
             const span = document.getElementById('lblTiempoInvertido');

@@ -164,17 +164,8 @@
                     </div>
                 }
 
-                @if (!string.IsNullOrWhiteSpace(Model.Evidencias))
-                {
-                    <div class="mb-3">
-                        <div class="report-label">Evidencias de la intervención:</div>
-                        <div class="report-value">@Model.Evidencias</div>
-                    </div>
-                }
-
                 @if (string.IsNullOrWhiteSpace(Model.PasosEjecutados)
-                                && string.IsNullOrWhiteSpace(Model.AjustesRealizados)
-                                && string.IsNullOrWhiteSpace(Model.Evidencias))
+                                && string.IsNullOrWhiteSpace(Model.AjustesRealizados))
                 {
                     <div class="text-muted fst-italic">
                         No se registraron acciones detalladas del técnico.

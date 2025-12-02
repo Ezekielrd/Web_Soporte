@@ -105,7 +105,8 @@
             lengthMenu: [5, 10, 25, 50],
             columnDefs: [
                 { orderable: false, targets: -1 }
-            ]
+            ],
+            order: []
         });
 
         console.log('[Solicitudes] DataTable inicializado correctamente');

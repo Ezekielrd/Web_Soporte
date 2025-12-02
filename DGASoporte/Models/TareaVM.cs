@@ -2,6 +2,7 @@
 using DGASoporte.Models.Enumeradores;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class TareaFormVM
 {
@@ -95,6 +96,7 @@ public class TareaFormVM
     public PausaVM PausaForm { get; set; } = new();
     public ComentarioVM ComentarioForm { get; set; } = new();
 
+    public bool TieneReporte { get; set; }   
 
 
 }

@@ -17,12 +17,13 @@ namespace DGASoporte.Controllers
     {
         public readonly DGADbContext _context;
         private readonly AsignacionTareasService _asignacionService;
+        private readonly NotificacionService _notificacionService;
 
-        public TecnicoController(DGADbContext context, AsignacionTareasService asignacionService)
+        public TecnicoController(DGADbContext context, AsignacionTareasService asignacionService, NotificacionService notificacionService)
         {
             _context = context;
             _asignacionService = asignacionService;
-
+            _notificacionService = notificacionService;
         }
         public async Task<IActionResult> Index()
         {
@@ -161,7 +162,8 @@ namespace DGASoporte.Controllers
                 ComentarioForm = new ComentarioVM
                 {
                     TareaId = tarea.Id
-                }
+                },
+                 TieneReporte = tarea.TieneReporte
             };
 
             return View(vm);
@@ -447,7 +449,6 @@ namespace DGASoporte.Controllers
 
             var ahora = DateTime.Now;
 
-            // 1) SIEMPRE: acumular tiempo y detener contador
             if (tarea.InicioContador.HasValue)
             {
                 var transcurrido = ahora - tarea.InicioContador.Value;
@@ -455,7 +456,6 @@ namespace DGASoporte.Controllers
                 tarea.InicioContador = null;
             }
 
-            // 2) Decidir estado según el resultado
             if (string.Equals(resultado, "Resuelta", StringComparison.OrdinalIgnoreCase))
             {
                 tarea.Estado = EstadoT.Resuelta;       
@@ -467,22 +467,25 @@ namespace DGASoporte.Controllers
             }
             else
             {
-                // Por si llega algo raro
                 TempData["Error"] = "Resultado de finalización no válido.";
                 return RedirectToAction("Detalle", new { id });
             }
 
             tarea.FechaActualizacion = ahora;
+
+            bool resuelta = tarea.Estado == EstadoT.Resuelta;
+
             await _context.SaveChangesAsync(ct);
 
-            // 3) Flujo
-            if (tarea.Estado == EstadoT.Resuelta)
-            {
-                // Ir al formulario de reporte de solución
-                return RedirectToAction(nameof(ReporteSolucion), new { id = tarea.Id });
-            }
+  
+            await _notificacionService.EnviarTareaFinalizadaAsync(            
+               tarea.Id,
+               tarea.Titulo,
+               resuelta
+           );
 
-            // Si quedó en espera, volver al detalle
+            TempData["Success"] = $"La tarea se ha marcado como {tarea.Estado}. Ahora puedes registrar el reporte de la incidencia.";
+
             return RedirectToAction("Detalle", new { id = tarea.Id });
         }
 
@@ -490,9 +493,8 @@ namespace DGASoporte.Controllers
         public async Task<IActionResult> ReporteSolucion(int id, CancellationToken ct)
         {
             var tarea = await _context.Tareas
-                .Include(t => t.Usuario)                     // solicitante
-                .Include(t => t.Tecnico)
-                    .ThenInclude(te => te.Usuario)          // usuario del técnico
+                .Include(t => t.Usuario)
+                .Include(t => t.Tecnico).ThenInclude(te => te.Usuario)
                 .Include(t => t.Unidad)
                 .Include(t => t.Division)
                 .Include(t => t.Categoria)
@@ -502,15 +504,13 @@ namespace DGASoporte.Controllers
             if (tarea == null)
                 return NotFound();
 
-            //Solo permitir el reporte cuando la tarea está marcada como RESUELTA
-            // Cambia EstadoT.Resuelta por el valor correcto de tu enum si tiene otro nombre
-            if (tarea.Estado != EstadoT.Resuelta)
+            // ✅ Permitir reporte cuando está RESUELTA o EN ESPERA (pendiente)
+            if (tarea.Estado != EstadoT.Resuelta && tarea.Estado != EstadoT.EnEspera)
             {
-                TempData["Error"] = "Solo se puede registrar el reporte de solución cuando la tarea está marcada como resuelta.";
+                TempData["Error"] = "Solo se puede registrar el reporte cuando la tarea está marcada como resuelta o en espera.";
                 return RedirectToAction("Detalle", new { id });
             }
 
-            // Función local para formatear el tiempo invertido
             string FormatearTiempo(TimeSpan tiempo)
                 => $"{(int)tiempo.TotalHours:D2} h {tiempo.Minutes:D2} m";
 
@@ -527,7 +527,7 @@ namespace DGASoporte.Controllers
                 Unidad = tarea.Unidad.Nombre,
                 Division = tarea.Division?.Nombre ?? "N/D",
                 Categoria = tarea.Categoria.Nombre,
-                TipoServicio = tarea.TipoServicio?.Nombre?? "N/D",
+                TipoServicio = tarea.TipoServicio?.Nombre ?? "N/D",
 
                 Estado = tarea.Estado?.ToString() ?? "N/D",
                 Prioridad = tarea.Prioridad.ToString(),
@@ -538,19 +538,24 @@ namespace DGASoporte.Controllers
                         ?? "Técnico")
                     : "Sin asignar",
 
-                // ⏱️ Tiempo invertido ya acumulado (por el POST Finalizar)
                 TiempoInvertidoTexto = FormatearTiempo(tarea.TiempoInvertido),
 
-                // Campos de solución ya guardados (si existían) para que el técnico pueda editarlos
                 CausaRaiz = tarea.CausaRaiz,
                 PasosEjecutados = tarea.PasosEjecutados,
                 AjustesRealizados = tarea.AjustesRealizados,
                 ResultadoFinal = tarea.ResultadoFinal,
-                Recomendaciones = tarea.Recomendaciones
+                Recomendaciones = tarea.Recomendaciones,
+
+                TieneReporte = tarea.TieneReporte,
+                 // pendiente
+                EsPendiente = tarea.Estado == EstadoT.EnEspera,
+                MotivoPendiente = tarea.MotivoPendiente,
+
             };
 
             return View("ReporteSolucion", vm);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReporteSolucion(ReporteIncidenciaVM vm, CancellationToken ct)
@@ -575,12 +580,14 @@ namespace DGASoporte.Controllers
             if (tarea == null)
                 return NotFound();
 
-            // 3) Seguridad extra: solo permitir guardar reporte si está RESUELTA
-            if (tarea.Estado != EstadoT.Resuelta) // ajusta el nombre del enum si es otro
+            // 3) Seguridad extra: solo permitir guardar reporte si está RESUELTA o EN ESPERA
+            if (tarea.Estado != EstadoT.Resuelta && tarea.Estado != EstadoT.EnEspera)
             {
-                TempData["Error"] = "Solo se puede registrar el reporte de solución cuando la tarea está marcada como resuelta.";
+                TempData["Error"] = "Solo se puede registrar el reporte cuando la tarea está marcada como resuelta o en espera.";
                 return RedirectToAction("Detalle", new { id = vm.Id });
             }
+
+            var esNuevoReporte = !tarea.TieneReporte;
 
             // 4) Mapear los campos del formulario a la entidad Tarea
             tarea.CausaRaiz = vm.CausaRaiz;
@@ -588,6 +595,7 @@ namespace DGASoporte.Controllers
             tarea.AjustesRealizados = vm.AjustesRealizados;
             tarea.ResultadoFinal = vm.ResultadoFinal;
             tarea.Recomendaciones = vm.Recomendaciones;
+            tarea.MotivoPendiente = vm.MotivoPendiente;
 
             // FechaCierre ya debió ponerse en Finalizar, pero por si acaso:
             tarea.FechaCierre ??= DateTime.Now;
@@ -597,7 +605,9 @@ namespace DGASoporte.Controllers
 
             await _context.SaveChangesAsync(ct);
 
-            TempData["Success"] = "Reporte de solución guardado correctamente.";
+            TempData["Success"] = esNuevoReporte
+                    ? "Reporte de solución registrado correctamente."
+                    : "Reporte de solución actualizado correctamente.";
 
             // 5) Después de guardar:
             //    puedes mandarlo al detalle de la tarea, o a una vista "reporte listo para imprimir"

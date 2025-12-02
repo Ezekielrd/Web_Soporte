@@ -57,6 +57,8 @@ namespace DGASoporte.Models
         public int? UsuarioValidaId { get; set; }
         public Usuario? UsuarioValida { get; set; }
         public DateTime? FechaValidacion { get; set; }
+        [MaxLength(1000)]
+        public string? MotivoPendiente { get; set; }
 
         // No mapeadas: útiles para UI
         [NotMapped]
@@ -73,6 +75,14 @@ namespace DGASoporte.Models
                 : (TimeSpan?)null;
         public ICollection<Comentario> Historial { get; set; } = new List<Comentario>();
         public virtual ICollection<Diagnostico> Diagnosticos { get; set; } = new List<Diagnostico>();
+
+        [NotMapped]
+        public bool TieneReporte =>
+    !string.IsNullOrWhiteSpace(CausaRaiz)
+    || !string.IsNullOrWhiteSpace(PasosEjecutados)
+    || !string.IsNullOrWhiteSpace(AjustesRealizados)
+    || !string.IsNullOrWhiteSpace(ResultadoFinal)
+    || !string.IsNullOrWhiteSpace(Recomendaciones);
 
     }
 }

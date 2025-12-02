@@ -26,11 +26,10 @@
                     <a asp-action="Detalle" asp-route-id="@Model.Id" class="btn btn-link text-decoration-none px-0 mb-2">
                         <i class="bi bi-arrow-left"></i> Volver
                     </a>
-
                     <h3 class="mb-1">
                         <i class="bi bi-file-earmark-text me-2"></i>
-                        Reporte de solución
-                    </h3>
+                        @(Model.TieneReporte ? "Editar reporte de solución" : "Registrar reporte de solución")
+                    </h3>                 
                     <div class="text-muted">
                         Tarea #@Model.Id — @Model.Titulo
                     </div>
@@ -157,12 +156,6 @@
                                 <span asp-validation-for="AjustesRealizados" class="text-danger"></span>
                             </div>
 
-                            <div class="mb-3">
-                                <label asp-for="Evidencias" class="form-label">Evidencias de la intervención (opcional)</label>
-                                <textarea asp-for="Evidencias" class="form-control" rows="2" placeholder="Ejemplo: Capturas de pantalla, pruebas realizadas, códigos de error observados, etc."></textarea>
-                                <span asp-validation-for="Evidencias" class="text-danger"></span>
-                            </div>
-
                             <hr />
 
                             <div class="mb-3">
@@ -177,7 +170,21 @@
                                 <span asp-validation-for="Recomendaciones" class="text-danger"></span>
                             </div>
                         </div>
-
+                        @if (!Model.EsPendiente)
+                        {
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label asp-for="MotivoPendiente" class="form-label">
+                                        Motivo por el que la tarea queda en espera
+                                    </label>
+                                    <textarea asp-for="MotivoPendiente"
+                                              class="form-control"
+                                              rows="2"
+                                              placeholder="Ejemplo: Falta de repuestos, requiere autorización del área X, etc."></textarea>
+                                    <span asp-validation-for="MotivoPendiente" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        }
                         <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
                             <a asp-action="Detalle" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-left"></i> Volver al detalle

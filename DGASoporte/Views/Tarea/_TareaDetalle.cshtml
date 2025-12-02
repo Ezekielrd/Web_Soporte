@@ -68,10 +68,9 @@
             <dt class="col-sm-4">Estado</dt>
             <dd class="col-sm-8">@Html.DisplayFor(m => m.EstadoNombre)</dd>
 
-            <dt class="col-sm-4">Fecha Asignación</dt>
-            <dd class="col-sm-8">
-                @(Model.FechaAsignacion?.ToString("dd/MM/yyyy") ?? "—")
-            </dd>
+            <dt class="col-sm-4">Área</dt>
+            <dd class="col-sm-8">@Html.DisplayFor(m => m.UsuarioNombre)</dd>
+
 
             <dt class="col-sm-4">Fecha Límite</dt>
             <dd class="col-sm-8">
@@ -80,7 +79,7 @@
         </dl>
 
         <div class="mt-4 text-end">
-            <a asp-action="EditarModal"
+            <a asp-action="Edit"
                asp-controller="Tarea"
                asp-route-id="@Model.Id"
                class="btn btn-success js-modal-link">

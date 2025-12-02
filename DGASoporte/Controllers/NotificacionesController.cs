@@ -22,7 +22,7 @@ namespace DGASoporte.Controllers
         }
 
         // GET: /Notificaciones/Lista?soloNoLeidas=true
-        [HttpGet("Lista")]
+        [HttpGet]
         public async Task<IActionResult> Lista()
         {
             int usuarioId = User.GetRequiredUserId();
@@ -41,7 +41,7 @@ namespace DGASoporte.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarcarTodasComoLeidas()
         {
-            int userId = User.GetRequiredUserId() ;
+            int userId = User.GetRequiredUserId();
 
             var notisNoLeidas = await _context.Notificaciones
                 .Where(n => n.UsuarioId == userId && !n.Leida)
@@ -54,9 +54,11 @@ namespace DGASoporte.Controllers
 
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            // 👇 en vez de RedirectToAction(nameof(Index))
+            return Ok();
         }
-        [HttpPost("MarcarLeida")]
+
+        [HttpPost]
         public async Task<IActionResult> MarcarLeida(int id)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -78,16 +80,18 @@ namespace DGASoporte.Controllers
                 .CountAsync(n => n.UsuarioId == userId && !n.Leida);
 
             var ultimas = await _context.Notificaciones
-                .Where(n => n.UsuarioId == userId)
+                .Where(n => n.UsuarioId == userId
+                         && !n.Leida
+                         && n.Tipo != "SolicitudSolicitud") // 👈 excluyes las de “nueva solicitud”
                 .OrderByDescending(n => n.FechaCreacion)
                 .Take(5)
                 .Select(n => new
                 {
-                    n.Id,
-                    n.Titulo,
-                    n.Mensaje,
-                    n.Leida,
-                    Fecha = n.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+                    id = n.Id,
+                    titulo = n.Titulo,
+                    mensaje = n.Mensaje,
+                    leida = n.Leida,
+                    fecha = n.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
                 })
                 .ToListAsync();
 
@@ -96,6 +100,28 @@ namespace DGASoporte.Controllers
                 unreadCount,
                 items = ultimas
             });
+        }
+        [HttpGet]
+        public async Task<IActionResult> Abrir(int id)
+        {
+            int userId = User.GetRequiredUserId();
+
+            var noti = await _context.Notificaciones
+                .FirstOrDefaultAsync(n => n.Id == id && n.UsuarioId == userId);
+
+            if (noti == null)
+                return NotFound();
+
+            if (!noti.Leida)
+            {
+                noti.Leida = true;
+                await _context.SaveChangesAsync();
+            }
+
+            if (!string.IsNullOrEmpty(noti.UrlDestino))
+                return Redirect(noti.UrlDestino);   // 👈 te manda al modal/detalle que ya tienes
+
+            return Redirect("~/");
         }
     }
 }

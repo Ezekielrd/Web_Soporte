@@ -2,6 +2,7 @@
 using DGASoporte.Infraestructura;
 using DGASoporte.Models;
 using DGASoporte.Models.Enumeradores;
+using DGASoporte.Servicios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,10 +17,12 @@ namespace DGASoporte.Controllers
     public class SolicitudController : Controller
     {
         private readonly DGADbContext _context;
+        private readonly NotificacionService _notificacionService;
 
-        public SolicitudController(DGADbContext context, ILogger<SolicitudController> logger)
+        public SolicitudController(DGADbContext context, NotificacionService notificacionService)
         {
             _context = context;
+            _notificacionService = notificacionService;
         }
         // GET: Solicitudes
 
@@ -40,7 +43,6 @@ namespace DGASoporte.Controllers
 
             // Calcular estadísticas
             ViewBag.TotalSolicitudes = solicitudes.Count;
-            ViewBag.EnEsperaSolicitudes = solicitudes.Count(s => s.Estado == EstadoS.EnEspera);
             ViewBag.AprobadaSolicitudes = solicitudes.Count(s => s.Estado == EstadoS.Aprobada);
             ViewBag.RechazadaSolicitudes = solicitudes.Count(s => s.Estado == EstadoS.Rechazada);
             ViewBag.EnviadaSolicitud = solicitudes.Count(s => s.Estado == EstadoS.Enviada);
@@ -105,6 +107,7 @@ namespace DGASoporte.Controllers
                 return View(vm);
             }
 
+            var usuarioSolicitanteId = User.GetRequiredUserId();
             // Mapear
             var entidad = new Solicitud
             {
@@ -121,8 +124,12 @@ namespace DGASoporte.Controllers
             _context.Solicitudes.Add(entidad);
 
             await _context.SaveChangesAsync();
-            // Enviar a todos los admins conectados
-           
+
+            await _notificacionService.EnviarSolicitudCreadaAdminAsync(
+                entidad.Id,
+                entidad.Titulo,
+                usuarioSolicitanteId
+            );
 
             TempData["ok"] = "Solicitud registrada con éxito.";
             return RedirectToAction(nameof(Index));

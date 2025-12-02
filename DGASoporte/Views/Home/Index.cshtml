@@ -44,9 +44,6 @@
             <a href="#" class="menu-item" data-view="Usuarios" data-url="@Url.Action("Index", "Usuario")" title="Usuarios">
                 <i class="bi bi-people-fill"></i><span>Usuarios</span>
             </a>
-          <!-- <a href="#" class="menu-item" data-view="Reportes">
-                <i class="bi bi-bar-chart-fill"></i><span>Reportes</span>
-              </a>-->
             <a href="#" class="menu-item" data-view="Solicitudes" data-url="@Url.Action("Index", "AdminSolicitudes")"title="Solicitudes">
                 <i class="bi-envelope-fill"></i><span>Solicitudes</span>
             </a>
@@ -67,17 +64,49 @@
                         <span id="reloj-header"></span>
                     </span>
 
-                    <!-- Campana con badge -->
-                    <button class="btn btn-outline-secondary btn-sm position-relative"
-                            id="btnNotificaciones"
-                            type="button">
-                        <i class="bi bi-bell"></i>
-                        <span id="badge-solicitudes"
-                              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                              style="font-size:.65rem; display:none;">
-                            0
-                        </span>
-                    </button>
+                    <div class="notification-wrapper position-relative">
+                        <button id="btnNotificaciones"
+                                type="button"
+                                class="btn btn-link nav-link position-relative p-0">
+                            <i class="bi bi-bell fs-5"></i>
+                            <span id="notifBadge"
+                                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                                0
+                            </span>
+                        </button>
+
+                        <!-- Panel flotante -->
+                        <div id="notifPanel"
+                             class="card shadow border-0 position-absolute end-0 mt-2 d-none"
+                             style="width: 340px; z-index: 1050;">
+                            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                                <div>
+                                    <i class="bi bi-bell me-1"></i>
+                                    <span>Notificaciones</span>
+                                </div>
+                                <button type="button"
+                                        class="btn-close btn-close-sm"
+                                        aria-label="Cerrar"
+                                        id="btnCerrarNotif"></button>
+                            </div>
+                            <div class="list-group list-group-flush small" id="notifList">
+                                <div class="list-group-item text-muted text-center py-3" id="notifPlaceholder">
+                                    Cargando...
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <form id="formMarcarLeidas"
+                                      method="post"
+                                      asp-controller="Notificaciones"
+                                      asp-action="MarcarTodasComoLeidas">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-link btn-sm text-decoration-none">
+                                        Marcar todas como leídas
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                     <div class="d-flex justify-content-end">
                         <a href="@Url.Action("Logout", "Cuenta")"
                            id="btnLogout"
@@ -129,14 +158,103 @@
         <!--boostrap-->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
        
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-
-        <script src="~/js/librerias/sweetalert2@11.js"></script>
-
         <script src="~/js/panel/sidebar.js"></script>
         <script src="~/js/panel/modalGneral.js"></script>
          <script src="~/js/panel/reloj.js"></script>
-   
+
+    <link rel="stylesheet" href="~/lib/sweetalert2/dist/sweetalert2.css" />
+    <script src="~/lib/sweetalert2/dist/sweetalert2.js"></script>
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/notificaciones.js" asp-append-version="true"></script>
+    <script src="~/js/cliente/campana.js"></script>
+    <script>
+        (function () {
+
+            // 🔹 1. Cuando carga Home/Index, si viene de notificación, disparar el menú "Solicitudes"
+            document.addEventListener('DOMContentLoaded', function () {
+                const params      = new URLSearchParams(window.location.search);
+                const view        = params.get('view');     
+                const solicitudId = params.get('solicitudId');   // id que viene desde notificación
+                const tareaId      = params.get('tareaId');
+
+
+                 console.log('🏁 Home/Index DOMContentLoaded. view=', view, 'solicitudId=', solicitudId, 'tareaId=', tareaId);
+
+                if (view === 'Solicitudes' && solicitudId) {
+                    // Guardamos el id para usarlo después de cargar el parcial
+                    window._solicitudIdDesdeNotificacion = solicitudId;
+
+                    const menuSolicitudes = document.querySelector(
+                        '.sidebar-menu .menu-item[data-view="Solicitudes"]'
+                    );
+
+                    if (menuSolicitudes) {
+                        console.log('👉 Haciendo click en menú Solicitudes desde notificación...');
+                        menuSolicitudes.click();
+                    } else {
+                        console.warn('❗ No se encontró el menú de Solicitudes.');
+                    }
+                }
+                if (view === 'Tareas' && tareaId) {
+                    window._tareaIdDesdeNotificacion = tareaId;
+                    const menuTareas = document.querySelector('.sidebar-menu .menu-item[data-view="Tareas"]');
+                    if (menuTareas) {
+                        console.log('👉 Click en menú Tareas (desde notificación)');
+                        menuTareas.click();
+                    }
+                }
+            });
+
+                   window.onTareasViewLoaded = function () {
+            // 1) Recuperar el id desde la variable global o desde la URL
+            let id = window._tareaIdDesdeNotificacion;
+            if (!id) {
+                const params = new URLSearchParams(window.location.search);
+                id = params.get('tareaId');
+            }
+
+            console.log('🎯 onTareasViewLoaded() llamado. id =', id);
+            if (!id) return;
+
+            // 2) Construir la URL del detalle de la tarea
+            const url = `/Tarea/Details/${id}`;
+
+            // 3) Abrir el modal genérico cargando esa URL por fetch
+            const modalEl   = document.getElementById('appModal');      // id de tu modal global
+            const modalBody = modalEl?.querySelector('.modal-body');
+
+            if (!modalEl || !modalBody) {
+                console.warn('❗ No se encontró el modal global (appModal)');
+                return;
+            }
+
+            const modal = new bootstrap.Modal(modalEl);
+
+            (async () => {
+                try {
+                    modalBody.innerHTML = '<div class="text-center py-4">Cargando detalle de la tarea...</div>';
+
+                    const resp = await fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    const html = await resp.text();
+                    modalBody.innerHTML = html;
+                } catch (err) {
+                    console.error('Error cargando detalle de tarea', err);
+                    modalBody.innerHTML = '<div class="alert alert-danger">No se pudo cargar el detalle de la tarea.</div>';
+                }
+
+                modal.show();
+            })();
+
+            // 4) limpiar para no repetir
+            window._tareaIdDesdeNotificacion = null;
+        };
+
+
+        })();
+    </script>
     <script src="~/js/solicitudes.js"></script>
     <script src="~/js/tareas.js"></script>
     <script src="~/js/usuarios.js"></script>

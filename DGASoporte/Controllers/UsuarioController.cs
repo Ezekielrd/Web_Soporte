@@ -436,39 +436,10 @@ namespace DGASoporte.Controllers
             usuario.ActualizadoEn = DateTime.Now.ToLocalTime();
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index));
+            TempData["Ok"] = "Usuario bloqueado correctamente.";
+            return Json(new { success = true });
         }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPassword(int id, [FromForm] string newPassword)
-        {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null) return NotFound();
 
-            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
-            {
-                TempData["Error"] = "La nueva contraseña es requerida y debe tener al menos 8 caracteres.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            // 1) Generar nuevo hash + sal
-            var (hash, salt) = PasswordHasher.Hash(newPassword);
-
-            // 2) Guardar en la entidad
-            usuario.PasswordHash = hash;
-            usuario.PasswordSalt = salt;
-
-            // Limpia bloqueos/errores
-            usuario.AccesoFallado = 0;
-            usuario.finBloqueo = null;
-            usuario.Bloqueado = false;
-            usuario.ActualizadoEn = DateTime.Now.ToLocalTime();
-
-            await _context.SaveChangesAsync();
-            TempData["Msg"] = $"Contraseña de {usuario.Usher} restablecida correctamente.";
-            return RedirectToAction(nameof(Index));
-            
-        }
         private async Task CargarCombosAsync(UsuarioVM vm, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();

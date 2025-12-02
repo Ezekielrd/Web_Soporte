@@ -39,12 +39,19 @@ namespace DGASoporte.Controllers
                 .Include(s => s.Unidad)
                 .Include(s => s.Division)
                 .Include(s => s.TipoIncidencia)
-                .OrderBy(s => s.Estado)
-                .Where(t => !t.Archivada && t.FechaCreacion >= hace30dias)
+                .Where(s => !s.Archivada && s.FechaCreacion >= hace30dias)
+                .OrderBy(s =>
+                    s.Estado == EstadoS.Enviada ? 1 :
+                    s.Estado == EstadoS.Aprobada ? 2 :
+                    s.Estado == EstadoS.Rechazada ? 3 :
+                    99                           
+                )
+                .ThenByDescending(s => s.FechaCreacion)
                 .ToListAsync();
 
-             return PartialView("_solicitudes", solicitudes);
+            return PartialView("_solicitudes", solicitudes);
         }
+
         [HttpGet]
         public async Task<IActionResult> Rechazar(int id)
         {
@@ -101,11 +108,10 @@ namespace DGASoporte.Controllers
             solicitud.FechaActualizacion = DateTime.Now;
 
             _context.Solicitudes.Update(solicitud);
-
-            int evaluadorId = User.GetRequiredUserId();
-            await _notificacionService.EnviarResultadoSolicitudAsync(evaluadorId, solicitud.Id, false);
-
             await _context.SaveChangesAsync();
+
+            await _notificacionService.EnviarResultadoSolicitudAsync(solicitud.UsuarioId, solicitud.Id, solicitud.Titulo, false);
+
 
             return Json(new
             {

@@ -132,13 +132,14 @@
                     </p>
                 </div>
 
+
                 <div class="text-end">
                     <div class="mb-2">
                         <span class="badge badge-estado-@estadoKey" style="border-radius:999px;padding:.25rem .7rem;">
-                            <i class="bi bi-circle-fill me-1"></i> @Model.EstadoNombre
+                            <i class="bi bi-circle-fill me-1"></i> @Model.Estado
                         </span>
                         <span class="badge badge-priority-@prioridadKey ms-1">
-                            <i class="bi bi-flag-fill me-1"></i> @Model.PrioridadNombre
+                            <i class="bi bi-flag-fill me-1"></i> @Model.Prioridad
                         </span>
                     </div>
 
@@ -178,6 +179,33 @@
                 </div>
             </div>
         </div>
+        <div class="toast-container">
+            @if (TempData["Success"] != null)
+            {
+                <div class="toast-msg toast-success">
+                    <span class="toast-icon">✔</span>
+                    <span>@TempData["Success"]</span>
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="toast-msg toast-error">
+                    <span class="toast-icon">⚠</span>
+                    <span>@TempData["Error"]</span>
+                </div>
+            }
+
+            @* Puedes usar TempData["Alert"] para mensajes informativos/amarillos *@
+            @if (TempData["Alert"] != null)
+            {
+                <div class="toast-msg toast-alert">
+                    <span class="toast-icon">ℹ</span>
+                    <span>@TempData["Alert"]</span>
+                </div>
+            }
+        </div>
+
 
         <!-- Contenido principal -->
         <div class="detalle-main-card">
@@ -309,16 +337,30 @@
                         </div>
                     }
                     <div class="mt-4">
+                        @if (Model.Estado == EstadoT.Asignado && Model.TecnicoId != null)
+                        {
+                            <form asp-action="IniciarTarea"
+                                  asp-route-id="@Model.Id"
+                                  method="post"
+                                  class="d-inline">
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="btn btn-primary btn-sm btn-back">
+                                    <i class="bi bi-play-circle me-1"></i> Iniciar tarea
+                                </button>
+                            </form>
+                        }
 
                         @* 👉 Estado: ASIGNADO — botón de diagnóstico *@
-                        @if (Model.Estado == EstadoT.Asignado && Model.TecnicoId != null)
+                        @if (Model.Estado == EstadoT.EnProceso && Model.TecnicoId != null && !Model.TieneDiagnostico)
                         {
                             <div class="d-flex gap-2 flex-wrap">
                                 <button type="button"
                                         class="btn btn-primary btn-sm btn-back"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalDiagnostico">
-                                    <i class="bi bi-stethoscope me-1"></i> Realizar Diagnóstico
+                                    <i class="bi bi-stethoscope me-1"></i> Realizar diagnóstico
                                 </button>
                             </div>
                         }
@@ -390,35 +432,34 @@
                             </div>
                         }
 
-                        @* 👉 Botones de reporte (cuando ya está resuelta / en espera) *@
-                        @if ((Model.Estado == EstadoT.Resuelta || Model.Estado == EstadoT.EnEspera) || Model.TieneReporte)
+                        @if (Model.TieneReporte)
                         {
-                            <div class="d-flex gap-2 flex-wrap mt-3">
-                                @if (Model.Estado == EstadoT.Resuelta || Model.Estado == EstadoT.EnEspera)
-                                {
-                                    <a asp-action="ReporteSolucion"
-                                       asp-route-id="@Model.Id"
-                                       class="btn @(Model.TieneReporte ? "btn-outline-primary" : "btn-primary") btn-sm">
-                                        <i class="bi @(Model.TieneReporte ? "bi-pencil-square" : "bi-file-earmark-plus") me-1"></i>
-                                        @(Model.TieneReporte ? "Editar reporte" : "Crear reporte")
-                                    </a>
-                                }
+                            @* Solo técnicos editan el reporte *@
+                            @if (User.IsInRole("Tecnico"))
+                            {
+                                <a asp-controller="Tecnico"
+                                   asp-action="ReporteSolucion"
+                                   asp-route-id="@Model.Id"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-pencil-square me-1"></i> Editar reporte
+                                </a>
+                            }
 
-                                @if (Model.TieneReporte)
-                                {
-                                    <a asp-action="ReporteIncidencia"
-                                       asp-route-id="@Model.Id"
-                                       class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-eye me-1"></i> Ver reporte de solución
-                                    </a>
+                            @* Ver reporte (admin + técnico) *@
+                            <a asp-controller="Reportes"
+                               asp-action="ReporteIncidencia"
+                               asp-route-id="@Model.Id"
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-eye me-1"></i> Ver reporte de solución
+                            </a>
 
-                                    <a asp-action="ReporteIncidenciaPdf"
-                                       asp-route-id="@Model.Id"
-                                       class="btn btn-outline-dark btn-sm">
-                                        <i class="bi bi-filetype-pdf me-1"></i> Descargar PDF
-                                    </a>
-                                }
-                            </div>
+                            @* Descargar PDF (admin + técnico) *@
+                            <a asp-controller="Reportes"
+                               asp-action="ReporteIncidenciaPdf"
+                               asp-route-id="@Model.Id"
+                               class="btn btn-outline-dark btn-sm">
+                                <i class="bi bi-filetype-pdf me-1"></i> Descargar PDF
+                            </a>
                         }
 
                         @* 👉 Bloque de comentarios técnicos (En proceso) *@

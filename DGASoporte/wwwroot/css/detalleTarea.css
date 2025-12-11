@@ -231,3 +231,80 @@
     }
 }
 
+/* === CORRECCIÓN GLOBAL PARA LOS BADGES DEL RESUMEN === */
+
+.badge-estado-asignado,
+.badge-estado-pendiente,
+.badge-estado-proceso,
+.badge-estado-completado,
+.badge-priority-baja,
+.badge-priority-media,
+.badge-priority-alta {
+    color: #111827 !important; /* texto visible */
+    font-size: .85rem !important;
+    font-weight: 600;
+}
+
+.toast-error {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2000;
+    max-width: 360px;
+    padding: 0.75rem 1rem;
+    background-color: #dc3545; /* rojo tipo Bootstrap */
+    color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    /* Animación: visible y luego se desvanece */
+    opacity: 1;
+    animation: toast-fade-out 4s ease-out forwards;
+}
+
+.toast-error-icon {
+    font-size: 1.2rem;
+}
+
+@keyframes toast-fade-out {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    70% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.toast-success {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2000;
+    max-width: 360px;
+    padding: 0.75rem 1rem;
+    background-color: #198754; /* verde */
+    color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    opacity: 1;
+    animation: toast-fade-out 4s ease-out forwards;
+}
+
+.toast-success-icon {
+    font-size: 1.2rem;
+}

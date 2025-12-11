@@ -21,11 +21,7 @@ namespace DGASoporte.Servicios
             _ctx = ctx;
             _hub = hub;
         }
-        public async Task EnviarResultadoSolicitudAsync(
-    int usuarioDestinoId,
-    int solicitudId,
-    string solicitudTitulo,
-    bool aprobada)
+        public async Task EnviarResultadoSolicitudAsync(int usuarioDestinoId,int solicitudId,string solicitudTitulo,bool aprobada)
         {
             string titulo, mensaje, icono;
 
@@ -74,10 +70,7 @@ namespace DGASoporte.Servicios
                 });
         }
 
-        public async Task EnviarTareaAsignadaAsync(
-            int usuarioDestinoId,
-            int tareaId,
-            string tituloTarea)
+        public async Task EnviarTareaAsignadaAsync(int usuarioDestinoId,int tareaId,string tituloTarea)
         {
             string titulo = "Nueva tarea asignada";
             string mensaje = $"Se te ha asignado la tarea: {tituloTarea}";
@@ -219,12 +212,57 @@ namespace DGASoporte.Servicios
                     });
             }
         }
+        public async Task EnviarCambioEstadoTareaAdminAsync(int tareaId,string tituloTarea,string estadoAnterior,string estadoNuevo)
+        {
+            // 1. Obtener los usuarios administradores
+            // 👉 usa la misma lógica que ya usaste en EnviarSolicitudCreadaAdminAsync
+            var adminIds = await _ctx.Usuarios
+              .Where(u => u.RolId == 1)
+              .Select(u => u.Id)
+              .ToListAsync();
 
-        public async Task<List<Notificacion>> ObtenerNotificacionesUsuarioAsync(
-     int usuarioId,
-     bool soloNoLeidas = false,
-     int max = 20,
-     bool excluirNuevaSolicitudPropia = true)
+            if (!adminIds.Any())
+                return;
+
+            // 2. Texto de la notificación
+            var titulo = "Estado de tarea actualizado";
+            var mensaje = $"La tarea #{tareaId} \"{tituloTarea}\" cambió de {estadoAnterior} a {estadoNuevo}.";
+
+            // 3. A dónde lo llevamos si hace clic (usa el flujo que ya hicimos)
+            var urlDestinoReal = $"/Home/Index?view=Tareas&tareaId={tareaId}";
+
+            foreach (var adminId in adminIds)
+            {
+                var notificacion = new Notificacion
+                {
+                    UsuarioId = adminId,
+                    Tipo = "CambioEstadoTareaAdmin",
+                    Titulo = titulo,
+                    Mensaje = mensaje,
+                    UrlDestino = urlDestinoReal,
+                    FechaCreacion = DateTime.Now,
+                    Leida = false
+                };
+
+                _ctx.Notificaciones.Add(notificacion);
+                await _ctx.SaveChangesAsync();
+
+                var urlWrapper = $"/Notificaciones/Abrir/{notificacion.Id}";
+
+                await _hub.Clients
+                    .User(adminId.ToString())
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        Titulo = titulo,
+                        Mensaje = mensaje,
+                        Tipo = "CambioEstadoTareaAdmin",
+                        Icono = "info",
+                        Url = urlWrapper
+                    });
+            }
+        }
+
+        public async Task<List<Notificacion>> ObtenerNotificacionesUsuarioAsync(int usuarioId,bool soloNoLeidas = false,int max = 20,bool excluirNuevaSolicitudPropia = true)
         {
             var query = _ctx.Notificaciones
                 .Where(n => n.UsuarioId == usuarioId)

@@ -91,6 +91,8 @@ public class TareaFormVM
     public IEnumerable<SelectListItem> Usuarios { get; set; } = new List<SelectListItem>();
     //para diagnistoc vm
     public DiagnosticoVM DiagnosticoForm { get; set; } = new();
+    public bool TieneDiagnostico { get; set; }
+
     // para pausa
     public bool ContadorActivo { get; set; }
     public PausaVM PausaForm { get; set; } = new();

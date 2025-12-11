@@ -75,6 +75,14 @@
                     console.log('🔁 Tarea finalizada, podrías recargar o actualizar aquí si lo necesitas');
                     window.location.reload(); // si quieres recargar
             }
+            // Notificación al ADMIN: cambio de estado de tarea
+            if (tipoEvento === 'CambioEstadoTareaAdmin') {
+                // Si el admin está en Home/Index viendo Tareas, recargamos
+                if (path.includes('/home/index') && query.includes('view=tareas')) {
+                    console.log('🔁 Recargando Gestión de Tareas por CambioEstadoTareaAdmin...');
+                    window.location.reload();
+                }
+            }
         });
     });
 

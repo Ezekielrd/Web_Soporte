@@ -29,7 +29,7 @@
                     <h3 class="mb-1">
                         <i class="bi bi-file-earmark-text me-2"></i>
                         @(Model.TieneReporte ? "Editar reporte de solución" : "Registrar reporte de solución")
-                    </h3>                 
+                    </h3>
                     <div class="text-muted">
                         Tarea #@Model.Id — @Model.Titulo
                     </div>
@@ -117,6 +117,21 @@
                             <div class="text-muted small mb-1">Técnico asignado</div>
                             <div>@Model.TecnicoAsignado</div>
                         </div>
+
+                        @* 🔹 Diagnóstico técnico (si existe) *@
+                        @if (!string.IsNullOrWhiteSpace(Model.ProblemaDetectado))
+                        {
+                            <hr />
+
+                            <div class="mb-2">
+                                <div class="text-muted small mb-1">
+                                    <i class="bi bi-stethoscope me-1"></i> Diagnóstico técnico (problema detectado)
+                                </div>
+                                <div class="border rounded-3 p-2 bg-light">
+                                    @Model.ProblemaDetectado
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -128,31 +143,44 @@
                         <h6 class="mb-0 text-muted text-uppercase">
                             <i class="bi bi-tools me-2"></i>Detalle de la solución
                         </h6>
-                        <small class="text-muted">Complete los campos para registrar la solución de la incidencia.</small>
+                        <small class="text-muted">
+                            @(Model.EsPendiente
+                                                        ? "Esta tarea se registrará como EN ESPERA."
+                                                        : "Esta tarea se registrará como RESUELTA.")
+                        </small>
                     </div>
 
                     <form asp-action="ReporteSolucion" method="post">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="EsPendiente" />
 
                         <div class="card-body">
                             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                             <div class="mb-3">
-                                <label asp-for="CausaRaiz" class="form-label">Causa raíz (opcional)</label>
-                                <textarea asp-for="CausaRaiz" class="form-control" rows="2" placeholder="Ejemplo: Fallo por sobrecalentamiento debido a ventilación obstruida."></textarea>
+                                <label asp-for="CausaRaiz" class="form-label">Causa raíz de la incidencia</label>
+                                <textarea asp-for="CausaRaiz"
+                                          class="form-control"
+                                          rows="2"
+                                          placeholder="Describa la causa principal que originó la incidencia."></textarea>
                                 <span asp-validation-for="CausaRaiz" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="PasosEjecutados" class="form-label">Pasos ejecutados por el técnico</label>
-                                <textarea asp-for="PasosEjecutados" class="form-control" rows="3" placeholder="Detalle los pasos que realizó para atender la incidencia."></textarea>
+                                <textarea asp-for="PasosEjecutados"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Detalle los pasos que realizó para atender la incidencia."></textarea>
                                 <span asp-validation-for="PasosEjecutados" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="AjustesRealizados" class="form-label">Reemplazos / configuraciones / ajustes</label>
-                                <textarea asp-for="AjustesRealizados" class="form-control" rows="3" placeholder="Especifique cambios de piezas, configuraciones aplicadas, ajustes en software o hardware, etc."></textarea>
+                                <textarea asp-for="AjustesRealizados"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Especifique cambios de piezas, configuraciones aplicadas, ajustes en software o hardware, etc."></textarea>
                                 <span asp-validation-for="AjustesRealizados" class="text-danger"></span>
                             </div>
 
@@ -160,20 +188,27 @@
 
                             <div class="mb-3">
                                 <label asp-for="ResultadoFinal" class="form-label">Resultado final</label>
-                                <textarea asp-for="ResultadoFinal" class="form-control" rows="2" placeholder="Describa el estado final del servicio o sistema después de la intervención."></textarea>
+                                <textarea asp-for="ResultadoFinal"
+                                          class="form-control"
+                                          rows="2"
+                                          placeholder="Describa el estado final del servicio o sistema después de la intervención."></textarea>
                                 <span asp-validation-for="ResultadoFinal" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label asp-for="Recomendaciones" class="form-label">Recomendaciones (opcional)</label>
-                                <textarea asp-for="Recomendaciones" class="form-control" rows="2" placeholder="Buenas prácticas o acciones sugeridas para evitar recurrencia."></textarea>
+                                <textarea asp-for="Recomendaciones"
+                                          class="form-control"
+                                          rows="2"
+                                          placeholder="Buenas prácticas o acciones sugeridas para evitar recurrencia."></textarea>
                                 <span asp-validation-for="Recomendaciones" class="text-danger"></span>
                             </div>
-                        </div>
-                        @if (!Model.EsPendiente)
-                        {
-                            <div class="row g-3">
-                                <div class="col-md-8">
+
+                            @* 🔹 Motivo pendiente (solo si se va a dejar en espera) *@
+                            @if (Model.EsPendiente)
+                            {
+                                <hr />
+                                <div class="mb-3">
                                     <label asp-for="MotivoPendiente" class="form-label">
                                         Motivo por el que la tarea queda en espera
                                     </label>
@@ -183,8 +218,9 @@
                                               placeholder="Ejemplo: Falta de repuestos, requiere autorización del área X, etc."></textarea>
                                     <span asp-validation-for="MotivoPendiente" class="text-danger small"></span>
                                 </div>
-                            </div>
-                        }
+                            }
+                        </div>
+
                         <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center">
                             <a asp-action="Detalle" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
                                 <i class="bi bi-arrow-left"></i> Volver al detalle

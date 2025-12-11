@@ -47,8 +47,7 @@ namespace DGASoporte.Models
         public string TiempoInvertidoTexto { get; set; } = "00 h 00 m";
         public bool TieneReporte { get; set; }
         public bool EsPendiente { get; set; }
-        [Required(ErrorMessage = "Ingrese el motivo.")]
-        public string MotivoPendiente { get; set; }= string.Empty;
+        public string? MotivoPendiente { get; set; }= string.Empty;
 
     }
 }

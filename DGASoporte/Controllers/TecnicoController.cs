@@ -85,7 +85,7 @@ namespace DGASoporte.Controllers
                 .Include(t => t.Unidad)
                 .Include(t => t.Tecnico)!.ThenInclude(te => te.Usuario)
                 .Include(t => t.TipoServicio)
-                .Include(t => t.Diagnosticos)      // 👈 importante
+                .Include(t => t.Diagnosticos)      
                     .ThenInclude(d => d.Tecnico)
                         .ThenInclude(te => te.Usuario)
                 .FirstOrDefaultAsync(t => t.Id == id, ct);
@@ -146,7 +146,7 @@ namespace DGASoporte.Controllers
                 DiagnosticoFecha = ultimoDiag?.FechaRegistro,
                 DiagnosticoTecnicoNombre = ultimoDiag?.Tecnico?.Usuario.NombreCompleto,
                 CodigoDiagnostico = ultimoDiag?.Codigo,
-
+                TieneDiagnostico = tarea.Diagnosticos.Any(),
                 //Estado del contador + formulario de pausa
                 ContadorActivo = tarea.InicioContador.HasValue,
                 PausaForm = new PausaVM
@@ -168,12 +168,80 @@ namespace DGASoporte.Controllers
 
             return View(vm);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> IniciarTarea(int id, CancellationToken ct)
+        {
+            var tarea = await _context.Tareas
+                .Include(t => t.Tecnico)
+                .FirstOrDefaultAsync(t => t.Id == id, ct);
+
+            if (tarea == null)
+                return NotFound();
+
+            // Usuario actual
+            int usuarioId = User.GetRequiredUserId();
+            if (usuarioId <= 0)
+            {
+                TempData["Alert"] = "No se pudo identificar al usuario.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Técnico actual
+            var tecnico = await _context.Tecnicos
+                .FirstOrDefaultAsync(te => te.Id == usuarioId, ct);
+
+            if (tecnico == null)
+            {
+                TempData["Alert"] = "No se encontró el técnico asociado al usuario actual.";
+                return RedirectToAction(nameof(Detalle), new { id });
+            }
+
+            // Validar que es el técnico asignado
+            if (tarea.TecnicoId.HasValue && tarea.TecnicoId != tecnico.Id)
+            {
+                TempData["Alert"] = "No estás asignado a esta tarea, no puedes iniciarla.";
+                return RedirectToAction(nameof(Detalle), new { id });
+            }
+
+            // Solo permitir iniciar si está Asignada
+            if (tarea.Estado != EstadoT.Asignado)
+            {
+                TempData["Alert"] = "Solo se puede iniciar una tarea que está en estado 'Asignado'.";
+                return RedirectToAction(nameof(Detalle), new { id });
+            }
+
+            var ahora = DateTime.Now;
+
+            // Iniciar contador si no se ha iniciado aún
+            if (!tarea.InicioContador.HasValue)
+            {
+                tarea.InicioContador = ahora;
+            }
+            var estadoAnterior = tarea.Estado;
+
+
+            tarea.Estado = EstadoT.EnProceso;
+            tarea.FechaActualizacion = ahora;
+
+            await _context.SaveChangesAsync(ct);
+
+            await _notificacionService.EnviarCambioEstadoTareaAdminAsync(
+                 tarea.Id,
+                 tarea.Titulo,
+                 estadoAnterior?.GetDisplayName() ?? estadoAnterior?.ToString() ?? "N/A",
+                 tarea.Estado?.GetDisplayName() ?? tarea.Estado?.ToString() ?? "N/A"
+             );
+
+            TempData["Success"] = "La tarea ha sido iniciada y está ahora 'En proceso'.";
+
+            return RedirectToAction(nameof(Detalle), new { id });
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegistrarDiagnostico([Bind(Prefix = "DiagnosticoForm")] DiagnosticoVM model,CancellationToken ct)
         {
-            // 1. Validación del formulario
             if (!ModelState.IsValid)
             {
                 TempData["Alert"] = "Revise los datos del diagnóstico.";
@@ -186,16 +254,14 @@ namespace DGASoporte.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // 2. Usuario actual
             int usuarioId = User.GetRequiredUserId();
 
-            if (usuarioId <=0)
+            if (usuarioId <= 0)
             {
                 TempData["Alert"] = "No se pudo identificar al usuario.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // 3. Tarea
             var tarea = await _context.Tareas
                 .Include(t => t.Tecnico)
                 .FirstOrDefaultAsync(t => t.Id == model.TareaId, ct);
@@ -206,7 +272,6 @@ namespace DGASoporte.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // 4. Técnico actual (a partir del usuario logueado)
             var tecnico = await _context.Tecnicos
                 .FirstOrDefaultAsync(te => te.Id == usuarioId, ct);
 
@@ -216,14 +281,12 @@ namespace DGASoporte.Controllers
                 return RedirectToAction(nameof(Detalle), new { id = model.TareaId });
             }
 
-            // (Opcional) validar que es el técnico asignado
             if (tarea.TecnicoId.HasValue && tarea.TecnicoId != tecnico.Id)
             {
                 TempData["Alert"] = "No estás asignado a esta tarea, no puedes registrar diagnóstico.";
                 return RedirectToAction(nameof(Detalle), new { id = model.TareaId });
             }
 
-            // 5. Crear diagnóstico
             var diag = new Diagnostico
             {
                 TareaId = tarea.Id,
@@ -237,24 +300,13 @@ namespace DGASoporte.Controllers
 
             _context.Diagnosticos.Add(diag);
 
-            // 6. Actualizar la tarea a "En Proceso"
-            if (tarea.Estado == EstadoT.Resuelta||tarea.Estado==EstadoT.Asignado)
-            {
-                tarea.Estado = EstadoT.EnProceso;
-            }
-
-            // 7. Iniciar contador si aún no se ha iniciado
-            if (!tarea.InicioContador.HasValue)
-            {
-                tarea.InicioContador = DateTime.Now;
-            }
-
-            // 8. Guardar cambios
+            // 👇 Aquí ya NO tocamos ni Estado ni InicioContador
             await _context.SaveChangesAsync(ct);
 
-            TempData["Alert"] = "Diagnóstico registrado y tarea actualizada a 'En proceso'.";
+            TempData["Alert"] = "Diagnóstico registrado correctamente.";
             return RedirectToAction(nameof(Detalle), new { id = model.TareaId });
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -442,13 +494,22 @@ namespace DGASoporte.Controllers
         public async Task<IActionResult> Finalizar(int id, string resultado, CancellationToken ct)
         {
             var tarea = await _context.Tareas
+                .Include(t => t.Diagnosticos)   // 👈 necesario para validar
                 .FirstOrDefaultAsync(t => t.Id == id, ct);
 
             if (tarea == null)
                 return NotFound();
 
+            // ✅ Regla: no se puede finalizar ni dejar en espera sin diagnóstico
+            if (!tarea.Diagnosticos.Any())
+            {
+                TempData["Error"] = "Debe registrar un diagnóstico antes de finalizar o dejar la tarea en espera.";
+                return RedirectToAction(nameof(Detalle), new { id });
+            }
+
             var ahora = DateTime.Now;
 
+            // Detener contador y acumular tiempo
             if (tarea.InicioContador.HasValue)
             {
                 var transcurrido = ahora - tarea.InicioContador.Value;
@@ -456,41 +517,25 @@ namespace DGASoporte.Controllers
                 tarea.InicioContador = null;
             }
 
-            if (string.Equals(resultado, "Resuelta", StringComparison.OrdinalIgnoreCase))
-            {
-                tarea.Estado = EstadoT.Resuelta;       
-                tarea.FechaCierre ??= ahora;              
-            }
-            else if (string.Equals(resultado, "EnEspera", StringComparison.OrdinalIgnoreCase))
-            {
-                tarea.Estado = EstadoT.EnEspera;                                                      
-            }
-            else
-            {
-                TempData["Error"] = "Resultado de finalización no válido.";
-                return RedirectToAction("Detalle", new { id });
-            }
-
+            tarea.FechaCierre ??= ahora;
             tarea.FechaActualizacion = ahora;
-
-            bool resuelta = tarea.Estado == EstadoT.Resuelta;
 
             await _context.SaveChangesAsync(ct);
 
-  
-            await _notificacionService.EnviarTareaFinalizadaAsync(            
-               tarea.Id,
-               tarea.Titulo,
-               resuelta
-           );
+            // Interpretamos el resultado para saber si va como resuelta o pendiente
+            bool esPendiente = string.Equals(resultado, "EnEspera", StringComparison.OrdinalIgnoreCase);
 
-            TempData["Success"] = $"La tarea se ha marcado como {tarea.Estado}. Ahora puedes registrar el reporte de la incidencia.";
-
-            return RedirectToAction("Detalle", new { id = tarea.Id });
+            // → directo a ReporteSolucion con el flag
+            return RedirectToAction(nameof(ReporteSolucion), new
+            {
+                id = tarea.Id,
+                esPendiente
+            });
         }
 
+
         [HttpGet]
-        public async Task<IActionResult> ReporteSolucion(int id, CancellationToken ct)
+        public async Task<IActionResult> ReporteSolucion(int id, bool? esPendiente, CancellationToken ct)
         {
             var tarea = await _context.Tareas
                 .Include(t => t.Usuario)
@@ -499,17 +544,20 @@ namespace DGASoporte.Controllers
                 .Include(t => t.Division)
                 .Include(t => t.Categoria)
                 .Include(t => t.TipoServicio)
+                .Include(t => t.Diagnosticos)              // 👈 importante
                 .FirstOrDefaultAsync(t => t.Id == id, ct);
 
             if (tarea == null)
                 return NotFound();
 
-            // ✅ Permitir reporte cuando está RESUELTA o EN ESPERA (pendiente)
-            if (tarea.Estado != EstadoT.Resuelta && tarea.Estado != EstadoT.EnEspera)
+            // si quieres ser estricto:
+            if (!tarea.Diagnosticos.Any())
             {
-                TempData["Error"] = "Solo se puede registrar el reporte cuando la tarea está marcada como resuelta o en espera.";
+                TempData["Error"] = "Debe registrar un diagnóstico antes de completar el reporte de la incidencia.";
                 return RedirectToAction("Detalle", new { id });
             }
+
+            var diag = tarea.Diagnosticos.FirstOrDefault(); // solo hay uno
 
             string FormatearTiempo(TimeSpan tiempo)
                 => $"{(int)tiempo.TotalHours:D2} h {tiempo.Minutes:D2} m";
@@ -531,7 +579,6 @@ namespace DGASoporte.Controllers
 
                 Estado = tarea.Estado?.ToString() ?? "N/D",
                 Prioridad = tarea.Prioridad.ToString(),
-
                 TecnicoAsignado = tarea.Tecnico != null
                     ? (tarea.Tecnico.Usuario?.NombreCompleto
                         ?? tarea.Tecnico.Usuario?.Usher
@@ -540,34 +587,52 @@ namespace DGASoporte.Controllers
 
                 TiempoInvertidoTexto = FormatearTiempo(tarea.TiempoInvertido),
 
-                CausaRaiz = tarea.CausaRaiz,
-                PasosEjecutados = tarea.PasosEjecutados,
+                // 🔹 Solución ya guardada (si existía)
+                CausaRaiz = tarea.CausaRaiz ?? string.Empty,
+                PasosEjecutados = tarea.PasosEjecutados ?? string.Empty,
                 AjustesRealizados = tarea.AjustesRealizados,
-                ResultadoFinal = tarea.ResultadoFinal,
+                ResultadoFinal = tarea.ResultadoFinal ?? string.Empty,
                 Recomendaciones = tarea.Recomendaciones,
+                MotivoPendiente = tarea.MotivoPendiente ?? string.Empty,
 
                 TieneReporte = tarea.TieneReporte,
-                 // pendiente
-                EsPendiente = tarea.Estado == EstadoT.EnEspera,
-                MotivoPendiente = tarea.MotivoPendiente,
+                EsPendiente = esPendiente ?? (tarea.Estado == EstadoT.EnEspera),
 
+                // 🔹 Vincular diagnóstico con reporte
+                ProblemaDetectado = diag?.Texto    // diagnóstico técnico del problema
             };
+
+            // 👉 Prefill inteligente: solo si el técnico aún no ha escrito nada
+            if (diag != null)
+            {
+                if (string.IsNullOrWhiteSpace(vm.CausaRaiz))
+                {
+                    // puedes decidir: usar el texto del diagnóstico como base de causa raíz
+                    vm.CausaRaiz = diag.Texto;
+                }
+
+                if (string.IsNullOrWhiteSpace(vm.PasosEjecutados) &&
+                    !string.IsNullOrWhiteSpace(diag.AccionesPropuestas))
+                {
+                    vm.PasosEjecutados = diag.AccionesPropuestas;
+                }
+
+                if (string.IsNullOrWhiteSpace(vm.AjustesRealizados) &&
+                    !string.IsNullOrWhiteSpace(diag.ComentariosAdicionales))
+                {
+                    vm.AjustesRealizados = diag.ComentariosAdicionales;
+                }
+            }
 
             return View("ReporteSolucion", vm);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReporteSolucion(ReporteIncidenciaVM vm, CancellationToken ct)
         {
-            // 1) Validar el modelo (campos requeridos, longitudes, etc.)
-            if (!ModelState.IsValid)
-            {
-                // Si falla, volvemos a mostrar la misma vista con los errores
-                return View("ReporteSolucion", vm);
-            }
-
-            // 2) Buscar la tarea en BD
+            // 1) Cargar la tarea SIEMPRE (para resumen y validaciones)
             var tarea = await _context.Tareas
                 .Include(t => t.Usuario)
                 .Include(t => t.Tecnico).ThenInclude(te => te.Usuario)
@@ -575,44 +640,93 @@ namespace DGASoporte.Controllers
                 .Include(t => t.Division)
                 .Include(t => t.Categoria)
                 .Include(t => t.TipoServicio)
+                .Include(t => t.Diagnosticos)
                 .FirstOrDefaultAsync(t => t.Id == vm.Id, ct);
 
             if (tarea == null)
                 return NotFound();
 
-            // 3) Seguridad extra: solo permitir guardar reporte si está RESUELTA o EN ESPERA
-            if (tarea.Estado != EstadoT.Resuelta && tarea.Estado != EstadoT.EnEspera)
+            var diag = tarea.Diagnosticos.FirstOrDefault();
+
+            // 2) Rellenar SIEMPRE los datos de resumen en el VM
+            //    (por si hay que volver a mostrar la vista con errores)
+            vm.Titulo = tarea.Titulo;
+            vm.DescripcionUsuario = tarea.Descripcion ?? string.Empty;
+            vm.FechaCreacion = tarea.FechaCreacion;
+            vm.FechaCierre = tarea.FechaCierre;
+
+            vm.Solicitante = tarea.Usuario.NombreCompleto;
+            vm.Unidad = tarea.Unidad.Nombre;
+            vm.Division = tarea.Division?.Nombre ?? "N/D";
+            vm.Categoria = tarea.Categoria.Nombre;
+            vm.TipoServicio = tarea.TipoServicio?.Nombre ?? "N/D";
+
+            vm.Estado = tarea.Estado?.ToString() ?? "N/D";
+            vm.Prioridad = tarea.Prioridad.ToString();
+            vm.TecnicoAsignado = tarea.Tecnico != null
+                ? (tarea.Tecnico.Usuario?.NombreCompleto
+                    ?? tarea.Tecnico.Usuario?.Usher
+                    ?? "Técnico")
+                : "Sin asignar";
+
+            vm.TiempoInvertidoTexto = $"{(int)tarea.TiempoInvertido.TotalHours:D2} h {tarea.TiempoInvertido.Minutes:D2} m";
+            vm.ProblemaDetectado = diag?.Texto;
+            vm.TieneReporte = tarea.TieneReporte;
+
+            // 3) Validación: debe existir diagnóstico
+            if (!tarea.Diagnosticos.Any())
             {
-                TempData["Error"] = "Solo se puede registrar el reporte cuando la tarea está marcada como resuelta o en espera.";
+                TempData["Error"] = "Debe registrar un diagnóstico antes de guardar el reporte de la incidencia.";
                 return RedirectToAction("Detalle", new { id = vm.Id });
             }
 
+            // 4) Validación específica si queda pendiente
+            if (vm.EsPendiente && string.IsNullOrWhiteSpace(vm.MotivoPendiente))
+            {
+                ModelState.AddModelError(nameof(vm.MotivoPendiente),
+                    "Debe indicar el motivo por el cual la tarea queda en espera.");
+            }
+
+            // 5) Si hay errores de validación, volvemos a mostrar la misma vista
+            if (!ModelState.IsValid)
+            {
+                return View("ReporteSolucion", vm);
+            }
+
+            // 6) Mapear a entidad
             var esNuevoReporte = !tarea.TieneReporte;
 
-            // 4) Mapear los campos del formulario a la entidad Tarea
             tarea.CausaRaiz = vm.CausaRaiz;
             tarea.PasosEjecutados = vm.PasosEjecutados;
             tarea.AjustesRealizados = vm.AjustesRealizados;
             tarea.ResultadoFinal = vm.ResultadoFinal;
             tarea.Recomendaciones = vm.Recomendaciones;
-            tarea.MotivoPendiente = vm.MotivoPendiente;
+            tarea.MotivoPendiente = vm.EsPendiente ? vm.MotivoPendiente : null;
 
-            // FechaCierre ya debió ponerse en Finalizar, pero por si acaso:
+            tarea.Estado = vm.EsPendiente ? EstadoT.EnEspera : EstadoT.Resuelta;
+
             tarea.FechaCierre ??= DateTime.Now;
             tarea.FechaActualizacion = DateTime.Now;
 
-            // (TiempoInvertido ya lo manejaste en el POST Finalizar, aquí no se toca)
-
             await _context.SaveChangesAsync(ct);
 
-            TempData["Success"] = esNuevoReporte
-                    ? "Reporte de solución registrado correctamente."
-                    : "Reporte de solución actualizado correctamente.";
+            bool resuelta = tarea.Estado == EstadoT.Resuelta;
 
-            // 5) Después de guardar:
-            //    puedes mandarlo al detalle de la tarea, o a una vista "reporte listo para imprimir"
+            await _notificacionService.EnviarTareaFinalizadaAsync(
+                tarea.Id,
+                tarea.Titulo,
+                resuelta
+            );
+
+            TempData["Success"] = esNuevoReporte
+                ? "Reporte de solución registrado correctamente."
+                : "Reporte de solución actualizado correctamente.";
+
             return RedirectToAction("Detalle", new { id = vm.Id });
         }
+
+
+
         [HttpGet]
         public async Task<IActionResult> ReporteIncidencia(int id, CancellationToken ct)
         {
@@ -670,6 +784,7 @@ namespace DGASoporte.Controllers
 
             return View("ReporteIncidencia", vm);
         }
+
         [HttpGet]
         public async Task<IActionResult> ReporteIncidenciaPdf(int id, CancellationToken ct)
         {

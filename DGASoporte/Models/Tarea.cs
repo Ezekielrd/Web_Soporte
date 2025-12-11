@@ -84,5 +84,7 @@ namespace DGASoporte.Models
     || !string.IsNullOrWhiteSpace(ResultadoFinal)
     || !string.IsNullOrWhiteSpace(Recomendaciones);
 
+
+
     }
 }

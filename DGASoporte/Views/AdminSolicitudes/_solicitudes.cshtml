@@ -4,10 +4,6 @@
 @{
     Layout = null;
     ViewData["Title"] = "Gestión de Solicitudes de Soporte";
-    var total = Model.Count();
-    var pendientes = Model.Count(t => t.Estado == EstadoS.Enviada);
-    var aprobadas = Model.Count(t => t.Estado == EstadoS.Aprobada);
-    var rechazadas = Model.Count(t => t.Estado == EstadoS.Rechazada);
 }
 <link rel="stylesheet" href="~/css/solicitudes-cards.css" asp-append-version="true" />
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
@@ -54,9 +50,9 @@
 <div class="row g-3 sol-cards-wrapper mb-3">
 
     <div class="col-12 col-md-3">
-        <div class="sol-card sol-total">
-            <div class="sol-card-icon"><i class="bi bi-inboxes"></i></div>
-            <div class="sol-card-label">Total</div>
+        <div class="sol-card sol-cerradas">
+            <div class="sol-card-icon"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="sol-card-label">Cerradas</div>
             <div class="sol-card-value js-sol-num">0</div>
             <div class="sol-card-footer">Solicitudes</div>
         </div>
@@ -94,7 +90,9 @@
     <div class="card shadow-sm border-0">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="mb-0 no-select"><i class="bi bi-ticket-perforated"></i> Bandeja de Solicitudes</h4>
-            <span id="countBadge" class="badge bg-light text-primary fs-6">@Model.Count()</span>
+            <span id="countBadge" class="badge bg-light text-primary fs-6 sol-total">
+                <div class="sol-card-value js-sol-num">0</div>
+            </span>
         </div>
 
         <div class="card-body no-select">
@@ -131,6 +129,7 @@
                                         EstadoS.Enviada => "info",
                                         EstadoS.Aprobada => "success",
                                         EstadoS.Rechazada => "danger",
+                                        EstadoS.Cerrada => "primary",
                                         _ => "secondary"
                                     };
                                 }

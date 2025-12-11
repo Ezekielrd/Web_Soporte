@@ -25,7 +25,7 @@
 
         const rows = dtSolicitudes.rows({ filter: 'applied' }).nodes().toArray();
 
-        let total = 0, pen = 0, apr = 0, rec = 0;
+        let total = 0, pen = 0, apr = 0, rec = 0, cer = 0;
 
         rows.forEach(tr => {
             total++;
@@ -33,17 +33,21 @@
             if (est === 'enviada') pen++;
             else if (est === 'aprobada') apr++;
             else if (est === 'rechazada') rec++;
+            else if (est === 'cerrada') cer++;
         });
 
         const cardTotal = root.querySelector('.sol-total .js-sol-num');
         const cardPen = root.querySelector('.sol-pendientes .js-sol-num');
         const cardApr = root.querySelector('.sol-aprobadas .js-sol-num');
         const cardRec = root.querySelector('.sol-rechazadas .js-sol-num');
+        const cardCer = root.querySelector('.sol-cerradas .js-sol-num');
+
 
         if (cardTotal) animateNumber(cardTotal, total);
         if (cardPen) animateNumber(cardPen, pen);
         if (cardApr) animateNumber(cardApr, apr);
         if (cardRec) animateNumber(cardRec, rec);
+        if (cardCer) animateNumber(cardCer, cer);
     }
 
     // =========== SEMANAS / DÍAS (últimos 30 días) ===========

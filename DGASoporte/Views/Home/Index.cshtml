@@ -205,52 +205,41 @@
                 }
             });
 
-                   window.onTareasViewLoaded = function () {
-            // 1) Recuperar el id desde la variable global o desde la URL
-            let id = window._tareaIdDesdeNotificacion;
-            if (!id) {
-                const params = new URLSearchParams(window.location.search);
-                id = params.get('tareaId');
-            }
-
-            console.log('🎯 onTareasViewLoaded() llamado. id =', id);
-            if (!id) return;
-
-            // 2) Construir la URL del detalle de la tarea
-            const url = `/Tarea/Details/${id}`;
-
-            // 3) Abrir el modal genérico cargando esa URL por fetch
-            const modalEl   = document.getElementById('appModal');      // id de tu modal global
-            const modalBody = modalEl?.querySelector('.modal-body');
-
-            if (!modalEl || !modalBody) {
-                console.warn('❗ No se encontró el modal global (appModal)');
-                return;
-            }
-
-            const modal = new bootstrap.Modal(modalEl);
-
-            (async () => {
-                try {
-                    modalBody.innerHTML = '<div class="text-center py-4">Cargando detalle de la tarea...</div>';
-
-                    const resp = await fetch(url, {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-
-                    const html = await resp.text();
-                    modalBody.innerHTML = html;
-                } catch (err) {
-                    console.error('Error cargando detalle de tarea', err);
-                    modalBody.innerHTML = '<div class="alert alert-danger">No se pudo cargar el detalle de la tarea.</div>';
+            window.onTareasViewLoaded = function () {
+                // 1) Recuperar el id desde la variable global o desde la URL
+                let id = window._tareaIdDesdeNotificacion;
+                if (!id) {
+                    const params = new URLSearchParams(window.location.search);
+                    id = params.get('tareaId');
                 }
 
-                modal.show();
-            })();
+                console.log('🎯 onTareasViewLoaded() llamado. id =', id);
+                if (!id) return;
 
-            // 4) limpiar para no repetir
-            window._tareaIdDesdeNotificacion = null;
-        };
+                // 2) Construir la URL del detalle de la tarea
+                const url = `/Tarea/Details/${id}`;
+
+                // 3) Crear un <a> oculto con la clase js-modal-link
+                const fakeLink = document.createElement('a');
+                fakeLink.href = url;
+                fakeLink.className = 'js-modal-link';
+                fakeLink.style.display = 'none';
+
+                document.body.appendChild(fakeLink);
+
+                console.log('🔗 Lanzando click en enlace fantasma para abrir modal de tarea', id);
+
+                // 4) Simular clic → lo captura modalGeneral.js y abre el modal como siempre
+                fakeLink.click();
+
+                // 5) Limpiar
+                setTimeout(() => {
+                    fakeLink.remove();
+                }, 0);
+
+                window._tareaIdDesdeNotificacion = null;
+            };
+
 
 
         })();

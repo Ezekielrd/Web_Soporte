@@ -712,11 +712,10 @@ namespace DGASoporte.Controllers
 
             bool resuelta = tarea.Estado == EstadoT.Resuelta;
 
-            await _notificacionService.EnviarTareaFinalizadaAsync(
-                tarea.Id,
-                tarea.Titulo,
-                resuelta
-            );
+            await _notificacionService.NotificarTareaFinalizadaAsync(
+                 tarea,
+                 resuelta
+             );
 
             TempData["Success"] = esNuevoReporte
                 ? "Reporte de solución registrado correctamente."
@@ -725,120 +724,5 @@ namespace DGASoporte.Controllers
             return RedirectToAction("Detalle", new { id = vm.Id });
         }
 
-
-
-        [HttpGet]
-        public async Task<IActionResult> ReporteIncidencia(int id, CancellationToken ct)
-        {
-            var tarea = await _context.Tareas
-                .Include(t => t.Usuario)
-                .Include(t => t.UsuarioValida)
-                .Include(t => t.Tecnico).ThenInclude(te => te.Usuario)
-                .Include(t => t.Unidad)
-                .Include(t => t.Division)
-                .Include(t => t.Categoria)
-                .Include(t => t.TipoServicio)
-                .FirstOrDefaultAsync(t => t.Id == id, ct);
-
-            if (tarea == null)
-                return NotFound();
-
-            string FormatearTiempo(TimeSpan t) =>
-                $"{(int)t.TotalHours:D2} h {t.Minutes:D2} m";
-
-            var vm = new ReporteIncidenciaVM
-            {
-                Id = tarea.Id,
-                Titulo = tarea.Titulo,
-                DescripcionUsuario = tarea.Descripcion,
-                FechaCreacion = tarea.FechaCreacion,
-                FechaCierre = tarea.FechaCierre,
-
-                Solicitante = tarea.Usuario?.NombreCompleto
-                              ?? tarea.Usuario?.Usher
-                              ?? "N/D",
-
-                Unidad = tarea.Unidad?.Nombre ?? "N/D",
-                Division = tarea.Division?.Nombre,
-                Categoria = tarea.Categoria?.Nombre ?? "N/D",
-                TipoServicio = tarea.TipoServicio?.Nombre,
-
-                Estado = tarea.Estado?.ToString() ?? "N/D",
-                Prioridad = tarea.Prioridad.ToString(),
-
-                TecnicoAsignado = tarea.Tecnico != null
-                    ? (tarea.Tecnico.Usuario?.NombreCompleto
-                        ?? tarea.Tecnico.Usuario?.Usher
-                        ?? "Técnico")
-                    : "Sin asignar",
-
-                TiempoInvertidoTexto = FormatearTiempo(tarea.TiempoInvertido),
-
-                // Campos de solución llenados por el técnico
-                CausaRaiz = tarea.CausaRaiz,
-                PasosEjecutados = tarea.PasosEjecutados,
-                AjustesRealizados = tarea.AjustesRealizados,
-                ResultadoFinal = tarea.ResultadoFinal,
-                Recomendaciones = tarea.Recomendaciones
-            };
-
-            return View("ReporteIncidencia", vm);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> ReporteIncidenciaPdf(int id, CancellationToken ct)
-        {
-            var tarea = await _context.Tareas
-                .Include(t => t.Usuario)
-                .Include(t => t.UsuarioValida)
-                .Include(t => t.Tecnico).ThenInclude(te => te.Usuario)
-                .Include(t => t.Unidad)
-                .Include(t => t.Division)
-                .Include(t => t.Categoria)
-                .Include(t => t.TipoServicio)
-                .FirstOrDefaultAsync(t => t.Id == id, ct);
-
-            if (tarea == null)
-                return NotFound();
-
-            string FormatearTiempo(TimeSpan t) =>
-                $"{(int)t.TotalHours:D2} h {t.Minutes:D2} m";
-
-            var vm = new ReporteIncidenciaVM
-            {
-                Id = tarea.Id,
-                Titulo = tarea.Titulo,
-                DescripcionUsuario = tarea.Descripcion,
-                FechaCreacion = tarea.FechaCreacion,
-                FechaCierre = tarea.FechaCierre,
-                Solicitante = tarea.Usuario?.NombreCompleto
-                              ?? tarea.Usuario?.Usher
-                              ?? "N/D",
-                Unidad = tarea.Unidad?.Nombre ?? "N/D",
-                Division = tarea.Division?.Nombre,
-                Categoria = tarea.Categoria?.Nombre ?? "N/D",
-                TipoServicio = tarea.TipoServicio?.Nombre,
-                Estado = tarea.Estado?.ToString() ?? "N/D",
-                Prioridad = tarea.Prioridad.ToString(),
-                TecnicoAsignado = tarea.Tecnico != null
-                    ? (tarea.Tecnico.Usuario?.NombreCompleto
-                        ?? tarea.Tecnico.Usuario?.Usher
-                        ?? "Técnico")
-                    : "Sin asignar",
-                TiempoInvertidoTexto = FormatearTiempo(tarea.TiempoInvertido),
-                CausaRaiz = tarea.CausaRaiz,
-                PasosEjecutados = tarea.PasosEjecutados,
-                AjustesRealizados = tarea.AjustesRealizados,
-                ResultadoFinal = tarea.ResultadoFinal,
-                Recomendaciones = tarea.Recomendaciones
-            };
-
-            return new ViewAsPdf("ReporteIncidencia", vm)
-            {
-                FileName = $"ReporteIncidencia_{tarea.Id}.pdf",
-                PageSize = Size.A4,
-                PageOrientation = Orientation.Portrait
-            };
-        }
     }
 }

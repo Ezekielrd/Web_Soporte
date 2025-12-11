@@ -153,65 +153,64 @@ namespace DGASoporte.Servicios
                     });
             }
         }
-        public async Task EnviarTareaFinalizadaAsync(int tareaId,string tituloTarea,bool resuelta)
+        public async Task NotificarTareaFinalizadaAsync(Tarea tarea,bool esResuelta
+ )
         {
-            string titulo;
-            string mensaje;
-            string icono;
+            string urlReporte = $"/Reportes/ReporteIncidencia/{tarea.Id}";
 
+            // El solicitante recibe un mensaje genérico
+            string tituloUsuario = "Tarea finalizada";
+            string mensajeUsuario = $"Tu tarea \"{tarea.Titulo}\" ha sido finalizada. Puedes ver el reporte.";
+
+            await CrearYEnviarNotificacionAsync(
+                tarea.UsuarioId,                
+                "TareaFinalizadaUsuario",
+                tituloUsuario,
+                mensajeUsuario,
+                urlReporte,               
+                "info"
+            );
+
+            //notificar admi
             var adminIds = await _ctx.Usuarios
                .Where(u => u.RolId == 1)
                .Select(u => u.Id)
                .ToListAsync();
 
-            if (!adminIds.Any())
-                return;
-
-            if (resuelta)
+            if (adminIds.Any())
             {
-                titulo = "Tarea resuelta";
-                mensaje = $"La tarea: {tituloTarea} ha sido marcada como resuelta.";
-                icono = "success";
-            }
-            else
-            {
-                titulo = "Tarea finalizada con observaciones";
-                mensaje = $"La tarea: {tituloTarea} ha sido finalizada, pero requiere revisión adicional.";
-                icono = "warning";
-            }
+                //El admin sí ve el detalle si fue resuelta o requiere revisión
+                string tituloAdmin;
+                string mensajeAdmin;
+                string icono;
 
-            string urlDestinoReal = $"/Home/Index?view=Tareas&tareaId={tareaId}";
-
-            foreach (var adminId in adminIds)
-            {
-                var notificacion = new Notificacion
+                if (esResuelta)
                 {
-                    UsuarioId = adminId,
-                    Tipo = "TareaFinalizada",
-                    Titulo = titulo,
-                    Mensaje = mensaje,
-                    UrlDestino = urlDestinoReal,
-                    FechaCreacion = DateTime.Now,
-                    Leida = false
-                };
+                    tituloAdmin = "Tarea resuelta";
+                    mensajeAdmin = $"La tarea #{tarea.Id} \"{tarea.Titulo}\" fue marcada como resuelta.";
+                    icono = "success";
+                }
+                else
+                {
+                    tituloAdmin = "Tarea finalizada con revisión";
+                    mensajeAdmin = $"La tarea #{tarea.Id} \"{tarea.Titulo}\" fue finalizada, pero requiere revisión.";
+                    icono = "warning";
+                }
 
-                _ctx.Notificaciones.Add(notificacion);
-                await _ctx.SaveChangesAsync();
-
-                string urlWrapper = $"/Notificaciones/Abrir/{notificacion.Id}";
-
-                await _hub.Clients
-                    .User(adminId.ToString())
-                    .SendAsync("ReceiveNotification", new
-                    {
-                        Titulo = titulo,
-                        Mensaje = mensaje,
-                        Tipo = "TareaFinalizada",
-                        Icono = icono,
-                        Url = urlWrapper
-                    });
+                foreach (var adminId in adminIds)
+                {
+                    await CrearYEnviarNotificacionAsync(
+                        adminId,
+                        "TareaFinalizadaAdmin",
+                        tituloAdmin,
+                        mensajeAdmin,
+                        urlReporte,   
+                        icono
+                    );
+                }
             }
         }
+
         public async Task EnviarCambioEstadoTareaAdminAsync(int tareaId,string tituloTarea,string estadoAnterior,string estadoNuevo)
         {
             // 1. Obtener los usuarios administradores
@@ -260,6 +259,35 @@ namespace DGASoporte.Servicios
                         Url = urlWrapper
                     });
             }
+        }
+        private async Task CrearYEnviarNotificacionAsync(int usuarioId,string tipo,string titulo,string mensaje,string urlDestinoReal,string icono)
+        {
+            var notificacion = new Notificacion
+            {
+                UsuarioId = usuarioId,
+                Tipo = tipo,
+                Titulo = titulo,
+                Mensaje = mensaje,
+                UrlDestino = urlDestinoReal,
+                FechaCreacion = DateTime.Now,
+                Leida = false
+            };
+
+            _ctx.Notificaciones.Add(notificacion);
+            await _ctx.SaveChangesAsync();
+
+            var urlWrapper = $"/Notificaciones/Abrir/{notificacion.Id}";
+
+            await _hub.Clients
+                .User(usuarioId.ToString())
+                .SendAsync("ReceiveNotification", new
+                {
+                    Titulo = titulo,
+                    Mensaje = mensaje,
+                    Tipo = tipo,
+                    Icono = icono,
+                    Url = urlWrapper
+                });
         }
 
         public async Task<List<Notificacion>> ObtenerNotificacionesUsuarioAsync(int usuarioId,bool soloNoLeidas = false,int max = 20,bool excluirNuevaSolicitudPropia = true)

@@ -1,0 +1,221 @@
+﻿@model DashboardVM
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Dashboard de Soporte";
+
+    // ==== Preparar datos para JS (series) ====
+
+    // Serie mensual
+    var meses = Model.SolicitudesPorMes
+        .OrderBy(x => x.Anio)
+        .ThenBy(x => x.Mes)
+        .ToList();
+
+    var cerradasDict = Model.SolicitudesCerradasPorMes
+        .ToDictionary(
+            x => x.Anio.ToString("D4") + "-" + x.Mes.ToString("D2"),
+            x => x.Cantidad
+        );
+
+    var labelsMeses = meses.Select(m => m.EtiquetaMes).ToList();
+    var dataSolicitudesMes = meses.Select(m => m.Cantidad).ToList();
+    var dataCerradasMes = meses.Select(m =>
+    {
+        var key = m.Anio.ToString("D4") + "-" + m.Mes.ToString("D2");
+        return cerradasDict.TryGetValue(key, out var val) ? val : 0;
+    }).ToList();
+
+    // Carga por técnico
+    var cargaNombresTec = Model.CargaPorTecnico.Select(t => t.NombreTecnico).ToList();
+    var cargaAbiertasTec = Model.CargaPorTecnico.Select(t => t.TareasAbiertas).ToList();
+    var cargaCerradasTec = Model.CargaPorTecnico.Select(t => t.TareasCerradas30Dias).ToList();
+
+    // Distribución por estado
+    var estadosLabels = Model.DistribucionPorEstado.Select(e => e.Estado).ToList();
+    var estadosValores = Model.DistribucionPorEstado.Select(e => e.Cantidad).ToList();
+
+    // Top unidades
+    var unidadesLabels = Model.TopUnidadesPorSolicitudes.Select(u => u.NombreUnidad).ToList();
+    var unidadesValores = Model.TopUnidadesPorSolicitudes.Select(u => u.CantidadSolicitudes).ToList();
+}
+
+<div id="dashboard-root" class="dashboard-wrapper">
+
+    <!-- CARDS KPI -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="dash-card kpi-total">
+                <div class="dash-card-label">Total solicitudes</div>
+                <div class="dash-card-value">@Model.Kpis.TotalSolicitudesHistorico</div>
+                <div class="dash-card-footer">Histórico completo</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="dash-card kpi-cerradas">
+                <div class="dash-card-label">Cerradas (30 días)</div>
+                <div class="dash-card-value">@Model.Kpis.SolicitudesCerradas30Dias</div>
+                <div class="dash-card-footer">Solicitudes cerradas recientemente</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="dash-card kpi-abiertas">
+                <div class="dash-card-label">Tareas abiertas</div>
+                <div class="dash-card-value">@Model.Kpis.TareasAbiertasActuales</div>
+                <div class="dash-card-footer">Tareas activas en soporte</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="dash-card kpi-sla">
+                <div class="dash-card-label">SLA cumplido</div>
+                <div class="dash-card-value">@Model.Kpis.PorcentajeSlaCumplido %</div>
+                <div class="dash-card-footer">% tareas dentro del tiempo límite</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILA 1: Tendencias + Estados -->
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-8">
+            <div class="dash-panel">
+                <div class="dash-panel-header">
+                    <h6 class="mb-0">Tendencia de solicitudes (últimos 12 meses)</h6>
+                    <small class="text-muted">Solicitadas vs cerradas</small>
+                </div>
+                <div class="dash-panel-body">
+                    <canvas id="chartSolicitudesMes" height="130"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="dash-panel">
+                <div class="dash-panel-header">
+                    <h6 class="mb-0">Distribución por estado</h6>
+                    <small class="text-muted">Estado de las solicitudes</small>
+                </div>
+                <div class="dash-panel-body">
+                    <canvas id="chartEstadosSolicitud" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FILA 2: Carga técnicos + Top unidades -->
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+            <div class="dash-panel">
+                <div class="dash-panel-header">
+                    <h6 class="mb-0">Carga de trabajo por técnico</h6>
+                    <small class="text-muted">Tareas abiertas vs cerradas (30 días)</small>
+                </div>
+                <div class="dash-panel-body">
+                    <canvas id="chartCargaTecnicos" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="dash-panel">
+                <div class="dash-panel-header">
+                    <h6 class="mb-0">Top unidades por solicitudes</h6>
+                    <small class="text-muted">Unidades que más generan tickets</small>
+                </div>
+                <div class="dash-panel-body">
+                    <canvas id="chartTopUnidades" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Datos para JS -->
+<<script id="dashboard-data" type="application/json">
+@Html.Raw(JsonSerializer.Serialize(new {
+    kpis = new {
+        totalSolicitudes = Model.Kpis.TotalSolicitudesHistorico,
+        cerradas30 = Model.Kpis.SolicitudesCerradas30Dias,
+        abiertas = Model.Kpis.TareasAbiertasActuales,
+        sla = Model.Kpis.PorcentajeSlaCumplido
+    },
+    mesesLabels = labelsMeses,
+    mesesSolicitudes = dataSolicitudesMes,
+    mesesCerradas = dataCerradasMes,
+    tecnicosLabels = cargaNombresTec,
+    tecnicosAbiertas = cargaAbiertasTec,
+    tecnicosCerradas = cargaCerradasTec,
+    estadosLabels = estadosLabels,
+    estadosValores = estadosValores,
+    unidadesLabels = unidadesLabels,
+    unidadesValores = unidadesValores
+}))
+</script>
+
+
+<style>
+    .dashboard-wrapper {
+        padding: 8px 4px 12px 4px;
+    }
+
+    .dash-card {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 14px 16px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .dash-card-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .dash-card-value {
+        font-size: 1.9rem;
+        font-weight: 700;
+    }
+
+    .dash-card-footer {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+
+    .kpi-total .dash-card-value {
+        color: #111827;
+    }
+
+    .kpi-cerradas .dash-card-value {
+        color: #16a34a;
+    }
+
+    .kpi-abiertas .dash-card-value {
+        color: #f97316;
+    }
+
+    .kpi-sla .dash-card-value {
+        color: #2563eb;
+    }
+
+    .dash-panel {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .dash-panel-header {
+        padding: 10px 14px 4px 14px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .dash-panel-body {
+        padding: 10px 14px 14px 14px;
+    }
+</style>

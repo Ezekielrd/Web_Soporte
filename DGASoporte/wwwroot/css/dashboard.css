@@ -1,0 +1,121 @@
+﻿/* ===== Dashboard Gerencial ===== */
+
+.dashboard-wrapper {
+    padding: 0.75rem 0;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-title {
+    font-weight: 700;
+    font-size: 1.35rem;
+}
+
+.dashboard-subtitle {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Secciones */
+.dashboard-section {
+    margin-top: 0.5rem;
+}
+
+.dashboard-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-section-title {
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.dashboard-section-range {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.dashboard-separator {
+    margin: 1.2rem 0;
+    border-color: #e0e3eb;
+}
+
+/* Cards base */
+.dashboard-card {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    border: 1px solid #e4e6ef;
+    padding: 0.9rem 1rem;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+/* Cards KPI */
+.kpi-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 115px;
+}
+
+.kpi-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #9ca3af;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+}
+
+.kpi-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+}
+
+.kpi-footer {
+    font-size: 0.8rem;
+}
+
+/* Rango texto */
+.kpi-range {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Filtros */
+.dashboard-filters {
+    margin-bottom: 0.75rem;
+}
+
+/* Card con encabezado para gráfico */
+.dashboard-card-header {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-card-body {
+    min-height: 200px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .dashboard-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.2rem;
+    }
+}

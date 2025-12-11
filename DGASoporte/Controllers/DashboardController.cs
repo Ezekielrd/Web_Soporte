@@ -108,7 +108,7 @@ namespace DGASoporte.Controllers
             // Tareas NO archivadas, en memoria para manejar null de Tecnico sin drama
 
             var tareasConTecnico = await _context.Tareas
-                .Include(t => t.Tecnico).ThenInclude(te => te.Usuario)
+                .Include(t => t.Tecnico).ThenInclude(te =>te.Usuario)
                 .Where(t => !t.Archivada)
                 .ToListAsync();
 
@@ -190,7 +190,6 @@ namespace DGASoporte.Controllers
 
             return vm;
         }
-
 
     }
 }

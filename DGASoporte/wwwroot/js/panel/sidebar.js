@@ -69,6 +69,10 @@ menuItems.forEach(item => {
             if (view === 'Solicitudes' && window.Solicitudes && typeof window.Solicitudes.initForm === 'function') {
                 window.Solicitudes.initForm(viewContainer);
             }
+            if (view === 'Dashboard' && window.Dashboard && typeof window.Dashboard.init === 'function') {
+                window.Dashboard.init(viewContainer);
+            }
+
             if (view === 'Solicitudes' && typeof window.onSolicitudesViewLoaded === 'function') {
                 console.log('✅ sidebar: vista Solicitudes cargada, llamando onSolicitudesViewLoaded()');
                 window.onSolicitudesViewLoaded();

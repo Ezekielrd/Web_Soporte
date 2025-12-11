@@ -398,19 +398,18 @@
     function initDashboard(root) {
         root = root || document;
 
+        // En la vista usamos id="dashboard-root"
         const dashboardRoot = root.querySelector('#dashboard-root');
         if (!dashboardRoot) return;
 
-        // 1) Cargar datos desde el JSON embebido
         cargarDatosDashboard(dashboardRoot);
 
-        // 2) Dibujar gráficos
+        // Siempre dibujar gráficos
         renderCharts(dashboardRoot);
 
-        // 3) Configurar filtros (si existieran)
+        // Si la vista tiene filtros (otra versión del dashboard), se configuran
         setupFiltros(dashboardRoot);
     }
-
 
     document.addEventListener('DOMContentLoaded', function () {
         initDashboard(document);

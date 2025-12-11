@@ -5,16 +5,16 @@ namespace DGASoporte.Models.Enumeradores
 {
     public static class EnumExtension
     {
-       public static string GetDisplayName( this Enum enumValue)
+        public static string GetDisplayName(this Enum value)
         {
-        
-            if (enumValue == null) return "No definido";
+            if (value == null) return string.Empty;
 
-            var displayAttribute = enumValue.GetType()
-                                .GetMember(enumValue.ToString())[0]
-                                .GetCustomAttribute<DisplayAttribute>();
+            var type = value.GetType();
+            var member = type.GetMember(value.ToString()).FirstOrDefault();
+            if (member == null) return value.ToString();
 
-            return displayAttribute?.Name ?? enumValue.ToString();
-       }
+            var attr = member.GetCustomAttribute<DisplayAttribute>();
+            return attr?.Name ?? value.ToString();
+        }
     }
 }

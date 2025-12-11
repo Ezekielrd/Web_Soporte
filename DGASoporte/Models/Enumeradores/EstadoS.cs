@@ -10,5 +10,7 @@ namespace DGASoporte.Models.Enumeradores
         Aprobada = 2,
         [Display(Name = "Rechazada")]
         Rechazada = 3,
+        [Display(Name ="Cerreda")]
+        Cerrada=4
     }
 }

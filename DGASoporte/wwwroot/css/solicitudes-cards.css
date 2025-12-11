@@ -1,0 +1,83 @@
+﻿.sol-cards-wrapper {
+    margin-top: 10px;
+}
+
+.sol-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px 18px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(15,23,42,0.06);
+    transition: all .15s ease;
+}
+
+    .sol-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(15,23,42,0.12);
+    }
+
+.sol-card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: 6px;
+}
+
+.sol-card-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.sol-card-value {
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin-top: -2px;
+}
+
+.sol-card-footer {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 3px;
+}
+
+/* Colores */
+.sol-total .sol-card-icon {
+    background: rgba(59,130,246,.15);
+    color: #2563eb;
+}
+
+.sol-pendientes .sol-card-icon {
+    background: rgba(234,179,8,.15);
+    color: #b45309;
+}
+
+.sol-aprobadas .sol-card-icon {
+    background: rgba(16,185,129,.15);
+    color: #059669;
+}
+
+.sol-rechazadas .sol-card-icon {
+    background: rgba(239,68,68,.15);
+    color: #dc2626;
+}
+.sol-filtros-wrapper {
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+    .sol-filtros-wrapper .form-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+#filtroSemana option,
+#filtroDia option {
+    font-size: 0.9rem;
+}

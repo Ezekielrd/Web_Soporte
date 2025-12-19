@@ -192,7 +192,7 @@
                     );
 
                     if (menuSolicitudes) {
-                        console.log('👉 Haciendo click en menú Solicitudes desde notificación...');
+                        console.log('Haciendo click en menú Solicitudes desde notificación...');
                         menuSolicitudes.click();
                     } else {
                         console.warn('❗ No se encontró el menú de Solicitudes.');
@@ -207,8 +207,10 @@
                     }
                 }
             });
-
             window.onTareasViewLoaded = function () {
+                // ✅ evita doble ejecución
+                if (window.__abriendoTareaModal) return;
+
                 // 1) Recuperar el id desde la variable global o desde la URL
                 let id = window._tareaIdDesdeNotificacion;
                 if (!id) {
@@ -218,6 +220,8 @@
 
                 console.log('🎯 onTareasViewLoaded() llamado. id =', id);
                 if (!id) return;
+
+                window.__abriendoTareaModal = true;
 
                 // 2) Construir la URL del detalle de la tarea
                 const url = `/Tarea/Details/${id}`;
@@ -235,50 +239,70 @@
                 // 4) Simular clic → lo captura modalGeneral.js y abre el modal como siempre
                 fakeLink.click();
 
-                // 5) Limpiar
-                setTimeout(() => {
-                    fakeLink.remove();
-                }, 0);
-
+                // 5) Limpiar el link y el estado global
+                setTimeout(() => fakeLink.remove(), 0);
                 window._tareaIdDesdeNotificacion = null;
+
+                // ✅ 6) LIMPIAR querystring para que NO vuelva a abrirse al cambiar de módulo
+                try {
+                    const u = new URL(window.location.href);
+                    u.searchParams.delete('tareaId');      // 👈 AQUÍ VA
+                    u.searchParams.delete('solicitudId');  // 👈 opcional (recomendado)
+                    history.replaceState({}, '', u.pathname + u.search);
+                } catch (e) {
+                    console.warn('No se pudo limpiar la URL', e);
+                }
+
+                // liberar la bandera
+                setTimeout(() => { window.__abriendoTareaModal = false; }, 300);
             };
 
             window.onSolicitudesViewLoaded = function () {
-                let id = window._solicitudIdDesdeNotificacion;
+            if (window.__abriendoSolicitudModal) return;
 
-                if (!id) {
-                    const params = new URLSearchParams(window.location.search);
-                    id = params.get('solicitudId');
-                }
+            let id = window._solicitudIdDesdeNotificacion;
+            if (!id) {
+                const params = new URLSearchParams(window.location.search);
+                id = params.get('solicitudId');
+            }
 
-                console.log('🎯 onSolicitudesViewLoaded() id =', id);
-                if (!id) return;
+            console.log('🎯 onSolicitudesViewLoaded() id =', id);
+            if (!id) return;
 
-                const selector = `.js-modal-link[data-solicitud-id="${id}"]`;
+            window.__abriendoSolicitudModal = true;
 
-                let attempts = 0;
-                const maxAttempts = 12;   // 12 intentos
-                const delayMs = 250;      // cada 250ms
+            // 🔹 Abrir modal
+            const url = `/AdminSolicitudes/Details/${id}`;
 
-                const timer = setInterval(() => {
-                    attempts++;
+            const fakeLink = document.createElement('a');
+            fakeLink.href = url;
+            fakeLink.className = 'js-modal-link';
+            fakeLink.style.display = 'none';
 
-                    const btn = document.querySelector(selector);
-                    console.log(`🔎 Solicitudes intento ${attempts}: ${selector} ->`, !!btn);
+            document.body.appendChild(fakeLink);
+            fakeLink.click();
+            fakeLink.remove();
 
-                    if (btn) {
-                        // ✅ abrir usando tu modalGeneral.js
-                        btn.click();
-                        clearInterval(timer);
-                        window._solicitudIdDesdeNotificacion = null;
-                    }
+            // ✅ LIMPIEZA DE ESTADO (AQUÍ VA)
+            window._solicitudIdDesdeNotificacion = null;
 
-                    if (attempts >= maxAttempts) {
-                        console.warn('❗ No se encontró el botón para abrir el modal de solicitud', id);
-                        clearInterval(timer);
-                    }
-                }, delayMs);
-            };
+            try {
+                const u = new URL(window.location.href);
+
+                // 🔴 AQUÍ EXACTAMENTE
+                u.searchParams.delete('solicitudId');
+                u.searchParams.delete('tareaId');   // 👈 ESTA LÍNEA
+
+                history.replaceState({}, '', u.pathname + u.search);
+            } catch (e) {
+                console.warn('No se pudo limpiar la URL', e);
+            }
+
+            setTimeout(() => {
+                window.__abriendoSolicitudModal = false;
+            }, 300);
+        };
+
 
         })();
     </script>

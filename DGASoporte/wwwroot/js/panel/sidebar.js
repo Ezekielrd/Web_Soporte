@@ -75,8 +75,9 @@ menuItems.forEach(item => {
 
             if (view === 'Solicitudes' && typeof window.onSolicitudesViewLoaded === 'function') {
                 console.log('✅ sidebar: vista Solicitudes cargada, llamando onSolicitudesViewLoaded()');
-                window.onSolicitudesViewLoaded();
+                setTimeout(() => window.onSolicitudesViewLoaded(), 50);
             }
+
             if (view === 'Tareas' && typeof window.onTareasViewLoaded === 'function') {
                 console.log('✅ sidebar: vista Tareas cargada, llamando onTareasViewLoaded()');
                 window.onTareasViewLoaded();
@@ -99,31 +100,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let initialItem = null;
     let lastView = null;
 
-    // 👉 Leer la última vista guardada
-    try {
-        lastView = localStorage.getItem(LAST_VIEW_KEY);
-    } catch (ex) {
-        console.warn('No se pudo leer la vista de localStorage', ex);
+    // ✅ PRIORIDAD 1: view desde la URL
+    const params = new URLSearchParams(window.location.search);
+    const forcedView = params.get('view');
+    if (forcedView) {
+        initialItem = document.querySelector(`.menu-item[data-view="${forcedView}"]`);
+        if (initialItem) {
+            try { localStorage.setItem(LAST_VIEW_KEY, forcedView); } catch { }
+        }
     }
 
-    if (lastView) {
-        // Buscar el menú que tenga ese data-view
-        initialItem = document.querySelector(`.menu-item[data-view="${lastView}"]`);
-    }
-
-    // Si no hay nada guardado o no encuentra el item, usa el que ya viene como .active
+    // si no hay view en URL, usa localStorage
     if (!initialItem) {
-        initialItem = document.querySelector('.menu-item.active');
+        try { lastView = localStorage.getItem(LAST_VIEW_KEY); } catch { }
+
+        if (lastView) initialItem = document.querySelector(`.menu-item[data-view="${lastView}"]`);
+        if (!initialItem) initialItem = document.querySelector('.menu-item.active');
+        if (!initialItem) initialItem = document.querySelector('.menu-item');
     }
 
-    // Último fallback: el primer menú
-    if (!initialItem) {
-        initialItem = document.querySelector('.menu-item');
-    }
-
-    // Solo dispara el click si el contenedor está vacío
     if (initialItem && viewContainer.innerHTML.trim() === '') {
-        initialItem.click(); // 👉 carga por AJAX el módulo correcto
+        initialItem.click();
     }
     const btnLogout = document.getElementById('btnLogout');
     if (btnLogout) {

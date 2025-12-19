@@ -37,63 +37,64 @@
             showConfirmButton: !!destinoUrl,
             confirmButtonText: destinoUrl ? 'Ver detalle' : 'Aceptar'
         }).then(result => {
-            const path = window.location.pathname.toLowerCase();
-            console.log('🔎 Post-Swal. tipoEvento=', tipoEvento, ' path=', path, ' result=', result);
 
-            // 1) Si el usuario pulsa "Ver detalle" → ir al wrapper /Notificaciones/Abrir/{id}
+            const path = window.location.pathname.toLowerCase();
+            const query = window.location.search.toLowerCase();
+
+            console.log('🔎 Post-Swal. tipoEvento=', tipoEvento, ' result=', result);
+
+            // ✅ 1) SI el usuario hizo clic en "Ver detalle"
             if (destinoUrl && result.isConfirmed) {
+                console.log('➡️ Navegando a detalle:', destinoUrl);
                 window.location.href = destinoUrl;
                 return;
             }
 
-            // 2) Actualizar la campanita (contador + lista) si existe la función
+            // ⛔ 2) SI existe destinoUrl, NO recargues NUNCA
+            //     (el usuario puede entrar luego desde la campanita)
+            if (destinoUrl) {
+                console.log('ℹ Notificación con destinoUrl, no se recarga la página');
+                return;
+            }
+
+            // 3) Actualizar campanita (solo si NO hay destinoUrl)
             if (typeof window.reloadNotificacionesResumen === 'function') {
                 console.log('🔄 Refrescando campanita...');
                 window.reloadNotificacionesResumen();
             }
 
-            // 3) Recargar la página de lista según el tipo de evento y la ruta actual
+            // 4) Recargas SOLO para eventos SIN destino
             if (tipoEvento === 'TareaAsignada') {
-                if (path.includes('/tecnico')) {       // 👈 aquí usamos /Tecnico
-                    console.log('🔁 Recargando página de tareas (Tecnico/Index)...');
+                if (path.includes('/tecnico')) {
+                    console.log('🔁 Recargando página Técnico...');
                     window.location.reload();
                 }
             }
 
-            // 🔹 RESULTADO SOLICITUD → lista está en /Solicitud/Index
             if (tipoEvento === 'ResultadoSolicitud') {
-                if (path.includes('/solicitud')) {   
-                    console.log('🔁 Recargando página de solicitudes del cliente...');
+                if (path.includes('/solicitud')) {
+                    console.log('🔁 Recargando solicitudes del cliente...');
                     window.location.reload();
                 }
             }
+
             if (tipoEvento === 'SolicitudCreadaAdmin') {
                 if (path.includes('/adminsolicitudes')) {
-                    console.log('🔁 Recargando pagina de solicitudes del admin...');
+                    console.log('🔁 Recargando solicitudes del admin...');
                     window.location.reload();
                 }
             }
-            if (tipoEvento === 'TareaFinalizada') { 
-                if (path.includes('/tarea')) {
-                    console.log('🔁 Tarea finalizada, podrías recargar o actualizar aquí si lo necesitas');
-                    window.location.reload();
-                }
-            }
-            if (tipoEvento === 'CambioEstadoTareaAdmin') {
-                if (path.includes('/home/index') && query.includes('view=tareas')) {
-                    console.log('🔁 Recargando Gestión de Tareas por CambioEstadoTareaAdmin...');
-                    window.location.reload();
-                }
-            }
-            if (tipoEvento === 'TareaFinalizadaAdmin') {
-                if (path.includes('/home/index') && query.includes('view=tareas')) {
-                    console.log('🔁 Recargando Gestión de Tareas por TareaFinalizadaAdmin...');
-                    window.location.reload();
-                }
-            }
+
             if (tipoEvento === 'TareaFinalizadaUsuario') {
                 if (path.includes('/reportes/reportesolicitud')) {
-                    console.log('🔁 Recargando reporte de solicitud por TareaFinalizadaUsuario...');
+                    console.log('🔁 Recargando reporte...');
+                    window.location.reload();
+                }
+            }
+
+            if (tipoEvento === 'CambioEstadoTareaAdmin' || tipoEvento === 'TareaFinalizadaAdmin') {
+                if (path.includes('/home/index') && query.includes('view=tareas')) {
+                    console.log('🔁 Recargando Gestión de Tareas...');
                     window.location.reload();
                 }
             }

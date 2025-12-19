@@ -62,24 +62,38 @@
 
             // 🔹 RESULTADO SOLICITUD → lista está en /Solicitud/Index
             if (tipoEvento === 'ResultadoSolicitud') {
-                if (path.includes('/solicitud')) {     // 👈 aquí usamos /Solicitud
-                    console.log('🔁 Recargando página de solicitudes (Solicitud/Index)...');
+                if (path.includes('/solicitud')) {   
+                    console.log('🔁 Recargando página de solicitudes del cliente...');
                     window.location.reload();
                 }
             }
-            if (tipoEvento === 'SolicitudCreadaAdmin' && path.includes('/adminsolicitudes')) {
-                console.log('🔁 Recargando lista de solicitudes del admin...');
-                window.location.reload();
+            if (tipoEvento === 'SolicitudCreadaAdmin') {
+                if (path.includes('/adminsolicitudes')) {
+                    console.log('🔁 Recargando pagina de solicitudes del admin...');
+                    window.location.reload();
+                }
             }
-            if (tipoEvento === 'TareaFinalizada' && path.includes('/tarea')) {
+            if (tipoEvento === 'TareaFinalizada') { 
+                if (path.includes('/tarea')) {
                     console.log('🔁 Tarea finalizada, podrías recargar o actualizar aquí si lo necesitas');
-                    window.location.reload(); // si quieres recargar
+                    window.location.reload();
+                }
             }
-            // Notificación al ADMIN: cambio de estado de tarea
             if (tipoEvento === 'CambioEstadoTareaAdmin') {
-                // Si el admin está en Home/Index viendo Tareas, recargamos
                 if (path.includes('/home/index') && query.includes('view=tareas')) {
                     console.log('🔁 Recargando Gestión de Tareas por CambioEstadoTareaAdmin...');
+                    window.location.reload();
+                }
+            }
+            if (tipoEvento === 'TareaFinalizadaAdmin') {
+                if (path.includes('/home/index') && query.includes('view=tareas')) {
+                    console.log('🔁 Recargando Gestión de Tareas por TareaFinalizadaAdmin...');
+                    window.location.reload();
+                }
+            }
+            if (tipoEvento === 'TareaFinalizadaUsuario') {
+                if (path.includes('/reportes/reportesolicitud')) {
+                    console.log('🔁 Recargando reporte de solicitud por TareaFinalizadaUsuario...');
                     window.location.reload();
                 }
             }

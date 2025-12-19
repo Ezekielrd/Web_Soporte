@@ -9,7 +9,7 @@ using Rotativa.AspNetCore.Options;
 
 namespace DGASoporte.Controllers
 {
-    [Authorize(Roles = "Admin,Tecnico")] 
+    [Authorize(Roles = "Admin,Tecnico,Cliente")] 
     public class ReportesController : Controller
     {
         private readonly DGADbContext _context;

@@ -117,11 +117,10 @@
         <div class="header-section mb-3">
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                 <div>
-                    <button type="button"
-                            class="btn btn-outline-secondary btn-sm mb-2 btn-back"
-                            onclick="history.back()">
+                    <a asp-controller="Tecnico"
+                       asp-action="Index" class="btn btn-outline-secondary btn-sm mb-2 btn-back">
                         <i class="bi bi-arrow-left-short"></i> Volver
-                    </button>
+                    </a>
 
                     <h2 class="mb-1">
                         <i class="bi bi-ticket-detailed me-2"></i>
@@ -195,8 +194,6 @@
                     <span>@TempData["Error"]</span>
                 </div>
             }
-
-            @* Puedes usar TempData["Alert"] para mensajes informativos/amarillos *@
             @if (TempData["Alert"] != null)
             {
                 <div class="toast-msg toast-alert">
@@ -205,7 +202,6 @@
                 </div>
             }
         </div>
-
 
         <!-- Contenido principal -->
         <div class="detalle-main-card">
@@ -431,7 +427,29 @@
                                 </form>
                             </div>
                         }
+                        @* 👉 Estado: PAUSADO — Reanudar + Finalizar/En espera *@
+                        @if (Model.Estado == EstadoT.EnProceso)
+                        {
+                            <div class="d-flex gap-2 flex-wrap mt-2">
+                                <form asp-action="Finalizar" asp-route-id="@Model.Id" method="post" class="d-flex gap-2 flex-wrap">
+                                    @Html.AntiForgeryToken()
 
+                                    <button type="submit"
+                                            name="resultado"
+                                            value="Resuelta"
+                                            class="btn btn-danger btn-sm">
+                                        <i class="bi bi-flag-fill me-1"></i> Finalizar como resuelta
+                                    </button>
+
+                                    <button type="submit"
+                                            name="resultado"
+                                            value="EnEspera"
+                                            class="btn btn-outline-warning btn-sm">
+                                        <i class="bi bi-pause-circle me-1"></i> Dejar en espera
+                                    </button>
+                                </form>
+                            </div>
+                        }
                         @if (Model.TieneReporte)
                         {
                             @* Solo técnicos editan el reporte *@

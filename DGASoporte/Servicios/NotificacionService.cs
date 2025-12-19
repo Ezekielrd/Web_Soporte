@@ -39,7 +39,7 @@ namespace DGASoporte.Servicios
             }
 
             // 👇 URL donde YA tienes el modal de detalle funcionando
-            string urlDestinoReal = $"/Solicitud/Index?solicitudId={solicitudId}";
+            string urlDestino = $"/Solicitud/Index?solicitudId={solicitudId}";
 
             var notificacion = new Notificacion
             {
@@ -47,7 +47,7 @@ namespace DGASoporte.Servicios
                 Tipo = "ResultadoSolicitud",
                 Titulo = titulo,
                 Mensaje = mensaje,
-                UrlDestino = urlDestinoReal,   // se usará en /Notificaciones/Abrir
+                UrlDestino = urlDestino,  
                 FechaCreacion = DateTime.Now,
                 Leida = false
             };
@@ -100,8 +100,8 @@ namespace DGASoporte.Servicios
                 {
                     Titulo = titulo,
                     Mensaje = mensaje,
-                    Tipo = "TareaAsignada", // categoría
-                    Icono = "info",           // para Swal
+                    Tipo = "TareaAsignada",
+                    Icono = "info",         
                     Url = urlWrapper
                 });
         }
@@ -302,7 +302,7 @@ namespace DGASoporte.Servicios
                 query = query.Where(n => !n.Leida);
             }
 
-            // 👇 Aquí filtramos las notificaciones de tipo "NuevaSolicitud"
+            //filtramos las notificaciones de tipo "NuevaSolicitud"
             // (el tipo exacto ajústalo al que usas: "NuevaSolicitud", "NuevaSolicitudSoporte", etc.)
             if (excluirNuevaSolicitudPropia)
             {

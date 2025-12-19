@@ -5,6 +5,7 @@ using DGASoporte.Servicios;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore;
+using DGASoporte.Infraestructura.Middleware;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,6 +52,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+app.UseMiddleware<NotificacionesAutoLeidasMiddleware>();
 app.UseAuthorization();
 
 app.MapControllerRoute(

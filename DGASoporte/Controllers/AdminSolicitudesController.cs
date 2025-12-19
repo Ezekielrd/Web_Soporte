@@ -55,21 +55,26 @@ namespace DGASoporte.Controllers
         [HttpGet]
         public async Task<IActionResult> Rechazar(int id)
         {
-            var sol = await _context.Solicitudes.FindAsync(id); 
-            if (sol == null) return NotFound();
+            var sol = await _context.Solicitudes.FindAsync(id);
+            if (sol == null)
+            {
+                TempData["Alert"] = "El Solicitud no encontrada";
+            }
 
             ViewBag.SolicitudId = sol.Id;
 
             return PartialView("_MotivoRechazo");
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Rechazar(int id, string motivoRechazo)
         {
             var isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
             if (!isAjax)
             {
-                return BadRequest("Esta acción solo admite peticiones AJAX.");
+               TempData["Alert"] = "Esta accion solo admite peticiones ajax";
             }
 
             //Validación del motivo 
@@ -87,6 +92,7 @@ namespace DGASoporte.Controllers
 
             if (solicitud == null)
             {
+                TempData["Alert"] = "La solicitud no existe";
                 return Json(new
                 {
                     success = false,
@@ -96,6 +102,7 @@ namespace DGASoporte.Controllers
 
             if (solicitud.Estado != EstadoS.Enviada)
             {
+                TempData["Alert"] = "La solicitud nva fue evaliada";
                 return Json(new
                 {
                     success = false,
@@ -130,7 +137,8 @@ namespace DGASoporte.Controllers
                 .Include(s => s.TipoIncidencia)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
-            if (solicitud == null) return NotFound();
+            if (solicitud == null)
+                TempData["Alert"] = "La solicitud no encontrada";
 
             return PartialView("_SolicitudDetalle", solicitud);
 

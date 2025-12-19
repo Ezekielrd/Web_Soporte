@@ -63,8 +63,7 @@ namespace DGASoporte.Controllers
 
             if (vm is null) return NotFound();
 
-            return PartialView("_UsuarioDetalle", vm);
-            
+            return PartialView("_UsuarioDetalle", vm);          
 
         }
 
@@ -146,7 +145,7 @@ namespace DGASoporte.Controllers
                 }
 
                 await tx.CommitAsync(ct);
-                TempData["Ok"] = "Usuario creado correctamente.";
+                TempData["Success"] = "Usuario creado correctamente.";
 
                 return Json(new { success = true });
             }
@@ -301,7 +300,7 @@ namespace DGASoporte.Controllers
                 }
 
                 await tx.CommitAsync(ct);
-                TempData["Ok"] = "Usuario actualizado correctamente.";
+                TempData["Success"] = "Usuario actualizado correctamente.";
 
                  return Json(new { success = true });
             }
@@ -332,7 +331,7 @@ namespace DGASoporte.Controllers
         {
             if (id <= 0)
             {            
-                    TempData["Alert"] = "El Identificador no es Válido.";
+                 TempData["Alert"] = "El Identificador no es Válido.";
                 return Json(new { success = false, message = "El Identificador no es válido." });
             }
             var tec = await _context.Tecnicos
@@ -389,7 +388,7 @@ namespace DGASoporte.Controllers
                 _context.Usuarios.Remove(usuario);
                 await _context.SaveChangesAsync(ct);
 
-                TempData["Ok"] = "Usuario eliminado correctamente";
+                TempData["Success"] = "Usuario eliminado correctamente";
                 return Json(new { success = true, message = "Usuario eliminado correctamente" });
 
             }
@@ -421,14 +420,14 @@ namespace DGASoporte.Controllers
 
             if (usuario.Bloqueado && (!usuario.finBloqueo.HasValue || usuario.finBloqueo > DateTime.UtcNow))
             {
-                // Estaba bloqueado -> Desbloquear
+                // Desbloquear
                 usuario.Bloqueado = false;
                 usuario.finBloqueo = null;
                 usuario.AccesoFallado = 0;
             }
             else
             {
-                // Estaba desbloqueado -> Bloquear (temporal o indefinido)
+                // Bloquear
                 usuario.Bloqueado = true;
                 usuario.finBloqueo = hasta ?? DateTime.Now.ToLocalTime().AddYears(100);
             }
@@ -436,9 +435,11 @@ namespace DGASoporte.Controllers
             usuario.ActualizadoEn = DateTime.Now.ToLocalTime();
             await _context.SaveChangesAsync();
 
-            TempData["Ok"] = "Usuario bloqueado correctamente.";
+            TempData["Success"] = "Usuario bloqueado correctamente.";
+
             return Json(new { success = true });
         }
+
 
         private async Task CargarCombosAsync(UsuarioVM vm, CancellationToken ct)
         {

@@ -1,6 +1,5 @@
-﻿/* Estilos personalizados para Solicitud de Incidencia */
-body {
-    background-color: #F8F9FA;
+﻿body {
+    background: #f3f4f6;
 }
 .container-fluid {
     padding: 15px;
@@ -199,12 +198,12 @@ body {
         transform: rotate(360deg);
     }
 }
-/* Contenedor general del header ya lo tienes, aquí afinamos */
 .header-section {
     background: #ffffff;
     border-radius: 20px;
-    padding: 1.5rem 1.75rem;
+    padding: 1.5rem;
     margin-bottom: 1.5rem;
+    margin-top: 1.2rem;
     box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 

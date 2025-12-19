@@ -3,29 +3,31 @@
 <link href="~/css/Usuarios.css" rel="stylesheet" asp-append-version="true"/>
 
 <div class="container-fluid">
-    @if (TempData["Ok"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["Ok"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+    <div class="toast-container">
+        @if (TempData["Success"] != null)
+        {
+            <div class="toast-msg toast-success">
+                <span class="toast-icon">✔</span>
+                <span>@TempData["Success"]</span>
+            </div>
+        }
 
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Error:</strong> @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+        @if (TempData["Error"] != null)
+        {
+            <div class="toast-msg toast-error">
+                <span class="toast-icon">⚠</span>
+                <span>@TempData["Error"]</span>
+            </div>
+        }
 
-    @if (TempData["Alert"] != null)
-    {
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <strong>Alerta:</strong> @TempData["Alert"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+        @if (TempData["Alert"] != null)
+        {
+            <div class="toast-msg toast-alert">
+                <span class="toast-icon">ℹ</span>
+                <span>@TempData["Alert"]</span>
+            </div>
+        }
+    </div>
     <!-- Encabezado + botón agregar -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="mb-0 no-select">Usuarios</h3>
@@ -74,11 +76,17 @@
                                     <i class="bi bi-pencil-square"></i> Editar
                                 </a>
 
-                                <form asp-action="ToggleBloqueo"asp-controller="Usuario" asp-route-id="@u.Id" method="post" class="d-inline">
-                                    <button class="btn btn-sm btn-outline-secondary" type="submit">
-                                        <i class="bi @(bloqueado ? "bi-unlock" : "bi-lock")"></i> @(bloqueado ? "Desbloquear" : "Bloquear")
-                                    </button>
+                                <form asp-action="ToggleBloqueo"
+                                      asp-controller="Usuario"
+                                      asp-route-id="@u.Id"
+                                      method="post"
+                                      class="d-inline"
+                                      data-ajax-bloqueo-usuario="true">
                                     @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit">
+                                        <i class="bi @(bloqueado ? "bi-unlock" : "bi-lock")"></i>
+                                        @(bloqueado ? "Desbloquear" : "Bloquear")
+                                    </button>
                                 </form>
 
                                 <a class="btn btn-sm btn-outline-danger js-modal-link" asp-action="Delete" asp-controller="Usuario" asp-route-id="@u.Id">

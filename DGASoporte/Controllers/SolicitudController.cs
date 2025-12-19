@@ -123,16 +123,24 @@ namespace DGASoporte.Controllers
 
             _context.Solicitudes.Add(entidad);
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
 
-            await _notificacionService.EnviarSolicitudCreadaAdminAsync(
-                entidad.Id,
-                entidad.Titulo,
-                usuarioSolicitanteId
-            );
+                await _notificacionService.EnviarSolicitudCreadaAdminAsync(
+                    entidad.Id,
+                    entidad.Titulo,
+                    usuarioSolicitanteId
+                );
 
-            TempData["ok"] = "Solicitud registrada con éxito.";
-            return RedirectToAction(nameof(Index));
+                TempData["Success"] = "Solicitud registrada con éxito.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex) {
+                ModelState.AddModelError(string.Empty,
+                    $"Error inesperado: {ex.GetBaseException().Message}");
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         private async Task CargarUnidadesAsync(SolicitudVM vm, CancellationToken ct)
@@ -175,22 +183,5 @@ namespace DGASoporte.Controllers
                 t => t.Descripcion ?? string.Empty
             );
         }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Archivar(int id)
-        {
-            var solicitud = await _context.Solicitudes.FindAsync(id);
-            if (solicitud == null)
-                return NotFound();
-
-            // Marcar como archivada
-            solicitud.Archivada = true;
-
-            await _context.SaveChangesAsync();
-
-            // Vuelves a la lista
-            return RedirectToAction(nameof(Index));
-        }
-
     }
 }

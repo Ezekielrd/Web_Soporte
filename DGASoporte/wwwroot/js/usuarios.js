@@ -181,6 +181,55 @@
             }
         });
     }
+    async function initUsuarioBloqueoForm(root) {
+        root = root || document;
+
+        const forms = root.querySelectorAll('form[data-ajax-bloqueo-usuario="true"]');
+        if (!forms.length) return;
+
+        forms.forEach(form => {
+            // evitar enganchar el mismo form más de una vez
+            if (form.dataset.ajaxBound === '1') return;
+            form.dataset.ajaxBound = '1';
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const url = form.action;
+                const formData = new FormData(form);
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        alert('Error al cambiar el estado de bloqueo del usuario.');
+                        return;
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Recargar la vista de usuarios en el panel (igual que en crear/eliminar)
+                        const usuariosLink = document.querySelector('.menu-item[data-view="Usuarios"]');
+                        if (usuariosLink) {
+                            usuariosLink.click();
+                        }
+                    } else {
+                        alert(result.message || 'No se pudo actualizar el bloqueo del usuario.');
+                    }
+                } catch (err) {
+                    console.error('Error al bloquear/desbloquear usuario', err);
+                    alert('Ocurrió un error al procesar la solicitud.');
+                }
+            });
+        });
+    }
 
     function initUsuarioDataTable(root) {
         root = root || document;
@@ -231,7 +280,8 @@
         initCamposTecnico(root);
         initPasswordEye(root);
         initUsuarioAjaxForm(root);
-        initUsuarioDeleteForm(root);  
+        initUsuarioDeleteForm(root);
+        initUsuarioBloqueoForm(root);   
         initUsuarioDataTable(root);
 
         if (window.Usuarios && typeof window.Usuarios.initPasswordEdicion === 'function') {

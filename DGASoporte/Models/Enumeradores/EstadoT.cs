@@ -18,9 +18,7 @@ namespace DGASoporte.Models.Enumeradores
         Reabierto = 6,
         [Display(Name = "Escalada")]
         Escalado = 7,
-        [Display(Name = "Cerrado")]
-        Cerrado = 8,
         [Display(Name = "En Pausa")]
-        Pausado = 9
+        Pausado = 8
     }
 }

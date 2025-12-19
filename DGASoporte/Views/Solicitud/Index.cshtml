@@ -1,4 +1,5 @@
-﻿@model IEnumerable<DGASoporte.Models.Solicitud>
+﻿@using DGASoporte.Models.Enumeradores
+@model IEnumerable<DGASoporte.Models.Solicitud>
 
 @{
     ViewData["Title"] = "Lista de Solicitudes";
@@ -91,7 +92,30 @@
                 </div>
             </div>
         </div>
+        <div class="toast-container">
+            @if (TempData["Success"] != null)
+            {
+                <div class="toast-msg toast-success">
+                    <span class="toast-icon">✔</span>
+                    <span>@TempData["Success"]</span>
+                </div>
+            }
 
+            @if (TempData["Error"] != null)
+            {
+                <div class="toast-msg toast-error">
+                    <span class="toast-icon">⚠</span>
+                    <span>@TempData["Error"]</span>
+                </div>
+            }
+            @if (TempData["Alert"] != null)
+            {
+                <div class="toast-msg toast-alert">
+                    <span class="toast-icon">ℹ</span>
+                    <span>@TempData["Alert"]</span>
+                </div>
+            }
+        </div>
         <!-- Tarjetas de Estadísticas -->
         <div class="row g-3 mb-4 tarjetas">
             <!-- Total -->
@@ -270,17 +294,21 @@
                                         </td>
 
                                         <td class="col-estado">
-                                             @if (solicitud.Estado == DGASoporte.Models.Enumeradores.EstadoS.Enviada)
+                                             @if (solicitud.Estado == EstadoS.Enviada)
                                                 {
-                                                    <span class="badge rounded-pill bg-primary small">Enviada</span>
+                                                    <span class="badge rounded-pill bg-info small">Enviada</span>
                                                 }
-                                                else if (solicitud.Estado == DGASoporte.Models.Enumeradores.EstadoS.Aprobada)
+                                                else if (solicitud.Estado == EstadoS.Aprobada)
                                                 {
                                                     <span class="badge rounded-pill bg-success small">Aprobada</span>
                                                 }
-                                                else if (solicitud.Estado == DGASoporte.Models.Enumeradores.EstadoS.Rechazada)
+                                                else if (solicitud.Estado == EstadoS.Rechazada)
                                                 {
                                                     <span class="badge rounded-pill bg-danger small">Rechazada</span>
+                                                }
+                                                else if (solicitud.Estado == EstadoS.Cerrada)
+                                                {
+                                                    <span class="badge rounded-pill bg-primary small">Cerrada</span>
                                                 }
                                                 else
                                                 {
@@ -307,16 +335,7 @@
                                                         data-tipo="@solicitud.TipoIncidencia?.Nombre"
                                                         data-estado="@solicitud.Estado.ToString()">
                                                     <i class="bi bi-eye"></i>
-                                                </button>
-
-                                                @if (!solicitud.Archivada)
-                                                {
-                                                    <form asp-action="Archivar" asp-route-id="@solicitud.Id" method="post" class="d-inline">
-                                                        <button class="btn btn-warning btn-accion btn-sm" type="submit" title="Archivar">
-                                                            <i class="bi bi-archive"></i>
-                                                        </button>
-                                                    </form>
-                                                }
+                                                </button>                                            
                                             </div>
                                         </td>
                                     </tr>

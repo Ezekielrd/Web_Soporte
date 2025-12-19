@@ -640,8 +640,6 @@
         });
     }
 
-
-
     function initTareaDataTable(root) {
         root = root || document;
         console.log('[Tareas] initTablaTareas llamado en root:', root);
@@ -684,6 +682,10 @@
 
         console.log('[Tareas] DataTable inicializado correctamente');
 
+        dt.on('draw', function () {
+            actualizarResumenTareas(root, dt);
+        });
+
         // ============= FILTRO GLOBAL UNA SOLA VEZ =============
         if (!window.TareasFilterRegistered) {
             window.TareasFilterRegistered = true;
@@ -699,19 +701,24 @@
                 const row = rowData.nTr;
                 if (!row) return true;
 
-                // Leemos SIEMPRE los selects actuales (no referencias viejas)
+                // ====== selects actuales ======
+                const semanaSel = $('#filterSemana').val() || ''; // '' = todas
+                const diaSel = $('#filterDia').val() || '';       // '' = todos
                 const tecSel = $('#filterTecnico').val() || '';
                 const estSel = $('#filterEstado').val() || '';
                 const priSel = $('#filterPrioridad').val() || '';
                 const catSel = $('#filterCategoria').val() || '';
                 const quick = window.TareasQuickFilter || 'all';
 
+                // ====== datos de fila ======
                 const tecRow = (row.getAttribute('data-tecnico') || '').toString();
                 const estRow = (row.getAttribute('data-estado') || '').toString();
                 const priRow = (row.getAttribute('data-prioridad') || '').toString();
                 const catRow = (row.getAttribute('data-categoria') || '').toString();
                 const vencida = (row.getAttribute('data-vencida') || 'false').toLowerCase();
-                const fecha = row.getAttribute('data-fecha') || '';
+
+                // ✅ Fecha en ISO (yyyy-MM-dd) en tu <tr data-fecha="...">
+                const rowISO = (row.getAttribute('data-fecha') || '').toString();
 
                 // ---- filtros por selects ----
                 if (tecSel && tecRow !== tecSel) return false;
@@ -720,24 +727,41 @@
                 if (catSel && catRow !== catSel) return false;
 
                 // ---- quick filters ----
-                if (quick === 'vencidas' && vencida !== 'true')
-                    return false;
-
-                if (quick === 'sin-asignar' && tecRow) // tiene técnico → no pasa
-                    return false;
+                if (quick === 'vencidas' && vencida !== 'true') return false;
+                if (quick === 'sin-asignar' && tecRow) return false;
 
                 if (quick === 'hoy') {
-                    if (!fecha) return false;
+                    if (!rowISO) return false;
                     const hoy = new Date();
                     const yyyy = hoy.getFullYear();
                     const mm = ('0' + (hoy.getMonth() + 1)).slice(-2);
                     const dd = ('0' + hoy.getDate()).slice(-2);
                     const hoyStr = `${yyyy}-${mm}-${dd}`;
-                    if (fecha !== hoyStr) return false;
+                    if (rowISO !== hoyStr) return false;
+                }
+
+                // ---- filtro por día/semana (FechaCreacion) ----
+                if (!rowISO) return false; // si no hay fecha, no puede pasar
+                const rowDate = new Date(rowISO + 'T00:00:00');
+
+                // Día exacto
+                if (diaSel) {
+                    return rowISO === diaSel;
+                }
+
+                // Semana (rango). '' = todas las semanas => pasa
+                if (semanaSel !== '') {
+                    if (!window.__tareasWeeks || !window.__tareasWeeks.length) return false;
+
+                    const w = window.__tareasWeeks[parseInt(semanaSel, 10)];
+                    if (!w) return false;
+
+                    if (rowDate < w.start || rowDate > w.end) return false;
                 }
 
                 return true;
             });
+
 
             // ============= HANDLERS DELEGADOS (para recarga parcial) =============
 
@@ -765,6 +789,100 @@
         dt.draw();
     }
 
+    function actualizarResumenTareas(root, dt) {
+        root = root || document;
+
+        // Obtener instancia de DataTables
+        const api = dt || ($('#tablaTareas').DataTable ? $('#tablaTareas').DataTable() : null);
+        if (!api) return;
+
+        // Filas visibles (filtro aplicado)
+        const rows = api.rows({ filter: 'applied' }).nodes().toArray();
+
+        let total = 0;
+        let enEspera = 0;
+        let enProceso = 0;
+        let resuelta = 0;
+
+        const mapTecnicos = {}; // { id: { asignadas, pendientes, completadas } }
+
+        rows.forEach(function (row) {
+            const tr = row;
+            if (!(tr instanceof HTMLElement)) return;
+
+            total++;
+
+            const estado = (tr.getAttribute('data-estado') || '').toLowerCase();
+            const tecnicoId = (tr.getAttribute('data-tecnico') || '').toString();
+
+            if (estado === 'enespera') enEspera++;
+            else if (estado === 'enproceso') enProceso++;
+            else if (estado === 'resuelta') resuelta++;
+
+            if (tecnicoId) {
+                if (!mapTecnicos[tecnicoId]) {
+                    mapTecnicos[tecnicoId] = { asignadas: 0, pendientes: 0, completadas: 0 };
+                }
+                mapTecnicos[tecnicoId].asignadas++;
+                if (estado === 'enproceso') mapTecnicos[tecnicoId].pendientes++;
+                if (estado === 'resuelta') mapTecnicos[tecnicoId].completadas++;
+            }
+        });
+
+        // ---- Actualizar cards de resumen ----
+        function setText(id, value) {
+            const el = root.querySelector('#' + id);
+            if (el) el.textContent = value;
+        }
+
+        setText('totalTasks', total);
+        setText('overdueTasks', enEspera);
+        setText('pendingTasks', enProceso);
+        setText('completedTasks', resuelta);
+
+        // ---- Actualizar cards de técnicos ----
+        const cards = root.querySelectorAll('.tech-card');
+        cards.forEach(function (card) {
+            const id = (card.getAttribute('data-tech-id') || '').toString();
+            const stats = mapTecnicos[id] || { asignadas: 0, pendientes: 0, completadas: 0 };
+
+            const elAsig = card.querySelector('.js-tech-asignadas');
+            const elPend = card.querySelector('.js-tech-pendientes');
+            const elComp = card.querySelector('.js-tech-completadas');
+
+            if (elAsig) elAsig.textContent = stats.asignadas;
+            if (elPend) elPend.textContent = stats.pendientes;
+            if (elComp) elComp.textContent = stats.completadas;
+
+            // Badge "X tareas"
+            const badgeCount = card.querySelector('.tareas-count');
+            if (badgeCount) {
+                badgeCount.textContent = stats.asignadas + ' tareas';
+            }
+
+            // Disponibilidad
+            const badgeDisp = card.querySelector('.estado-disponibilidad');
+            if (badgeDisp) {
+                if (stats.asignadas === 0) {
+                    badgeDisp.textContent = 'Disponible';
+                    badgeDisp.classList.remove('bg-warning');
+                    badgeDisp.classList.add('bg-success');
+                } else {
+                    badgeDisp.textContent = 'No disponible';
+                    badgeDisp.classList.remove('bg-success');
+                    badgeDisp.classList.add('bg-warning');
+                }
+            }
+
+            // Color de la tarjeta según carga
+            card.classList.remove('available', 'busy', 'overloaded');
+            let statusClass;
+            if (stats.asignadas === 0) statusClass = 'available';
+            else if (stats.asignadas > 5) statusClass = 'overloaded';
+            else statusClass = 'busy';
+            card.classList.add(statusClass);
+        });
+    }
     function initDivisionUnidad(root) {
         root = root || document;
 
@@ -987,8 +1105,127 @@
             }
         });
     }
+    function initTareaFechaFiltros(root) {
+        root = root || document;
 
+        const selSemana = root.querySelector('#filterSemana');
+        const selDia = root.querySelector('#filterDia');
+        if (!selSemana || !selDia) return;
 
+        function pad2(n) { return (n < 10 ? '0' : '') + n; }
+        function toISO(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+
+        function startOfWeek(d) {
+            const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            const dow = x.getDay(); // 0 dom ... 1 lun
+            const diff = (dow === 0 ? -6 : 1 - dow);
+            x.setDate(x.getDate() + diff);
+            x.setHours(0, 0, 0, 0);
+            return x;
+        }
+
+        function addDays(d, days) {
+            const x = new Date(d);
+            x.setDate(x.getDate() + days);
+            x.setHours(0, 0, 0, 0);
+            return x;
+        }
+
+        function buildWeeksLast30() {
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const minDate = addDays(today, -30);
+
+            const weeks = [];
+            let cursor = startOfWeek(minDate);
+            const end = startOfWeek(today);
+
+            while (cursor <= end) {
+                const wStart = new Date(cursor);
+                const wEnd = addDays(wStart, 6);
+                weeks.push({ start: wStart, end: wEnd });
+                cursor = addDays(cursor, 7);
+            }
+            return weeks;
+        }
+
+        function fillSemana() {
+            const prev = selSemana.value || '';
+
+            // guardamos semanas global para que el filtro las use
+            window.__tareasWeeks = buildWeeksLast30();
+
+            selSemana.innerHTML = '';
+            selSemana.appendChild(new Option('Todas las semanas', ''));
+
+            window.__tareasWeeks.forEach((w, idx) => {
+                const label = `${w.start.toLocaleDateString('es-NI')} - ${w.end.toLocaleDateString('es-NI')}`;
+                selSemana.appendChild(new Option(`Semana ${idx + 1}: ${label}`, String(idx)));
+            });
+
+            // intenta restaurar si aplica
+            selSemana.value = prev;
+            fillDia();
+        }
+
+        function fillDia() {
+            const weekIndex = selSemana.value || '';
+
+            selDia.innerHTML = '';
+            selDia.appendChild(new Option('Todos los días', ''));
+
+            if (weekIndex === '') return; // todas las semanas => no listamos días
+
+            const w = (window.__tareasWeeks || [])[parseInt(weekIndex, 10)];
+            if (!w) return;
+
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const minDate = addDays(today, -30);
+
+            for (let i = 0; i < 7; i++) {
+                const d = addDays(w.start, i);
+
+                if (d < minDate) continue;
+                if (d > today) continue;
+
+                const iso = toISO(d);
+                const label = d.toLocaleDateString('es-NI', { weekday: 'short', day: '2-digit', month: 'short' });
+                selDia.appendChild(new Option(label, iso));
+            }
+        }
+
+        function redraw() {
+            if (!window.jQuery || !$.fn.DataTable) return;
+            const $t = $('#tablaTareas');
+            if (!$t.length) return;
+            $t.DataTable().draw();
+        }
+
+        // ✅ Eventos (delegados) una sola vez
+        if (!window.__tareasFechaFiltrosEventsBound) {
+            window.__tareasFechaFiltrosEventsBound = true;
+
+            $(document).on('change', '#filterSemana', function () {
+                // al cambiar semana => día vuelve a "Todos" + se rellena de nuevo
+                const dia = document.querySelector('#filterDia');
+                if (dia) dia.value = '';
+                // rellenar días usando semanas actuales
+                const rootNow = document;
+                const semanaNow = rootNow.querySelector('#filterSemana');
+                const diaNow = rootNow.querySelector('#filterDia');
+                if (semanaNow && diaNow) {        
+                    initTareaFechaFiltros(document);
+                }
+                redraw();
+            });
+
+            $(document).on('change', '#filterDia', function () {
+                redraw();
+            });
+        }
+
+        // ✅ SIEMPRE rellenar al cargar la vista
+        fillSemana();
+    }
 
     // === Inicializador "tipo usuarios.js" ===
     function initTareaForm(root) {
@@ -1003,6 +1240,7 @@
         initDivisionUnidad(root);
         initSelectTecnicos(root);
         initAutocompleteUsuarios(root); 
+        initTareaFechaFiltros(root);
 
         if (window.jQuery && $.validator && $.validator.unobtrusive) {
             $.validator.unobtrusive.parse(root);

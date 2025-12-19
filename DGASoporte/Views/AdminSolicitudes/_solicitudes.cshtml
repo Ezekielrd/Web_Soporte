@@ -9,13 +9,30 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <strong>Error:</strong> @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
+<div class="toast-container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast-msg toast-success">
+            <span class="toast-icon">✔</span>
+            <span>@TempData["Success"]</span>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="toast-msg toast-error">
+            <span class="toast-icon">⚠</span>
+            <span>@TempData["Error"]</span>
+        </div>
+    }
+    @if (TempData["Alert"] != null)
+    {
+        <div class="toast-msg toast-alert">
+            <span class="toast-icon">ℹ</span>
+            <span>@TempData["Alert"]</span>
+        </div>
+    }
+</div>
 <!-- Filtros -->
 <div class="row g-3 sol-filtros-wrapper mb-3">
 

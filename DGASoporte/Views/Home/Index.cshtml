@@ -184,6 +184,9 @@
                     // Guardamos el id para usarlo después de cargar el parcial
                     window._solicitudIdDesdeNotificacion = solicitudId;
 
+                         // ✅ fuerza el módulo correcto para que el autoload NO lo pise
+                    try { localStorage.setItem('adminLastView', 'Solicitudes'); } catch {}
+
                     const menuSolicitudes = document.querySelector(
                         '.sidebar-menu .menu-item[data-view="Solicitudes"]'
                     );
@@ -240,7 +243,42 @@
                 window._tareaIdDesdeNotificacion = null;
             };
 
+            window.onSolicitudesViewLoaded = function () {
+                let id = window._solicitudIdDesdeNotificacion;
 
+                if (!id) {
+                    const params = new URLSearchParams(window.location.search);
+                    id = params.get('solicitudId');
+                }
+
+                console.log('🎯 onSolicitudesViewLoaded() id =', id);
+                if (!id) return;
+
+                const selector = `.js-modal-link[data-solicitud-id="${id}"]`;
+
+                let attempts = 0;
+                const maxAttempts = 12;   // 12 intentos
+                const delayMs = 250;      // cada 250ms
+
+                const timer = setInterval(() => {
+                    attempts++;
+
+                    const btn = document.querySelector(selector);
+                    console.log(`🔎 Solicitudes intento ${attempts}: ${selector} ->`, !!btn);
+
+                    if (btn) {
+                        // ✅ abrir usando tu modalGeneral.js
+                        btn.click();
+                        clearInterval(timer);
+                        window._solicitudIdDesdeNotificacion = null;
+                    }
+
+                    if (attempts >= maxAttempts) {
+                        console.warn('❗ No se encontró el botón para abrir el modal de solicitud', id);
+                        clearInterval(timer);
+                    }
+                }, delayMs);
+            };
 
         })();
     </script>

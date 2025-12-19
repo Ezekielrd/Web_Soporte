@@ -12,7 +12,30 @@
     var niveles = Model.Niveles as IEnumerable<Nivel> ?? Enumerable.Empty<Nivel>();
 }
 <link href="~/css/Principal.css" rel="stylesheet" asp-append-version="true" />
+<div class="toast-container">
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast-msg toast-success">
+            <span class="toast-icon">✔</span>
+            <span>@TempData["Success"]</span>
+        </div>
+    }
 
+    @if (TempData["Error"] != null)
+    {
+        <div class="toast-msg toast-error">
+            <span class="toast-icon">⚠</span>
+            <span>@TempData["Error"]</span>
+        </div>
+    }
+    @if (TempData["Alert"] != null)
+    {
+        <div class="toast-msg toast-alert">
+            <span class="toast-icon">ℹ</span>
+            <span>@TempData["Alert"]</span>
+        </div>
+    }
+</div>
 <!-- Stats -->
 <div class="dashboard-stats-tareas no-select">
     <div class="stat-box-tareas primary">
@@ -27,8 +50,8 @@
     <div class="stat-box-tareas danger">
         <div class="stat-content-tareas">
             <div class="stat-info-tareas">
-                <h3 id="overdueTasks">@tareas.Count(t => t.Vencida)</h3>
-                <p>Tareas Vencidas</p>
+                <h3 id="overdueTasks">@tareas.Count(t => t.Estado?.ToString()=="EnEspera")</h3>
+                <p>En Espera</p>
             </div>
             <i class="bi bi-exclamation-triangle stat-icon-tareas"></i>
         </div>
@@ -36,7 +59,7 @@
     <div class="stat-box-tareas warning">
         <div class="stat-content-tareas">
             <div class="stat-info-tareas">
-                <h3 id="pendingTasks">@tareas.Count(t => t.Estado?.ToString().ToLower() == "EnProceso")</h3>
+                <h3 id="pendingTasks">@tareas.Count(t => t.Estado?.ToString() == "EnProceso")</h3>
                 <p>Pendientes</p>
             </div>
             <i class="bi bi-clock-history stat-icon-tareas"></i>
@@ -45,19 +68,10 @@
     <div class="stat-box-tareas success">
         <div class="stat-content-tareas">
             <div class="stat-info-tareas">
-                <h3 id="completedTasks">@tareas.Count(t => t.Estado?.ToString().ToLower() == "Cerrado")</h3>
+                <h3 id="completedTasks">@tareas.Count(t => t.Estado?.ToString() == "Resuelta")</h3>
                 <p>Completadas</p>
             </div>
             <i class="bi bi-check-circle stat-icon-tareas"></i>
-        </div>
-    </div>
-    <div class="stat-box-tareas info">
-        <div class="stat-content-tareas">
-            <div class="stat-info-tareas">
-                <h3 id="activeTechs">@tecnicos.Count()</h3>
-                <p>Técnicos Activos</p>
-            </div>
-            <i class="bi bi-person-badge stat-icon-tareas"></i>
         </div>
     </div>
 </div>
@@ -94,20 +108,29 @@
                                 var estaDisponible = (tareasActivas == 0);
                             }
 
-                            <span class="badge @(estaDisponible ? "bg-success" : "bg-warning")" style="font-size:.6rem">
+                            <span class="badge estado-disponibilidad@(estaDisponible ? "bg-success" : "bg-warning")" style="font-size:.6rem">
                                 @(estaDisponible ? "Disponible" : "No disponible")
                             </span>
 
-                            <span class="badge bg-primary" style="font-size:.6rem">
+                            <span class="badge tareas-count bg-primary" style="font-size:.6rem">
                                 @tareasActivas tareas
                             </span>
                         </div>
                     </div>
                 </div>
                 <div class="tech-stats">
-                    <div class="tech-stat"><div class="tech-stat-value">@tareasAsignadas</div><div class="tech-stat-label">Asignadas</div></div>
-                    <div class="tech-stat"><div class="tech-stat-value">@tareasPendientes</div><div class="tech-stat-label">Pendientes</div></div>
-                    <div class="tech-stat"><div class="tech-stat-value">@tareasCompletadas</div><div class="tech-stat-label">Completadas</div></div>
+                    <div class="tech-stat">
+                        <div class="tech-stat-value js-tech-asignadas">@tareasAsignadas</div>
+                        <div class="tech-stat-label">Asignadas</div>
+                    </div>
+                    <div class="tech-stat">
+                        <div class="tech-stat-value js-tech-pendientes">@tareasPendientes</div>
+                        <div class="tech-stat-label">Pendientes</div>
+                    </div>
+                    <div class="tech-stat">
+                        <div class="tech-stat-value js-tech-completadas">@tareasCompletadas</div>
+                        <div class="tech-stat-label">Completadas</div>
+                    </div>
                 </div>
             </div>
         }
@@ -122,7 +145,7 @@
 </div>
 <!--filtros-->
 <div class="filters-panel">
-    <div class="filters-row">
+    <div class="filters-grid-2">
         <!-- Técnico -->
         <div class="filter-group">
             <label><i class="bi bi-person"></i> Técnico</label>
@@ -134,7 +157,6 @@
                 }
             </select>
         </div>
-
         <!-- Estado -->
         <div class="filter-group">
             <label><i class="bi bi-circle-fill"></i> Estado</label>
@@ -147,7 +169,6 @@
                 }
             </select>
         </div>
-
         <!-- Prioridad -->
         <div class="filter-group">
             <label><i class="bi bi-flag"></i> Prioridad</label>
@@ -160,7 +181,6 @@
                 }
             </select>
         </div>
-
         <!-- Categoria -->
         <div class="filter-group">
             <label><i class="bi-list"></i> Categoria</label>
@@ -171,6 +191,18 @@
                     <option value="@c.Id">@c.Nombre</option>
                 }
             </select>
+        </div>
+        <!-- Semana -->
+        <div class="filter-group">
+            <label><i class="bi bi-calendar-week"></i> Semana</label>
+            <select id="filterSemana" class="filter-input"></select>
+            <small class="text-muted">Rango: últimos 30 días</small>
+        </div>
+        <!-- Día -->
+        <div class="filter-group">
+            <label><i class="bi bi-calendar-day"></i> Día</label>
+            <select id="filterDia" class="filter-input"></select>
+            <small class="text-muted">Días dentro de la semana</small>
         </div>
     </div>
 
@@ -223,8 +255,7 @@
                             data-tecnico="@tarea.TecnicoId"
                             data-categoria="@tarea.CategoriaId"
                             data-unidad="@tarea.UnidadId"
-                            data-titulo="@tarea.Titulo.ToLower()"
-                            data-creacion="@tarea.FechaCreacion.ToString().ToLower()"
+                            data-fecha="@tarea.FechaCreacion.ToString("yyyy-MM-dd")"
                             data-vencida="@(tarea.Vencida ? "true" : "false")">
                             
                             <td>
@@ -279,7 +310,7 @@
                                        asp-action="Edit" asp-controller="Tarea" asp-route-id="@tarea.Id">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    @if(!tarea.TecnicoId.HasValue)
+                                    @if(!tarea.TecnicoId.HasValue && tarea.Estado==EstadoT.Nuevo)
                                     {
                                         <a class="btn-action assign js-modal-link"
                                            title="Asignar"
@@ -287,7 +318,7 @@
                                             <i class="bi bi-person-plus"></i>
                                         </a>
                                     }
-                                    else
+                                    @if(tarea.TecnicoId.HasValue && tarea.Estado==EstadoT.EnEspera)
                                     {
                                         <a class="btn-action assign js-modal-link"
                                            title="ReAsignar"
@@ -300,6 +331,16 @@
                                        asp-action="Delete" asp-controller="Tarea" asp-route-id="@tarea.Id">
                                         <i class="bi bi-trash"></i>
                                     </a>
+                                    @if (tarea.Estado == EstadoT.Resuelta || tarea.Estado == EstadoT.EnEspera)
+                                    {
+                                        <a asp-controller="Reportes"
+                                           asp-action="ReporteIncidencia"
+                                           asp-route-id="@tarea.Id"
+                                           title="Reporte"
+                                           class="btn-action reporte">
+                                            <i class="bi bi-file-earmark-text me-1"></i>
+                                        </a>
+                                    }
                                 </div>
                             </td>
                         </tr>

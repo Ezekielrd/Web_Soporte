@@ -109,7 +109,30 @@
                 </div>
             </div>
         </div>
+        <div class="toast-container">
+            @if (TempData["Success"] != null)
+            {
+                <div class="toast-msg toast-success">
+                    <span class="toast-icon">✔</span>
+                    <span>@TempData["Success"]</span>
+                </div>
+            }
 
+            @if (TempData["Error"] != null)
+            {
+                <div class="toast-msg toast-error">
+                    <span class="toast-icon">⚠</span>
+                    <span>@TempData["Error"]</span>
+                </div>
+            }
+            @if (TempData["Alert"] != null)
+            {
+                <div class="toast-msg toast-alert">
+                    <span class="toast-icon">ℹ</span>
+                    <span>@TempData["Alert"]</span>
+                </div>
+            }
+        </div>
         <!-- Statistics Cards -->
         <div class="stats-cards">
             <div class="stat-card">

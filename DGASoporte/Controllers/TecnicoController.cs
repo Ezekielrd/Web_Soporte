@@ -303,7 +303,7 @@ namespace DGASoporte.Controllers
             // 👇 Aquí ya NO tocamos ni Estado ni InicioContador
             await _context.SaveChangesAsync(ct);
 
-            TempData["Alert"] = "Diagnóstico registrado correctamente.";
+            TempData["Success"] = "Diagnóstico registrado correctamente.";
             return RedirectToAction(nameof(Detalle), new { id = model.TareaId });
         }
 
@@ -598,7 +598,7 @@ namespace DGASoporte.Controllers
                 TieneReporte = tarea.TieneReporte,
                 EsPendiente = esPendiente ?? (tarea.Estado == EstadoT.EnEspera),
 
-                // 🔹 Vincular diagnóstico con reporte
+                //Vincular diagnóstico con reporte
                 ProblemaDetectado = diag?.Texto    // diagnóstico técnico del problema
             };
 
@@ -707,6 +707,13 @@ namespace DGASoporte.Controllers
 
             tarea.FechaCierre ??= DateTime.Now;
             tarea.FechaActualizacion = DateTime.Now;
+
+            if (tarea.SolicitudId.HasValue)
+            {
+                var solicitud = await _context.Solicitudes.FindAsync(tarea.SolicitudId);
+                if (solicitud != null)
+                    solicitud.Estado = EstadoS.Cerrada;
+            }
 
             await _context.SaveChangesAsync(ct);
 

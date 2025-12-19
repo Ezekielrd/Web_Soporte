@@ -81,7 +81,11 @@ namespace DGASoporte.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id, CancellationToken ct)
         {
-            if (id <= 0) return BadRequest("Identificador no válido.");
+            if (id <= 0)
+            {
+                TempData["Alert"] = "El Identificador no es Válido";
+                return Json(new { success = false, message = "El Identificador no es válido." });
+            }
 
             var vm = await _context.Tareas
                 .AsNoTracking()
@@ -131,8 +135,8 @@ namespace DGASoporte.Controllers
 
                 if (solicitud == null || solicitud.Estado != EstadoS.Enviada)
                 {
-                    Response.StatusCode = 400;
-                    return Content("La solicitud no existe o ya fue evaluada.");
+                        TempData["Alert"] = "El Identificador no es Válido";
+                        return Json(new { success = false, message = "El Identificador no es válido." });    
                 }
 
                 vm.SolicitudId = solicitud.Id;
@@ -354,13 +358,15 @@ namespace DGASoporte.Controllers
             }
         }
 
-
-
         //EDIT
         [HttpGet]
         public async Task<IActionResult> Edit(int id, CancellationToken ct)
         {
-            if (id <= 0) return BadRequest("Identificador no válido.");
+            if (id <= 0)
+            {
+                TempData["Alert"] = "El Identificador no es Válido";
+                return Json(new { success = false, message = "El Identificador no es válido." });
+            }
 
             var vm = await _context.Tareas
                 .AsNoTracking()
@@ -390,7 +396,11 @@ namespace DGASoporte.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, TareaFormVM vm, CancellationToken ct)
         {
-            if (id != vm.Id) return BadRequest("Identificadores no coinciden.");
+            if (id <= vm.Id)
+            {
+                TempData["Alert"] = "El Identificador no conciden";
+                return Json(new { success = false, message = "El Identificador no conciden." });
+            }
 
             // Validar fecha límite
             if (vm.FechaLimite != null && vm.FechaLimite < DateTime.Now.Date)
@@ -431,6 +441,8 @@ namespace DGASoporte.Controllers
             t.FechaActualizacion = DateTime.Now.ToLocalTime();
             try
             {
+
+                TempData["Success"] = "Tarea Editada Exisitosamente";
                 await _context.SaveChangesAsync(ct);
                 return Json(new { success = true });
             }
@@ -454,8 +466,11 @@ namespace DGASoporte.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            if (id <= 0) return BadRequest("Identificador no válido.");
-
+            if (id <= 0)
+            {
+                TempData["Alert"] = "El Identificador no es Válido";
+                return Json(new { success = false, message = "El Identificador no es válido." });
+            }
             var t = await _context.Tareas
                 .Include(x => x.Unidad)
                  .Include(t => t.Categoria)
@@ -472,7 +487,10 @@ namespace DGASoporte.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken ct)
         {
             if (id <= 0)
+            {
+                TempData["Alert"] = "El Identificador no es Válido";
                 return Json(new { success = false, message = "El Identificador no es válido." });
+            }
 
             try
             {
@@ -483,7 +501,8 @@ namespace DGASoporte.Controllers
                 _context.Remove(t);
                 await _context.SaveChangesAsync(ct);
 
-                // ⬇️ El JS global se encarga de cerrar modal y recargar _tareas
+
+                TempData["Success"] = "Tarea Eliminada Correctamente";  
                 return Json(new { success = true, message = "Tarea eliminada correctamente" });
             }
             catch (DbUpdateConcurrencyException)
@@ -538,6 +557,7 @@ namespace DGASoporte.Controllers
             // luego añadimos aquí la validación de tecnicoId <= 0
             if (tareaId <= 0 || tecnicoId <= 0)
             {
+                TempData["Alert"] = "El Identificador no es Válido";
                 return Json(new
                 {
                     success = false,
@@ -669,6 +689,7 @@ namespace DGASoporte.Controllers
                 var tarea = await _context.Tareas.FindAsync(id);
                 if (tarea == null)
                 {
+                    TempData["Alert"] = "Tarea no Encontrada";
                     return Json(new { success = false, message = "Tarea no encontrada." });
                 }
 
